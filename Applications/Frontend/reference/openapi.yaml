@@ -1,0 +1,520 @@
+openapi: 3.1.0
+info:
+  title: Learning Platform API
+  version: 1.0.0
+servers:
+  - url: /api
+security:
+  - FirebaseBearer: []
+paths:
+  /health:
+    get:
+      security: []
+      responses:
+        "200":
+          description: Database and API are available.
+  /me:
+    get:
+      responses:
+        "200":
+          description: Current database-backed user profile.
+        "401":
+          description: Missing or invalid Firebase token.
+  /courses:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+        - in: query
+          name: q
+          schema: { type: string, maxLength: 200 }
+        - in: query
+          name: category
+          schema: { type: string, maxLength: 100 }
+      responses:
+        "200":
+          description: Published course catalog.
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CourseCreate"
+      responses:
+        "201":
+          description: Course created in draft status.
+        "400":
+          description: Invalid or unknown input fields.
+  /courses/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Uuid"
+    get:
+      responses:
+        "200": { description: Course detail and safe item metadata. }
+        "404": { description: Course not found or not permitted. }
+    delete:
+      responses:
+        "204": { description: Course deleted or archived. }
+    patch:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              minProperties: 1
+              properties:
+                title: { type: string, minLength: 1, maxLength: 200 }
+                description: { type: string, maxLength: 20000 }
+                category: { type: [string, "null"], maxLength: 100 }
+                thumbnailUrl: { type: [string, "null"], format: uri }
+                tags: { type: array, maxItems: 30, items: { type: string } }
+                estimatedDurationMinutes:
+                  { type: [integer, "null"], minimum: 0 }
+      responses:
+        "200":
+          {
+            description: Course fields updated according to minor/major policy.,
+          }
+        "409":
+          { description: Course locked or a major edit requires a revision. }
+  /courses/{id}/submit:
+    parameters:
+      - $ref: "#/components/parameters/Uuid"
+    post:
+      responses:
+        "204": { description: Course submitted for review. }
+        "422": { description: Course completeness validation failed. }
+  /courses/{courseId}/authoring:
+    parameters:
+      - in: path
+        name: courseId
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      responses:
+        "200":
+          {
+            description: Owner/admin content tree; the only endpoint returning correct answers.,
+          }
+        "404": { description: Course not found or not permitted. }
+  /courses/{courseId}/modules:
+    parameters:
+      - in: path
+        name: courseId
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [title]
+              properties:
+                title: { type: string, minLength: 1 }
+                description: { type: string }
+      responses:
+        "201": { description: Module created. }
+        "409": { description: Published course requires a structural revision. }
+  /courses/{courseId}/modules/order:
+    parameters:
+      - in: path
+        name: courseId
+        required: true
+        schema: { type: string, format: uuid }
+    put:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [moduleIds]
+              properties:
+                moduleIds:
+                  { type: array, items: { type: string, format: uuid } }
+      responses:
+        "204": { description: Module ordering updated. }
+  /modules/{moduleId}:
+    parameters:
+      - in: path
+        name: moduleId
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      responses:
+        "204": { description: Module title/description updated. }
+    delete:
+      responses:
+        "204": { description: Module removed. }
+        "409": { description: Published course requires a structural revision. }
+  /modules/{moduleId}/items:
+    parameters:
+      - in: path
+        name: moduleId
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [type, title]
+              properties:
+                type: { type: string, enum: [video, pdf, exam] }
+                title: { type: string }
+                url: { type: string }
+                fileKey: { type: string, pattern: "^[0-9a-fA-F-]{36}\\.pdf$" }
+                questions: { type: array, minItems: 1 }
+      responses:
+        "201": { description: Module item created. }
+        "422": { description: Media link or PDF failed verification. }
+  /modules/{moduleId}/items/order:
+    parameters:
+      - in: path
+        name: moduleId
+        required: true
+        schema: { type: string, format: uuid }
+    put:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [itemIds]
+              properties:
+                itemIds: { type: array, items: { type: string, format: uuid } }
+      responses:
+        "204": { description: Item ordering updated. }
+  /items/{itemId}:
+    parameters:
+      - $ref: "#/components/parameters/ItemUuid"
+    patch:
+      responses:
+        "204": { description: Item title or type-specific details updated. }
+        "409": { description: Published structural edit requires a revision. }
+    delete:
+      responses:
+        "204": { description: Item and its cascading progress removed. }
+  /items/{itemId}/questions:
+    parameters:
+      - $ref: "#/components/parameters/ItemUuid"
+    put:
+      responses:
+        "204": { description: Exam questions reconciled by id. }
+        "409":
+          {
+            description: Published course requires a revision or references are stale.,
+          }
+  /me/courses:
+    get:
+      responses:
+        "200": { description: Courses owned by the current user. }
+  /me/enrollments:
+    get:
+      responses:
+        "200": { description: Enrollments and course progress. }
+  /courses/{id}/enroll:
+    parameters:
+      - $ref: "#/components/parameters/Uuid"
+    post:
+      responses:
+        "201": { description: New enrollment. }
+        "200": { description: Existing enrollment returned idempotently. }
+        "409":
+          {
+            description: Course is locked,
+            unpublished,
+            or owned by the learner.,
+          }
+    delete:
+      responses:
+        "204":
+          { description: Enrollment removed; progress and exam history remain. }
+  /pdf-uploads:
+    post:
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        "201":
+          {
+            description: PDF validated and saved without attaching it to course content.,
+          }
+        "413": { description: File exceeds 50 MB. }
+        "422": { description: Invalid, corrupt, or encrypted PDF. }
+  /items/{itemId}/video:
+    parameters:
+      - $ref: "#/components/parameters/ItemUuid"
+    get:
+      responses:
+        "200": { description: Authorized YouTube video identifier. }
+        "404": { description: Item not found or not permitted. }
+  /items/{itemId}/pdf:
+    parameters:
+      - $ref: "#/components/parameters/ItemUuid"
+    get:
+      responses:
+        "200":
+          { description: Nginx internal redirect streams the authorized PDF. }
+        "404": { description: Item not found or not permitted. }
+  /items/{itemId}/progress:
+    parameters:
+      - $ref: "#/components/parameters/ItemUuid"
+    put:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                lastPositionSeconds: { type: integer, minimum: 0 }
+                completed: { type: boolean }
+      responses:
+        "204": { description: Progress updated. }
+        "404": { description: Item not found or not enrolled. }
+  /exams/{examId}:
+    parameters:
+      - in: path
+        name: examId
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      responses:
+        "200": { description: Exam questions without correct-answer flags. }
+        "404": { description: Exam not found or not permitted. }
+  /exams/{examId}/start:
+    parameters:
+      - in: path
+        name: examId
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      responses:
+        "201":
+          {
+            description: Existing open attempt resumed or a new attempt started.,
+          }
+        "409": { description: Attempt limit reached. }
+  /exams/{examId}/attempts:
+    parameters:
+      - in: path
+        name: examId
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      responses:
+        "200": { description: Current user's attempt history. }
+  /attempts/{attemptId}/submit:
+    parameters:
+      - in: path
+        name: attemptId
+        required: true
+        schema: { type: string, format: uuid }
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [answers]
+              properties:
+                answers: { type: array }
+      responses:
+        "200": { description: Graded attempt and conditional answer reveal. }
+        "410": { description: Late submit recorded as a zero-score failure. }
+        "409": { description: Attempt already submitted. }
+  /admin/users:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+        - in: query
+          name: q
+          schema: { type: string }
+        - in: query
+          name: role
+          schema: { type: string, enum: [user, admin] }
+        - in: query
+          name: status
+          schema: { type: string, enum: [active, suspended] }
+      responses:
+        "200": { description: Paginated users; administrator only. }
+        "403": { description: Administrator access required. }
+  /admin/users/{id}/role:
+    parameters:
+      - $ref: "#/components/parameters/Uuid"
+    patch:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [role]
+              properties:
+                role: { type: string, enum: [user, admin] }
+      responses:
+        "200":
+          {
+            description: Role change and Firebase claim synchronization status.,
+          }
+  /admin/users/{id}/status:
+    parameters:
+      - $ref: "#/components/parameters/Uuid"
+    patch:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [status]
+              properties:
+                status: { type: string, enum: [active, suspended] }
+      responses:
+        "200": { description: Account status and session revocation status. }
+  /admin/courses:
+    get:
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          { description: All courses, optionally filtered by status and title. }
+  /admin/moderation:
+    get:
+      responses:
+        "200": { description: Pending course review queue. }
+  /admin/courses/{id}/approve:
+    parameters:
+      - $ref: "#/components/parameters/Uuid"
+    post:
+      responses:
+        "204": { description: Course published. }
+  /admin/courses/{id}/reject:
+    parameters:
+      - $ref: "#/components/parameters/Uuid"
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [reason]
+              properties:
+                reason: { type: string, minLength: 1 }
+      responses:
+        "204": { description: Course returned to editable rejected status. }
+  /admin/analytics/overview:
+    get:
+      responses:
+        "200":
+          { description: Aggregate user, course, enrollment, and exam metrics. }
+  /admin/analytics/enrollments:
+    get:
+      parameters:
+        - in: query
+          name: from
+          required: true
+          schema: { type: string, format: date }
+        - in: query
+          name: to
+          required: true
+          schema: { type: string, format: date }
+        - in: query
+          name: interval
+          schema: { type: string, enum: [day, week, month], default: day }
+        - in: query
+          name: courseId
+          schema: { type: string, format: uuid }
+      responses:
+        "200": { description: UTC zero-filled enrollment time series. }
+        "422": { description: Invalid or greater-than-400-day time window. }
+  /admin/analytics/courses:
+    get:
+      responses:
+        "200": { description: Top courses by enrollment count. }
+  /admin/analytics/courses/{courseId}:
+    parameters:
+      - in: path
+        name: courseId
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      responses:
+        "200": { description: Course enrollment, completion, and exam metrics. }
+  /admin/videos/unavailable:
+    get:
+      responses:
+        "200":
+          { description: Unavailable videos requiring administrator attention. }
+  /admin/jobs/youtube-check:
+    post:
+      responses:
+        "200": { description: YouTube check counters. }
+components:
+  securitySchemes:
+    FirebaseBearer:
+      type: http
+      scheme: bearer
+      bearerFormat: Firebase ID token
+  parameters:
+    Uuid:
+      in: path
+      name: id
+      required: true
+      schema: { type: string, format: uuid }
+    ItemUuid:
+      in: path
+      name: itemId
+      required: true
+      schema: { type: string, format: uuid }
+    Page:
+      in: query
+      name: page
+      schema: { type: integer, minimum: 1, default: 1 }
+    PageSize:
+      in: query
+      name: pageSize
+      schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+  schemas:
+    CourseCreate:
+      type: object
+      additionalProperties: false
+      required: [title]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, maxLength: 20000, default: "" }
+        category: { type: [string, "null"], maxLength: 100 }
+        thumbnailUrl: { type: [string, "null"], format: uri }
+        tags:
+          type: array
+          maxItems: 30
+          items: { type: string, minLength: 1, maxLength: 40 }
+        estimatedDurationMinutes: { type: [integer, "null"], minimum: 0 }
