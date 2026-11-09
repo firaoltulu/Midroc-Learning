@@ -1,22 +1,22 @@
 import { Button, Container } from '@mui/material';
 import { createRootRoute, Outlet, type ErrorComponentProps } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { useEffect } from 'react';
 import { AppShell } from '../shared/ui/app-shell';
 import { PageHeader } from '../shared/ui/page-header';
-import { useLanguage } from '../shared/i18n/language-provider';
 
 function NotFound() {
-  const { messages } = useLanguage();
+  const { t } = useTranslation('common');
 
   return (
     <Container maxWidth="md" sx={{ py: 8 }}>
-      <PageHeader title={messages.notFoundTitle} description={messages.notFoundDescription} />
+      <PageHeader title={t('notFoundTitle')} description={t('notFoundDescription')} />
     </Container>
   );
 }
 
 function RouteError({ error, reset }: ErrorComponentProps) {
-  const { messages } = useLanguage();
+  const { t } = useTranslation('common');
 
   useEffect(() => {
     console.error('Route rendering failed.', error);
@@ -30,11 +30,11 @@ function RouteError({ error, reset }: ErrorComponentProps) {
     <AppShell>
       <Container maxWidth="md" sx={{ py: 8 }}>
         <PageHeader
-          title={messages.routeErrorTitle}
-          description={messages.routeErrorDescription}
+          title={t('routeErrorTitle')}
+          description={t('routeErrorDescription')}
           actions={
             <Button variant="contained" onClick={retry}>
-              {messages.retry}
+              {t('retry')}
             </Button>
           }
         />

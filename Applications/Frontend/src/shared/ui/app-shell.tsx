@@ -14,10 +14,10 @@ import {
 } from '@mui/material';
 import { useColorScheme } from '@mui/material/styles';
 import { Link } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 import { useState, type PropsWithChildren } from 'react';
 import { BrandLogo } from '../brand/brand-logo';
 import { LanguageSwitcher } from '../i18n/language-switcher';
-import { useLanguage } from '../i18n/language-provider';
 
 type ThemeMode = 'system' | 'light' | 'dark';
 type NavigationTarget = '/' | '/design';
@@ -44,18 +44,18 @@ function AppNavLink({ to, children, onClick }: AppNavLinkProps) {
 
 export function AppShell({ children }: PropsWithChildren) {
   const { mode, setMode } = useColorScheme();
-  const { messages } = useLanguage();
+  const { t } = useTranslation('common');
   const [themeAnchor, setThemeAnchor] = useState<HTMLElement | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const selectedMode: ThemeMode = mode === 'light' || mode === 'dark' ? mode : 'system';
   const navigation = [
-    { to: '/' as const, label: messages.homeNavigation },
-    { to: '/design' as const, label: messages.designNavigation }
+    { to: '/' as const, label: t('homeNavigation') },
+    { to: '/design' as const, label: t('designNavigation') }
   ];
   const themeOptions: { value: ThemeMode; label: string }[] = [
-    { value: 'system', label: messages.themeSystem },
-    { value: 'light', label: messages.themeLight },
-    { value: 'dark', label: messages.themeDark }
+    { value: 'system', label: t('themeSystem') },
+    { value: 'light', label: t('themeLight') },
+    { value: 'dark', label: t('themeDark') }
   ];
 
   function renderNavigation(mobile = false) {
@@ -78,7 +78,7 @@ export function AppShell({ children }: PropsWithChildren) {
         href="#main-content"
         sx={{ backgroundColor: 'background.paper', color: 'text.primary' }}
       >
-        {messages.skipToContent}
+        {t('skipToContent')}
       </Box>
       <AppBar position="static">
         <Toolbar disableGutters sx={{ minHeight: '72px !important' }}>
@@ -94,7 +94,7 @@ export function AppShell({ children }: PropsWithChildren) {
             <BrandLogo />
             <Box
               component="nav"
-              aria-label={messages.navigationLabel}
+              aria-label={t('navigationLabel')}
               sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1 }}
             >
               {renderNavigation()}
@@ -102,9 +102,10 @@ export function AppShell({ children }: PropsWithChildren) {
             <Stack direction="row" alignItems="center" spacing={0.5}>
               <LanguageSwitcher />
               <IconButton
-                aria-label={messages.changeTheme}
+                aria-label={t('changeTheme')}
                 aria-haspopup="menu"
                 aria-expanded={themeAnchor !== null}
+                title={t('changeTheme')}
                 onClick={(event) => setThemeAnchor(event.currentTarget)}
               >
                 <PaletteOutlinedIcon />
@@ -113,7 +114,7 @@ export function AppShell({ children }: PropsWithChildren) {
                 anchorEl={themeAnchor}
                 open={themeAnchor !== null}
                 onClose={() => setThemeAnchor(null)}
-                MenuListProps={{ 'aria-label': messages.changeTheme }}
+                MenuListProps={{ 'aria-label': t('changeTheme') }}
               >
                 {themeOptions.map((option) => (
                   <MenuItem
@@ -129,7 +130,7 @@ export function AppShell({ children }: PropsWithChildren) {
                 ))}
               </Menu>
               <IconButton
-                aria-label={messages.openNavigation}
+                aria-label={t('openNavigation')}
                 onClick={() => setDrawerOpen(true)}
                 sx={{ display: { xs: 'inline-flex', md: 'none' } }}
               >
@@ -144,11 +145,11 @@ export function AppShell({ children }: PropsWithChildren) {
         <Box sx={{ width: 'min(84vw, 320px)', p: 2 }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
             <BrandLogo />
-            <IconButton aria-label={messages.closeNavigation} onClick={() => setDrawerOpen(false)}>
+            <IconButton aria-label={t('closeNavigation')} onClick={() => setDrawerOpen(false)}>
               <CloseIcon />
             </IconButton>
           </Stack>
-          <Stack component="nav" aria-label={messages.navigationLabel} spacing={1}>
+          <Stack component="nav" aria-label={t('navigationLabel')} spacing={1}>
             {renderNavigation(true)}
           </Stack>
         </Box>

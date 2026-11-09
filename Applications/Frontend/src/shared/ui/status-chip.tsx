@@ -1,5 +1,5 @@
 import { Chip } from '@mui/material';
-import { useLanguage } from '../i18n/language-provider';
+import { useTranslation } from 'react-i18next';
 
 export type Status =
   | 'draft'
@@ -31,17 +31,17 @@ export function getStatusTone(status: Status): StatusTone {
 }
 
 export function StatusChip({ status }: { status: Status }) {
-  const { messages } = useLanguage();
+  const { t } = useTranslation('common');
   const label = {
-    draft: messages.statusDraft,
-    pending_review: messages.statusPendingReview,
-    published: messages.statusPublished,
-    rejected: messages.statusRejected,
-    archived: messages.statusArchived,
-    active: messages.statusActive,
-    suspended: messages.statusSuspended,
-    completed: messages.statusCompleted,
-    not_started: messages.statusNotStarted
+    draft: t('status.draft'),
+    pending_review: t('status.pendingReview'),
+    published: t('status.published'),
+    rejected: t('status.rejected'),
+    archived: t('status.archived'),
+    active: t('status.active'),
+    suspended: t('status.suspended'),
+    completed: t('status.completed'),
+    not_started: t('status.notStarted')
   }[status];
   const tone = getStatusTone(status);
 

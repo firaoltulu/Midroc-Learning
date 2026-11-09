@@ -1,11 +1,11 @@
 import { Box, Card, CardContent, Container, Stack, Typography } from '@mui/material';
-import { useLanguage } from '../../shared/i18n/language-provider';
+import { useTranslation } from 'react-i18next';
 
 export function HomePage() {
-  const { messages } = useLanguage();
+  const { t } = useTranslation('home');
 
   return (
-    <Box component="section" aria-label={messages.welcome}>
+    <Box component="section" aria-label={t('welcome')}>
       <Container maxWidth="lg" sx={{ py: { xs: 5, md: 9 } }}>
         <Box
           sx={{
@@ -22,7 +22,7 @@ export function HomePage() {
               fontWeight={700}
               letterSpacing="0.12em"
             >
-              {messages.welcome}
+              {t('welcome')}
             </Typography>
             <Typography
               component="h1"
@@ -33,14 +33,14 @@ export function HomePage() {
                 maxWidth: '12ch'
               }}
             >
-              {messages.headline}
+              {t('headline')}
             </Typography>
             <Typography
               variant="body1"
               color="text.secondary"
               sx={{ fontSize: { xs: '1rem', md: '1.125rem' }, lineHeight: 1.75, maxWidth: 560 }}
             >
-              {messages.description}
+              {t('description')}
             </Typography>
           </Stack>
 
@@ -80,10 +80,10 @@ export function HomePage() {
             >
               <Stack spacing={1}>
                 <Typography variant="overline" color="text.secondary" fontWeight={700}>
-                  {messages.nextStepLabel}
+                  {t('nextStepLabel')}
                 </Typography>
                 <Typography variant="h2" sx={{ fontSize: { xs: '1.75rem', sm: '2rem' } }}>
-                  {messages.nextStepTitle}
+                  {t('nextStepTitle')}
                 </Typography>
               </Stack>
               <Stack spacing={2}>
@@ -97,10 +97,10 @@ export function HomePage() {
                   }}
                 />
                 <Typography color="text.secondary" lineHeight={1.7}>
-                  {messages.nextStepDescription}
+                  {t('nextStepDescription')}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" fontWeight={600}>
-                  {messages.comingSoon}
+                  {t('comingSoon')}
                 </Typography>
               </Stack>
             </CardContent>

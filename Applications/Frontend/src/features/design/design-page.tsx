@@ -1,7 +1,7 @@
 import AutoStoriesOutlinedIcon from '@mui/icons-material/AutoStoriesOutlined';
 import { Box, Button, Card, CardContent, Container, Stack, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
-import { useLanguage } from '../../shared/i18n/language-provider';
 import { useToast } from '../../shared/ui/toast-provider';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog';
 import { EmptyState } from '../../shared/ui/empty-state';
@@ -89,18 +89,19 @@ function ThemePreview({
 }
 
 export function DesignPage() {
-  const { messages } = useLanguage();
+  const { t: tCommon } = useTranslation('common');
+  const { t: tDesign } = useTranslation('design');
   const { showToast } = useToast();
   const [dialogOpen, setDialogOpen] = useState(false);
 
   function confirmAction() {
     setDialogOpen(false);
-    showToast(messages.confirmationComplete);
+    showToast(tCommon('confirmationComplete'));
   }
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
-      <PageHeader title={messages.designTitle} description={messages.designDescription} />
+      <PageHeader title={tDesign('title')} description={tDesign('description')} />
       <Box
         sx={{
           display: 'grid',
@@ -110,29 +111,29 @@ export function DesignPage() {
       >
         <ThemePreview
           mode="light"
-          title={messages.lightThemePreview}
-          emptyStateTitle={messages.emptyTitle}
-          emptyStateDescription={messages.emptyDescription}
-          skeletonLabel={messages.skeletonPreview}
-          confirmLabel={messages.openDialog}
+          title={tDesign('lightThemePreview')}
+          emptyStateTitle={tCommon('emptyTitle')}
+          emptyStateDescription={tCommon('emptyDescription')}
+          skeletonLabel={tCommon('skeletonPreview')}
+          confirmLabel={tCommon('openDialog')}
           onOpenDialog={() => setDialogOpen(true)}
         />
         <ThemePreview
           mode="dark"
-          title={messages.darkThemePreview}
-          emptyStateTitle={messages.emptyTitle}
-          emptyStateDescription={messages.emptyDescription}
-          skeletonLabel={messages.skeletonPreview}
-          confirmLabel={messages.openDialog}
+          title={tDesign('darkThemePreview')}
+          emptyStateTitle={tCommon('emptyTitle')}
+          emptyStateDescription={tCommon('emptyDescription')}
+          skeletonLabel={tCommon('skeletonPreview')}
+          confirmLabel={tCommon('openDialog')}
           onOpenDialog={() => setDialogOpen(true)}
         />
       </Box>
       <ConfirmDialog
         open={dialogOpen}
-        title={messages.confirmTitle}
-        description={messages.confirmDescription}
-        confirmLabel={messages.confirm}
-        cancelLabel={messages.cancel}
+        title={tCommon('confirmTitle')}
+        description={tCommon('confirmDescription')}
+        confirmLabel={tCommon('confirm')}
+        cancelLabel={tCommon('cancel')}
         onCancel={() => setDialogOpen(false)}
         onConfirm={confirmAction}
       />
