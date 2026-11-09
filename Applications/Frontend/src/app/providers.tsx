@@ -1,10 +1,13 @@
-import { CssBaseline, ThemeProvider } from '@mui/material';
+import CssBaseline from '@mui/material/CssBaseline';
+import InitColorSchemeScript from '@mui/material/InitColorSchemeScript';
+import { ThemeProvider } from '@mui/material/styles';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from '@tanstack/react-router';
 import { useState } from 'react';
 import { router } from './router';
-import { theme } from './theme';
+import theme from '../shared/theme/theme';
 import { LanguageProvider } from '../shared/i18n/language-provider';
+import { ToastProvider } from '../shared/ui/toast-provider';
 
 export function AppProviders() {
   const [queryClient] = useState(
@@ -20,13 +23,18 @@ export function AppProviders() {
   );
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <QueryClientProvider client={queryClient}>
-        <LanguageProvider>
-          <RouterProvider router={router} />
-        </LanguageProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+    <>
+      <InitColorSchemeScript defaultMode="system" attribute="data" />
+      <ThemeProvider theme={theme} defaultMode="system">
+        <CssBaseline enableColorScheme />
+        <QueryClientProvider client={queryClient}>
+          <LanguageProvider>
+            <ToastProvider>
+              <RouterProvider router={router} />
+            </ToastProvider>
+          </LanguageProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </>
   );
 }

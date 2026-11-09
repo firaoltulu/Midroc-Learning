@@ -1,76 +1,12 @@
-import LanguageIcon from '@mui/icons-material/Language';
-import AutoStoriesOutlinedIcon from '@mui/icons-material/AutoStoriesOutlined';
-import { Box, Card, CardContent, Container, IconButton, Stack, Typography } from '@mui/material';
+import { Box, Card, CardContent, Container, Stack, Typography } from '@mui/material';
 import { useLanguage } from '../../shared/i18n/language-provider';
 
 export function HomePage() {
-  const { language, messages, toggleLanguage } = useLanguage();
+  const { messages } = useLanguage();
 
   return (
-    <Box component="main" id="main-content" sx={{ minHeight: '100vh' }}>
-      <Box
-        component="header"
-        sx={{
-          borderBottom: 1,
-          borderColor: 'divider',
-          backgroundColor: 'background.paper'
-        }}
-      >
-        <Container
-          maxWidth="lg"
-          sx={{
-            minHeight: 76,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 2
-          }}
-        >
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <Box
-              aria-hidden="true"
-              sx={{
-                width: 40,
-                height: 40,
-                display: 'grid',
-                placeItems: 'center',
-                borderRadius: 2.5,
-                color: 'primary.contrastText',
-                backgroundColor: 'primary.main'
-              }}
-            >
-              <AutoStoriesOutlinedIcon fontSize="small" />
-            </Box>
-            <Typography variant="subtitle1" fontWeight={700} color="text.primary">
-              {messages.brand}
-            </Typography>
-          </Stack>
-          <Stack direction="row" alignItems="center" spacing={0.5}>
-            <LanguageIcon fontSize="small" color="action" aria-hidden="true" />
-            <IconButton
-              aria-label={`${messages.languageLabel}: ${language === 'en' ? messages.languageAmharic : messages.languageEnglish}`}
-              onClick={toggleLanguage}
-              sx={{
-                minWidth: 44,
-                minHeight: 44,
-                borderRadius: 2,
-                color: 'primary.dark',
-                fontSize: '0.875rem',
-                fontWeight: 700
-              }}
-            >
-              {language === 'en' ? messages.switchToAmharic : messages.switchToEnglish}
-            </IconButton>
-          </Stack>
-        </Container>
-      </Box>
-
-      <Container
-        component="section"
-        aria-label={messages.welcome}
-        maxWidth="lg"
-        sx={{ py: { xs: 5, md: 9 } }}
-      >
+    <Box component="section" aria-label={messages.welcome}>
+      <Container maxWidth="lg" sx={{ py: { xs: 5, md: 9 } }}>
         <Box
           sx={{
             display: 'grid',

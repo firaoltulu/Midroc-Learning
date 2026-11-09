@@ -37,6 +37,17 @@ export function LanguageProvider({ children }: PropsWithChildren) {
     document.title = activeMessages.title;
   }, [activeMessages.title, language]);
 
+  useEffect(() => {
+    if (language === 'am') {
+      void Promise.all([
+        import('@fontsource/noto-sans-ethiopic/400.css'),
+        import('@fontsource/noto-sans-ethiopic/600.css')
+      ]).catch((error: unknown) => {
+        console.error('Unable to load the Amharic font.', error);
+      });
+    }
+  }, [language]);
+
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 

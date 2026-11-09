@@ -1,11 +1,13 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { HomePage } from '../features/home';
+import { LanguageSwitcher } from '../shared/i18n/language-switcher';
 import { LanguageProvider } from '../shared/i18n/language-provider';
 
 function renderHome() {
   return render(
     <LanguageProvider>
+      <LanguageSwitcher />
       <HomePage />
     </LanguageProvider>
   );
