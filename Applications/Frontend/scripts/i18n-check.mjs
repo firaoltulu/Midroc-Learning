@@ -107,6 +107,13 @@ for (const path of sourceFiles) {
     for (const call of contents.matchAll(calls)) {
       referencedKeys.add(`${namespace}:${call[1]}`);
     }
+    const dynamicCall = new RegExp(`\\b${functionName}\\(\\s*\`([\\w.-]+)\\$\\{`, 'g');
+    for (const call of contents.matchAll(dynamicCall)) {
+      const prefix = call[1];
+      for (const key of english.get(namespace)?.keys() ?? []) {
+        if (key.startsWith(prefix)) referencedKeys.add(`${namespace}:${key}`);
+      }
+    }
   }
 }
 

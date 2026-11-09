@@ -18,9 +18,10 @@ import { useTranslation } from 'react-i18next';
 import { useState, type PropsWithChildren } from 'react';
 import { BrandLogo } from '../brand/brand-logo';
 import { LanguageSwitcher } from '../i18n/language-switcher';
+import { useAuth } from '../auth/auth-provider';
 
 type ThemeMode = 'system' | 'light' | 'dark';
-type NavigationTarget = '/' | '/design';
+type NavigationTarget = '/' | '/design' | '/account' | '/login' | '/verify-email' | '/suspended';
 
 interface AppNavLinkProps {
   to: NavigationTarget;
@@ -45,13 +46,23 @@ function AppNavLink({ to, children, onClick }: AppNavLinkProps) {
 export function AppShell({ children }: PropsWithChildren) {
   const { mode, setMode } = useColorScheme();
   const { t } = useTranslation('common');
+  const { state: authState } = useAuth();
   const [themeAnchor, setThemeAnchor] = useState<HTMLElement | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const selectedMode: ThemeMode = mode === 'light' || mode === 'dark' ? mode : 'system';
-  const navigation = [
+  const navigation: { to: NavigationTarget; label: string }[] = [
     { to: '/' as const, label: t('homeNavigation') },
     { to: '/design' as const, label: t('designNavigation') }
   ];
+  if (authState.status === 'signedOut') {
+    navigation.push({ to: '/login', label: t('signInNavigation') });
+  } else if (authState.status === 'signedIn' && authState.suspended) {
+    navigation.push({ to: '/suspended', label: t('suspendedNavigation') });
+  } else if (authState.status === 'signedIn' && !authState.emailVerified) {
+    navigation.push({ to: '/verify-email', label: t('verifyNavigation') });
+  } else if (authState.status === 'signedIn') {
+    navigation.push({ to: '/account', label: t('accountNavigation') });
+  }
   const themeOptions: { value: ThemeMode; label: string }[] = [
     { value: 'system', label: t('themeSystem') },
     { value: 'light', label: t('themeLight') },

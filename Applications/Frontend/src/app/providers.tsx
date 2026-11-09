@@ -9,6 +9,7 @@ import theme from '../shared/theme/theme';
 import '../shared/i18n/i18n';
 import { LanguageProvider } from '../shared/i18n/language-provider';
 import { ToastProvider } from '../shared/ui/toast-provider';
+import { AuthProvider } from '../shared/auth/auth-provider';
 
 export function AppProviders() {
   const [queryClient] = useState(
@@ -31,7 +32,9 @@ export function AppProviders() {
         <QueryClientProvider client={queryClient}>
           <LanguageProvider>
             <ToastProvider>
-              <RouterProvider router={router} />
+              <AuthProvider>
+                <RouterProvider router={router} />
+              </AuthProvider>
             </ToastProvider>
           </LanguageProvider>
         </QueryClientProvider>
