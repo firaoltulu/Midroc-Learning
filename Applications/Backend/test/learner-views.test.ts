@@ -139,6 +139,20 @@ describe('learner views', () => {
     });
   });
 
+  it('my courses carry when they changed, their size and the pending revision', async () => {
+    const response = await fetch(`${base}/me/courses`, { headers: asUser(ownerId).headers });
+    expect(await response.json()).toEqual([
+      expect.objectContaining({
+        id: courseId,
+        status: 'published',
+        updatedAt: expect.any(String),
+        moduleCount: 1,
+        enrollmentCount: 1,
+        pendingRevision: { id: revisionId, submittedAt: expect.any(String) }
+      })
+    ]);
+  });
+
   it('video playback returns availability and where to resume', async () => {
     expect(await get(`/items/${videoId}/video`, learnerId)).toEqual({
       status: 200,

@@ -126,9 +126,22 @@ export async function listCategories(db: Queryable): Promise<string[]> {
   return rows.map(({ category }) => category);
 }
 
-export async function listMine(db: Queryable, ownerId: string): Promise<Course[]> {
-  const { rows } = await db.query<Course>(
-    `SELECT ${courseColumns} FROM courses c WHERE c.owner_id = $1 ORDER BY c.updated_at DESC`,
+/** A course in its owner's list: when it last changed, its size, and any pending revision. */
+export type OwnedCourse = Course & {
+  updatedAt: Date;
+  moduleCount: number;
+  enrollmentCount: number;
+  pendingRevision: { id: string; submittedAt: Date } | null;
+};
+
+export async function listMine(db: Queryable, ownerId: string): Promise<OwnedCourse[]> {
+  const { rows } = await db.query<OwnedCourse>(
+    `SELECT ${joinedCourseColumns}, c.updated_at AS "updatedAt",
+       (SELECT count(*)::int FROM modules m WHERE m.course_id = c.id) AS "moduleCount",
+       (SELECT count(*)::int FROM enrollments e WHERE e.course_id = c.id) AS "enrollmentCount",
+       (SELECT json_build_object('id', r.id, 'submittedAt', r.submitted_at)
+          FROM course_revisions r WHERE r.course_id = c.id AND r.status = 'pending') AS "pendingRevision"
+     FROM courses c WHERE c.owner_id = $1 ORDER BY c.updated_at DESC, c.id`,
     [ownerId]
   );
   return rows;

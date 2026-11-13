@@ -54,7 +54,7 @@ export async function getCourse(id: string, actor: Actor): Promise<repository.Co
   return detail;
 }
 
-export async function listMine(actor: Actor): Promise<Course[]> {
+export async function listMine(actor: Actor): Promise<repository.OwnedCourse[]> {
   return repository.listMine(db, actor.id);
 }
 

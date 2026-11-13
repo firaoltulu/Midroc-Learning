@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Learning Platform API
-  version: 1.2.0
+  version: 1.3.0
   description: |
     REST API of the learning platform. All endpoints except /health need a Firebase ID token
     (`Authorization: Bearer <token>`).
@@ -65,7 +65,7 @@ paths:
             application/json:
               schema:
                 type: array
-                items: { $ref: "#/components/schemas/Course" }
+                items: { $ref: "#/components/schemas/OwnedCourse" }
         default: { $ref: "#/components/responses/Error" }
 
   /me/enrollments:
@@ -1221,6 +1221,24 @@ components:
             enrolled: { type: boolean, description: The current user is enrolled. }
             moduleCount: { type: integer }
             enrollmentCount: { type: integer }
+    OwnedCourse:
+      description: A course in its owner's list (`GET /me/courses`).
+      allOf:
+        - $ref: "#/components/schemas/Course"
+        - type: object
+          required: [updatedAt, moduleCount, enrollmentCount, pendingRevision]
+          properties:
+            updatedAt: { type: string, format: date-time }
+            moduleCount: { type: integer }
+            enrollmentCount: { type: integer }
+            pendingRevision:
+              oneOf:
+                - type: object
+                  required: [id, submittedAt]
+                  properties:
+                    id: { type: string, format: uuid }
+                    submittedAt: { type: string, format: date-time }
+                - type: "null"
     CatalogPage:
       allOf:
         - $ref: "#/components/schemas/PageInfo"
