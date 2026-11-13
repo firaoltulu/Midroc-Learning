@@ -210,5 +210,13 @@
     "submitHint": "You can't edit the course while it's in review.",
     "resubmitHint": "The reviewer sees your changes. You can't edit the course while it's in review.",
     "submitted": "Submitted for review. You'll see the decision in My courses."
+  },
+  "deleteCourse": {
+    "heading": "Delete this draft",
+    "hint": "Deleting removes the course and everything in it. This can't be undone.",
+    "action": "Delete course",
+    "title": "Delete {{title}}?",
+    "body": "The course, its modules, items and exam questions are deleted for good.",
+    "done": "{{title}} was deleted."
   }
 }

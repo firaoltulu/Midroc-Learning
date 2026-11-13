@@ -1,15 +1,21 @@
 import Autocomplete from '@mui/material/Autocomplete';
+import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useErrorMessage } from '../../../shared/i18n/error-messages';
 import { isHttpUrl } from '../../../shared/lib/safe-url';
+import { ConfirmDialog } from '../../../shared/ui/confirm-dialog';
 import { CourseThumbnail } from '../../../shared/ui/course-thumbnail';
 import { FormTextField } from '../../../shared/ui/form-text-field';
-import { useUpdateCourse } from '../api/authoring';
+import { useToast } from '../../../shared/ui/toast/toast-context';
+import { useDeleteCourse, useUpdateCourse } from '../api/authoring';
 import type { AuthoringView, CoursePatch } from '../api/schemas';
 import { useAutosave } from '../hooks/use-autosave';
 import { useKeyText } from '../lib/key-text';
@@ -114,6 +120,61 @@ export function DetailsTab({ view, readOnly }: { view: AuthoringView; readOnly: 
           <CourseThumbnail src={thumbnail.trim() || null} />
         </Box>
       </Stack>
+      {course.status === 'draft' ? (
+        <DeleteCourse courseId={course.id} title={course.title} />
+      ) : null}
+    </Stack>
+  );
+}
+
+/** Drafts only: delete the course for good (confirmed), then back to My courses. */
+function DeleteCourse({ courseId, title }: { courseId: string; title: string }) {
+  const { t } = useTranslation('editor');
+  const errorMessage = useErrorMessage();
+  const toast = useToast();
+  const navigate = useNavigate();
+  const remove = useDeleteCourse(courseId);
+  const [confirming, setConfirming] = useState(false);
+
+  return (
+    <Stack
+      spacing={1}
+      sx={{ pt: 2, borderTop: 1, borderColor: 'divider', alignItems: 'flex-start' }}
+    >
+      <Typography variant="h4" component="h2">
+        {t('deleteCourse.heading')}
+      </Typography>
+      <Typography color="text.secondary">{t('deleteCourse.hint')}</Typography>
+      <Button
+        color="error"
+        variant="outlined"
+        onClick={() => {
+          setConfirming(true);
+        }}
+      >
+        {t('deleteCourse.action')}
+      </Button>
+      <ConfirmDialog
+        open={confirming}
+        tone="danger"
+        title={t('deleteCourse.title', { title })}
+        description={t('deleteCourse.body')}
+        confirmLabel={t('deleteCourse.action')}
+        onClose={() => {
+          setConfirming(false);
+        }}
+        onConfirm={async () => {
+          try {
+            await remove.mutateAsync();
+            setConfirming(false);
+            toast.show({ message: t('deleteCourse.done', { title }), severity: 'success' });
+            await navigate({ to: '/my-courses' });
+          } catch (error) {
+            setConfirming(false);
+            toast.show({ message: errorMessage(error), severity: 'error' });
+          }
+        }}
+      />
     </Stack>
   );
 }

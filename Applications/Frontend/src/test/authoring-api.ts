@@ -70,6 +70,12 @@ export function mockAuthoringApi(initial: object = authoringFixture()) {
       Object.assign(state.course, await request.json());
       return HttpResponse.json(state.course);
     }),
+    http.delete(api('/courses/course-1'), async ({ request }) => {
+      const failed = await record(request);
+      if (failed) return failed;
+      state.modules = [];
+      return new HttpResponse(null, { status: 204 });
+    }),
     http.post(api('/courses/course-1/submit'), async ({ request }) => {
       const failed = await record(request);
       if (failed) return failed;

@@ -281,6 +281,23 @@ export function useSubmitCourse(courseId: string) {
   });
 }
 
+/**
+ * DELETE /courses/:id (offered for drafts). The course's cached views are dropped, not
+ * refetched; the owner's list is refreshed.
+ */
+export function useDeleteCourse(courseId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => apiRequest<undefined>(`/courses/${courseId}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.removeQueries({ queryKey: authoringKeys.course(courseId) });
+      queryClient.removeQueries({ queryKey: courseKeys.detail(courseId) });
+      return queryClient.invalidateQueries({ queryKey: myCourseKeys.all });
+    },
+    meta: editorMeta,
+  });
+}
+
 /** POST /pdf-uploads with upload progress. The returned fileKey is attached to an item next. */
 export async function uploadPdf(file: File, options: UploadOptions = {}) {
   const body = new FormData();

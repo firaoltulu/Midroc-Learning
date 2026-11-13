@@ -430,6 +430,53 @@ describe('review', () => {
   });
 });
 
+describe('deleting a draft', () => {
+  it('asks first, deletes the course and returns to My courses', async () => {
+    const mock = mockAuthoringApi();
+    server.use(http.get(api('/me/courses'), () => HttpResponse.json([])));
+    const { user, router } = await renderRoute(EDIT);
+    await user.click(await screen.findByRole('button', { name: 'Delete course' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Delete Workplace safety basics?' });
+    // Cancel keeps it.
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+    expect(mock.writes('DELETE', /^\/courses\/course-1$/)).toHaveLength(0);
+
+    await user.click(await screen.findByRole('button', { name: 'Delete course' }));
+    await user.click(
+      within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete course' }),
+    );
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/my-courses');
+    });
+    expect(mock.writes('DELETE', /^\/courses\/course-1$/)).toHaveLength(1);
+    expect((await screen.findAllByText('Workplace safety basics was deleted.'))[0]).toBeVisible();
+  });
+
+  it('a refused delete is explained and the course stays open', async () => {
+    const mock = mockAuthoringApi();
+    mock.failNext('DELETE', /^\/courses\/course-1$/, () => apiError(409, { code: 'LOCKED' }));
+    const { user, router } = await renderRoute(EDIT);
+    await user.click(await screen.findByRole('button', { name: 'Delete course' }));
+    await user.click(
+      within(await screen.findByRole('dialog')).getByRole('button', { name: 'Delete course' }),
+    );
+    expect(
+      (await screen.findAllByText("This course can't be changed in its current review state."))[0],
+    ).toBeVisible();
+    expect(router.state.location.pathname).toBe(EDIT);
+  });
+
+  it('is offered for drafts only', async () => {
+    mockAuthoringApi(authoringFixture({ status: 'rejected', rejectionReason: 'More detail.' }));
+    await renderRoute(EDIT);
+    await screen.findByRole('textbox', { name: 'Course title' });
+    expect(screen.queryByRole('button', { name: 'Delete course' })).not.toBeInTheDocument();
+  });
+});
+
 describe('status', () => {
   it('in review: read-only, no drag handles, no add buttons', async () => {
     mockAuthoringApi(authoringFixture({ status: 'pending_review' }));
