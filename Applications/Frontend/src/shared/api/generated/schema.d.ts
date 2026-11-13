@@ -67,6 +67,13 @@ export interface paths {
                     };
                     content?: never;
                 };
+                /** @description The account is suspended (`code: ACCOUNT_SUSPENDED`; returned by every authenticated endpoint), or the token has no email address (no code). */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
             };
         };
         put?: never;

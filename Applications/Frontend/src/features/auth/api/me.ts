@@ -24,8 +24,9 @@ export const meQueryOptions = () =>
     queryKey: authKeys.me,
     queryFn: async ({ signal }) => meSchema.parse(await apiRequest('/me', { signal })),
     staleTime: 60_000,
-    // A suspended account is not a transient failure.
-    retry: (failureCount, error) => !isAccountBlocked(error) && failureCount < 1,
+    // Retry once on network or server errors; a 4xx (e.g. a suspended account) won't change.
+    retry: (failureCount, error) =>
+      failureCount < 1 && !(error instanceof ApiError && error.status < 500),
   });
 
 /**
@@ -36,15 +37,7 @@ export function useMe(options: { enabled?: boolean } = {}) {
   return useQuery({ ...meQueryOptions(), enabled: options.enabled ?? true });
 }
 
-/**
- * The backend refuses /me for suspended accounts with 403. The spec names the code
- * ACCOUNT_SUSPENDED; the current backend sends a 403 without a code, so any 403 from /me
- * is treated the same way.
- */
-export function isAccountBlocked(error: unknown): boolean {
-  return (
-    error instanceof ApiError &&
-    error.status === 403 &&
-    (error.code === 'ACCOUNT_SUSPENDED' || error.code === undefined)
-  );
+/** The backend refuses every authenticated request from a suspended account with this code. */
+export function isAccountSuspended(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 403 && error.code === 'ACCOUNT_SUSPENDED';
 }

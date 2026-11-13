@@ -20,6 +20,10 @@ paths:
           description: Current database-backed user profile.
         "401":
           description: Missing or invalid Firebase token.
+        "403":
+          description: >-
+            The account is suspended (`code: ACCOUNT_SUSPENDED`; returned by every authenticated
+            endpoint), or the token has no email address (no code).
   /courses:
     get:
       parameters:

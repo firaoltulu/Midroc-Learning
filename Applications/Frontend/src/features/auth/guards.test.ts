@@ -106,13 +106,10 @@ describe('requireAuthenticated (_authenticated layout)', () => {
     expect(fetchSpy).toHaveBeenCalledWith('/api/me', expect.anything());
   });
 
-  it.each([
-    ['ACCOUNT_SUSPENDED code (spec)', { error: 'Account is suspended', code: 'ACCOUNT_SUSPENDED' }],
-    ['no code (current backend)', { error: 'Account is suspended' }],
-  ])('signs out a suspended account (403, %s) and explains on /login', async (_label, body) => {
+  it('signs out a suspended account (403 ACCOUNT_SUSPENDED) and explains on /login', async () => {
     const { fake, context, queryClient } = setup();
     fake.signIn();
-    mockMeResponse(403, body);
+    mockMeResponse(403, { error: 'Account is suspended', code: 'ACCOUNT_SUSPENDED' });
     queryClient.setQueryData(['courses', 'list'], { stale: true });
 
     expect(await outcome(() => requireAuthenticated({ context, location }))).toEqual({
@@ -144,14 +141,20 @@ describe('requireAuthenticated (_authenticated layout)', () => {
     expect(fake.controller.signOut).toHaveBeenCalledOnce();
   });
 
-  it('lets other /me failures reach the route error screen without signing out', async () => {
-    const { fake, context } = setup();
-    fake.signIn();
-    mockMeResponse(500, { error: 'Internal server error' });
-    const result = await outcome(() => requireAuthenticated({ context, location }));
-    expect(result.error).toMatchObject({ name: 'ApiError', status: 500 });
-    expect(fake.controller.signOut).not.toHaveBeenCalled();
-  });
+  it.each([
+    [500, { error: 'Internal server error' }],
+    [403, { error: 'An email address is required' }],
+  ])(
+    'lets other /me failures (%i without the suspension code) reach the error screen',
+    async (status, body) => {
+      const { fake, context } = setup();
+      fake.signIn();
+      mockMeResponse(status, body);
+      const result = await outcome(() => requireAuthenticated({ context, location }));
+      expect(result.error).toMatchObject({ name: 'ApiError', status });
+      expect(fake.controller.signOut).not.toHaveBeenCalled();
+    },
+  );
 });
 
 describe('requireAdmin (admin layout)', () => {

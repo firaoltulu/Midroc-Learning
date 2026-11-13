@@ -78,7 +78,11 @@ export function createFirebaseAuthController(): AuthController {
 
   const store = createAuthStore();
   let signOutReason: SignOutReason | undefined;
+  // While sign-up finishes (profile name, verification email) the new user is not published,
+  // so the guards don't move on to /verify-email before the email has been sent.
+  let holdPublishing = false;
   const publish = (user: User | null) => {
+    if (holdPublishing) return;
     if (user) {
       signOutReason = undefined;
       store.set({ status: 'signedIn', user: toAuthUser(user) });
@@ -114,11 +118,21 @@ export function createFirebaseAuthController(): AuthController {
     },
 
     async signUpWithPassword({ name, email, password }) {
-      const { user } = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(user, { displayName: name });
-      await sendEmailVerification(user);
-      // updateProfile doesn't fire onAuthStateChanged; publish the name.
-      publish(user);
+      holdPublishing = true;
+      try {
+        const { user } = await createUserWithEmailAndPassword(auth, email, password);
+        try {
+          await updateProfile(user, { displayName: name });
+          await sendEmailVerification(user);
+        } catch {
+          // The account exists and is signed in: carry on to /verify-email, where the
+          // learner can resend the email. Failing here would strand them on the sign-up form.
+        }
+      } finally {
+        holdPublishing = false;
+        // Also publishes the display name (updateProfile doesn't fire onAuthStateChanged).
+        publish(auth.currentUser);
+      }
     },
 
     async signInWithGoogle() {

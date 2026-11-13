@@ -34,28 +34,18 @@ async function mockMe(page: Page, email: string, override: MeMock = {}) {
 }
 
 /**
- * Applies the latest verification link the emulator "sent" to `email`. Polls: the guard moves
- * to /verify-email as soon as the account exists, a moment before the email is sent.
+ * Applies the latest verification link the emulator "sent" to `email`. No polling: sign-up
+ * moves on to /verify-email only once the email has been sent.
  */
 async function verifyEmailInEmulator(page: Page, email: string) {
-  let link: string | undefined;
-  await expect
-    .poll(
-      async () => {
-        const response = await page.request.get(
-          `${EMULATOR}/emulator/v1/projects/${PROJECT}/oobCodes`,
-        );
-        const { oobCodes } = (await response.json()) as {
-          oobCodes: { email: string; requestType: string; oobLink: string }[];
-        };
-        link = oobCodes
-          .filter((c) => c.email === email && c.requestType === 'VERIFY_EMAIL')
-          .at(-1)?.oobLink;
-        return link;
-      },
-      { message: 'verification email was sent' },
-    )
-    .toBeDefined();
+  const response = await page.request.get(`${EMULATOR}/emulator/v1/projects/${PROJECT}/oobCodes`);
+  const { oobCodes } = (await response.json()) as {
+    oobCodes: { email: string; requestType: string; oobLink: string }[];
+  };
+  const link = oobCodes
+    .filter((c) => c.email === email && c.requestType === 'VERIFY_EMAIL')
+    .at(-1)?.oobLink;
+  expect(link, 'the verification email was sent').toBeDefined();
   await page.request.get(link ?? '');
 }
 
@@ -132,7 +122,10 @@ test('sign up, verify the email, return to the requested page, sign out and sign
 
 test('a suspended account is signed out and told why', async ({ page }) => {
   const email = 'suspended@example.com';
-  await mockMe(page, email, { status: 403, body: { error: 'Account is suspended' } });
+  await mockMe(page, email, {
+    status: 403,
+    body: { error: 'Account is suspended', code: 'ACCOUNT_SUSPENDED' },
+  });
   await signUp(page, email);
   await expect(page).toHaveURL(/\/verify-email/);
   await verifyEmailInEmulator(page, email);

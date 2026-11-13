@@ -1,6 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { redirect } from '@tanstack/react-router';
-import { isAccountBlocked, meQueryOptions, type Me } from './api/me';
+import { isAccountSuspended, meQueryOptions, type Me } from './api/me';
 import type { AuthController } from './model/auth-controller';
 import { isVerified } from './model/auth-state';
 import { safeRedirect } from './lib/safe-redirect';
@@ -47,7 +47,7 @@ export async function requireAuthenticated({ context, location }: GuardArgs): Pr
   try {
     me = await context.queryClient.query(meQueryOptions());
   } catch (error) {
-    if (isAccountBlocked(error)) await signOutSuspended(context);
+    if (isAccountSuspended(error)) await signOutSuspended(context);
     throw error;
   }
   if (me.status === 'suspended') await signOutSuspended(context);
