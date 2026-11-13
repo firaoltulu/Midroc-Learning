@@ -1,0 +1,47 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: learning
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d learning"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/learning
+      PORT: 3000
+      NODE_ENV: production
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+      PDF_ROOT: /var/lib/lms/pdfs
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      YOUTUBE_CHECK_INTERVAL_HOURS: ${YOUTUBE_CHECK_INTERVAL_HOURS:-6}
+      PDF_CLEANUP_DRY_RUN: ${PDF_CLEANUP_DRY_RUN:-false}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      GOOGLE_APPLICATION_CREDENTIALS: ${FIREBASE_CREDENTIALS_CONTAINER_PATH:-}
+    volumes:
+      - pdf-data:/var/lib/lms/pdfs
+    depends_on:
+      db:
+        condition: service_healthy
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./deploy/nginx.conf.example:/etc/nginx/nginx.conf:ro
+      - pdf-data:/var/lib/lms/pdfs:ro
+    depends_on:
+      - api
+
+volumes:
+  postgres-data:
+  pdf-data:

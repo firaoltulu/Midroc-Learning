@@ -9,12 +9,13 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.build.json",
-    "start": "node dist/server.js",
+    "start": "node dist/src/server.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "check:deps": "depcruise --config .dependency-cruiser.cjs src",
     "test": "npm run check:deps && vitest run",
-    "migrate": "tsx scripts/migrate.ts"
+    "migrate": "tsx scripts/migrate.ts",
+    "migrate:compiled": "node dist/scripts/migrate.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -45,6 +46,7 @@
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.19.1",
-    "vitest": "^2.1.8"
+    "vite": "^6.4.5",
+    "vitest": "^5.1.0"
   }
 }
