@@ -8,3 +8,6 @@ playwright-report
 test-results
 *.tsbuildinfo
 .vite
+
+# Claude Code local skills (not part of the app)
+.claude/skills/
