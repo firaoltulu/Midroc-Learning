@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { isUuid } from '../../core/ids.js';
-import { BadRequest } from '../../core/http/app-error.js';
+import { invalidParameter } from '../../core/http/app-error.js';
 import { parseInput, routeParam } from '../../core/http/validate.js';
 import { paginationOffset } from '../../core/http/pagination.js';
 import { roleSchema, statusSchema, usersQuerySchema } from './users.admin.schemas.js';
@@ -8,7 +8,7 @@ import * as service from './users.admin.service.js';
 
 function idParam(req: Request): string {
   const id = routeParam(req, 'id');
-  if (!isUuid(id)) throw new BadRequest('Invalid user id');
+  if (!isUuid(id)) throw invalidParameter('userId');
   return id;
 }
 

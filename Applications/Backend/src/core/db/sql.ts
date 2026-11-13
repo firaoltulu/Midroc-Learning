@@ -32,3 +32,18 @@ export async function updateRow(
 export function escapeLike(value: string): string {
   return value.replace(/[\\%_]/g, '\\$&');
 }
+
+/**
+ * Splits rows selected with `count(*) OVER() AS total` into a page: the items (without the
+ * window column) and the total row count.
+ */
+export function toPage<T extends { total: string | number }>(
+  rows: T[]
+): { items: Array<Omit<T, 'total'>>; total: number } {
+  const items = rows.map((row) => {
+    const item: Partial<T> = { ...row };
+    delete item.total;
+    return item as Omit<T, 'total'>;
+  });
+  return { items, total: Number(rows[0]?.total ?? 0) };
+}

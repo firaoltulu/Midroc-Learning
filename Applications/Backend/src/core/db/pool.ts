@@ -15,6 +15,9 @@ export interface Database extends Queryable {
   end(): Promise<void>;
 }
 
+// Postgres numeric (e.g. exam scores) arrives as a string by default; the API sends numbers.
+pg.types.setTypeParser(pg.types.builtins.NUMERIC, (value: string) => Number(value));
+
 const pool = new Pool({ connectionString: config.DATABASE_URL });
 let override: Database | undefined;
 

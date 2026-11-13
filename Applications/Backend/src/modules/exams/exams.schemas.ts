@@ -18,23 +18,33 @@ const questionSchema = z
   .superRefine((question, context) => {
     const correctCount = question.choices.filter((choice) => choice.isCorrect).length;
     if (correctCount < 1) {
-      context.addIssue({ code: 'custom', message: 'At least one choice must be correct' });
+      context.addIssue({
+        code: 'custom',
+        message: 'At least one choice must be correct',
+        path: ['choices'],
+        params: { code: 'CORRECT_CHOICE_REQUIRED' }
+      });
     }
     if (!question.isMultiple && correctCount !== 1) {
-      context.addIssue({ code: 'custom', message: 'Single-answer questions require exactly one correct choice' });
+      context.addIssue({
+        code: 'custom',
+        message: 'Single-answer questions require exactly one correct choice',
+        path: ['choices'],
+        params: { code: 'SINGLE_CORRECT_CHOICE_REQUIRED' }
+      });
     }
   });
 
 export const questionsSchema = z.array(questionSchema).min(1).superRefine((questions, context) => {
   const questionIds = questions.flatMap((question) => question.id ? [question.id] : []);
   if (new Set(questionIds).size !== questionIds.length) {
-    context.addIssue({ code: 'custom', message: 'Question ids must be unique' });
+    context.addIssue({ code: 'custom', message: 'Question ids must be unique', params: { code: 'DUPLICATE_ID' } });
   }
   const choiceIds = questions.flatMap((question) =>
     question.choices.flatMap((choice) => choice.id ? [choice.id] : [])
   );
   if (new Set(choiceIds).size !== choiceIds.length) {
-    context.addIssue({ code: 'custom', message: 'Choice ids must be unique' });
+    context.addIssue({ code: 'custom', message: 'Choice ids must be unique', params: { code: 'DUPLICATE_ID' } });
   }
 });
 export type ExamQuestionInput = z.infer<typeof questionSchema>;

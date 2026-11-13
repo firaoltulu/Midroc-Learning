@@ -32,7 +32,7 @@ function sameIds(existing: string[], proposed: string[]): boolean {
 
 function ensureNoQuestionIds(questions: ExamQuestionInput[] | undefined): void {
   if (questions?.some((question) => question.id || question.choices.some((choice) => choice.id))) {
-    throw new BadRequest('New exams cannot reference existing question or choice ids');
+    throw new BadRequest('New exams cannot reference existing question or choice ids', 'INVALID_CONTENT_REFERENCE');
   }
 }
 
@@ -91,7 +91,7 @@ export async function reorderModules(
     const course = await resolveCourseContext(tx, 'course', courseId, actor, { lock: true });
     assertEditable(course.status, true);
     const existing = await repository.moduleIds(tx, courseId);
-    if (!sameIds(existing, ids)) throw new BadRequest('Order must include every module exactly once');
+    if (!sameIds(existing, ids)) throw new BadRequest('Order must include every module exactly once', 'INVALID_ORDER');
     await repository.saveModuleOrder(tx, ids);
   });
 }
@@ -134,20 +134,20 @@ async function prepareItemPatch(
   if (itemType === 'video') {
     if (input.fileKey || input.instructions !== undefined || input.passingScorePercent !== undefined ||
         input.maxAttempts !== undefined || input.timeLimitMinutes !== undefined) {
-      throw new BadRequest('Fields do not match a video item');
+      throw new BadRequest('Fields do not match a video item', 'ITEM_TYPE_MISMATCH');
     }
     return input.url === undefined ? {} : { video: await verifyVideoLink(input.url) };
   }
   if (itemType === 'pdf') {
     if (input.url || input.instructions !== undefined || input.passingScorePercent !== undefined ||
         input.maxAttempts !== undefined || input.timeLimitMinutes !== undefined) {
-      throw new BadRequest('Fields do not match a PDF item');
+      throw new BadRequest('Fields do not match a PDF item', 'ITEM_TYPE_MISMATCH');
     }
     return input.fileKey === undefined
       ? {}
       : { pdf: { ...await verifyPdfFile(input.fileKey), fileKey: input.fileKey } };
   }
-  if (input.url || input.fileKey) throw new BadRequest('Fields do not match an exam item');
+  if (input.url || input.fileKey) throw new BadRequest('Fields do not match an exam item', 'ITEM_TYPE_MISMATCH');
   return {};
 }
 
@@ -194,7 +194,7 @@ export async function reorderItems(actor: Actor, moduleId: string, ids: string[]
     const course = await resolveCourseContext(tx, 'module', moduleId, actor, { lock: true });
     assertEditable(course.status, true);
     const existing = await repository.itemIds(tx, moduleId);
-    if (!sameIds(existing, ids)) throw new BadRequest('Order must include every item exactly once');
+    if (!sameIds(existing, ids)) throw new BadRequest('Order must include every item exactly once', 'INVALID_ORDER');
     await repository.saveItemOrder(tx, ids);
   });
 }

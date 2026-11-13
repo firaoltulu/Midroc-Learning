@@ -10,7 +10,7 @@ export async function enroll(actor: Actor, courseId: string): Promise<boolean> {
   return withTx(async (tx) => {
     const course = await coursesApi.getCourseForUpdate(tx, courseId);
     if (!course) throw new NotFound('Course not found');
-    if (course.ownerId === actor.id) throw new Conflict('Owners cannot enroll in their own course');
+    if (course.ownerId === actor.id) throw new Conflict('Owners cannot enroll in their own course', 'OWNER_CANNOT_ENROLL');
     if (course.status === 'pending_review' || course.status === 'archived') {
       throw new Conflict('Course is locked', 'LOCKED');
     }
@@ -40,7 +40,7 @@ export async function saveProgress(
     throw new NotFound('Item not found');
   }
   const updated = await repository.updateProgress(db, actor.id, itemId, input);
-  if (!updated) throw new Conflict('Exams are completed by passing an attempt');
+  if (!updated) throw new Conflict('Exams are completed by passing an attempt', 'EXAM_PROGRESS_BY_ATTEMPT');
 }
 
 export async function markItemComplete(

@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { isUuid } from '../../core/ids.js';
-import { BadRequest } from '../../core/http/app-error.js';
+import { invalidParameter } from '../../core/http/app-error.js';
 import { parseInput, routeParam } from '../../core/http/validate.js';
 import { accelPath } from '../../integrations/storage/pdf-storage.js';
 import * as service from './learning.service.js';
@@ -8,7 +8,7 @@ import { progressSchema } from './learning.schemas.js';
 
 function itemId(req: Request): string {
   const id = routeParam(req, 'itemId');
-  if (!isUuid(id)) throw new BadRequest('Invalid item id');
+  if (!isUuid(id)) throw invalidParameter('itemId');
   return id;
 }
 

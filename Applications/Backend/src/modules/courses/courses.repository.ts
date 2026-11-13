@@ -1,7 +1,7 @@
 import type { Queryable } from '../../core/db/pool.js';
 import type { Course, CourseFields, CourseStatus } from './courses.types.js';
 import type { CourseCreateInput } from './courses.schemas.js';
-import { updateRow } from '../../core/db/sql.js';
+import { toPage, updateRow } from '../../core/db/sql.js';
 
 const courseColumns = `
   id, owner_id AS "ownerId", title, description, category, language,
@@ -77,7 +77,7 @@ export async function listCatalog(
      LIMIT $5 OFFSET $6`,
     [actorId, input.q ?? null, input.category ?? null, input.language ?? null, input.limit, input.offset]
   );
-  return { items: rows, total: Number(rows[0]?.total ?? 0) };
+  return toPage(rows);
 }
 
 export async function listCategories(db: Queryable): Promise<string[]> {
@@ -136,7 +136,12 @@ export async function archive(db: Queryable, id: string): Promise<void> {
   await db.query(`UPDATE courses SET status = 'archived' WHERE id = $1`, [id]);
 }
 
-export async function courseReadinessProblems(db: Queryable, id: string): Promise<string[]> {
+export type ReadinessProblem = 'DESCRIPTION_REQUIRED' | 'NO_MODULES' | 'EMPTY_MODULE' | 'EMPTY_EXAM';
+
+export async function courseReadinessProblems(
+  db: Queryable,
+  id: string
+): Promise<ReadinessProblem[]> {
   const { rows } = await db.query<{ moduleCount: number; emptyModuleCount: number; emptyExamCount: number }>(
     `SELECT
        (SELECT count(*)::int FROM modules WHERE course_id = $1) AS "moduleCount",
@@ -148,10 +153,10 @@ export async function courseReadinessProblems(db: Queryable, id: string): Promis
     [id]
   );
   const result = rows[0]!;
-  const problems: string[] = [];
-  if (result.moduleCount === 0) problems.push('Course must contain at least one module');
-  if (result.emptyModuleCount) problems.push('Every module must contain at least one item');
-  if (result.emptyExamCount) problems.push('Every exam must contain at least one question');
+  const problems: ReadinessProblem[] = [];
+  if (result.moduleCount === 0) problems.push('NO_MODULES');
+  if (result.emptyModuleCount) problems.push('EMPTY_MODULE');
+  if (result.emptyExamCount) problems.push('EMPTY_EXAM');
   return problems;
 }
 
@@ -187,7 +192,7 @@ export async function listAdminCourses(
     limit: number;
     offset: number;
   }
-): Promise<{ items: Array<Course & { total: string }>; total: number }> {
+): Promise<{ items: Course[]; total: number }> {
   const { rows } = await db.query<Course & { total: string }>(
     `SELECT ${courseColumns}, count(*) OVER() AS total
      FROM courses c
@@ -197,7 +202,7 @@ export async function listAdminCourses(
      LIMIT $3 OFFSET $4`,
     [input.status ?? null, input.q ?? null, input.limit, input.offset]
   );
-  return { items: rows, total: Number(rows[0]?.total ?? 0) };
+  return toPage(rows);
 }
 
 export async function pendingCourses(db: Queryable): Promise<Course[]> {

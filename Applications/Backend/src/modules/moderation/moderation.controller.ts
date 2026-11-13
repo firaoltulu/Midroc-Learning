@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { isUuid } from '../../core/ids.js';
-import { BadRequest } from '../../core/http/app-error.js';
+import { invalidParameter } from '../../core/http/app-error.js';
 import { parseEmptyBody, parseInput, routeParam } from '../../core/http/validate.js';
 import { listPendingCourses, reviewCourse } from '../courses/index.js';
 import {
@@ -13,13 +13,13 @@ import { rejectionSchema } from './moderation.schemas.js';
 
 function courseId(req: Request): string {
   const id = routeParam(req, 'id');
-  if (!isUuid(id)) throw new BadRequest('Invalid course id');
+  if (!isUuid(id)) throw invalidParameter('courseId');
   return id;
 }
 
 function revisionId(req: Request): string {
   const id = routeParam(req, 'id');
-  if (!isUuid(id)) throw new BadRequest('Invalid revision id');
+  if (!isUuid(id)) throw invalidParameter('revisionId');
   return id;
 }
 

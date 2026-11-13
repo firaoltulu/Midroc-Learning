@@ -11,7 +11,10 @@ export const coursePatchSchema = z
     thumbnailUrl: z
       .string()
       .url()
-      .refine((value) => ['http:', 'https:'].includes(new URL(value).protocol))
+      .refine((value) => ['http:', 'https:'].includes(new URL(value).protocol), {
+        message: 'Only http and https URLs are allowed',
+        params: { code: 'HTTP_URL_REQUIRED' }
+      })
       .nullable()
       .optional(),
     tags: z.array(z.string().trim().min(1).max(40)).max(30).optional(),

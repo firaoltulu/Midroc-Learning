@@ -86,7 +86,7 @@ export async function submitAttempt(
   const outcome = await withTx(async (tx) => {
     const attempt = await repository.getAttemptForUpdate(tx, attemptId);
     if (!attempt || attempt.userId !== actor.id) throw new NotFound('Attempt not found');
-    if (attempt.submittedAt) throw new Conflict('Attempt has already been submitted');
+    if (attempt.submittedAt) throw new Conflict('Attempt has already been submitted', 'ATTEMPT_ALREADY_SUBMITTED');
     const context = await repository.getContext(tx, attempt.examId, actor.id);
     if (!context) throw new NotFound('Exam not found');
     const questions = await repository.currentQuestionsForGrading(tx, attempt.examId);
@@ -99,12 +99,12 @@ export async function submitAttempt(
       const selectedForQuestion = selected.get(answer.questionId) ?? new Set<string>();
       for (const choiceId of answer.choiceIds) {
         if (!question.choices.some((choice) => choice.id === choiceId)) {
-          throw new BadRequest('Choice does not belong to the question');
+          throw new BadRequest('Choice does not belong to the question', 'INVALID_CHOICE');
         }
         selectedForQuestion.add(choiceId);
       }
       if (!question.isMultiple && selectedForQuestion.size > 1) {
-        throw new BadRequest('Single-answer questions accept only one choice');
+        throw new BadRequest('Single-answer questions accept only one choice', 'SINGLE_ANSWER_ONLY');
       }
       selected.set(answer.questionId, selectedForQuestion);
     }
@@ -161,8 +161,9 @@ export async function submitAttempt(
       }))
     };
   });
-  if (outcome.kind === 'late') throw new Gone('Exam time exceeded', 'TIME_EXCEEDED');
-  return outcome;
+  if (outcome.kind === 'late') throw new Gone('Exam time exceeded', 'EXAM_TIME_EXCEEDED');
+  const { scorePercent, passed, revealAnswers, results } = outcome;
+  return { scorePercent, passed, revealAnswers, results };
 }
 
 export async function listAttempts(examId: string, actor: Actor) {

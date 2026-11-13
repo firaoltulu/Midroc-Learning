@@ -92,7 +92,7 @@ export async function saveCourseRevision(
       try {
         await validateRevisionIds(tx, courseId, preparedTree);
       } catch {
-        throw new BadRequest('Revision contains an unknown content reference');
+        throw new BadRequest('Revision contains an unknown content reference', 'INVALID_CONTENT_REFERENCE');
       }
       data.modules = preparedTree.modules;
       data.base ??= await captureRevisionBase(tx, courseId);
@@ -120,7 +120,7 @@ async function lockPendingRevision(tx: Queryable, revisionId: string) {
   assertPublished(course.status);
   const revision = await repository.findRevision(tx, revisionId, true);
   if (!revision || revision.courseId !== courseId) throw new NotFound('Course revision not found');
-  if (revision.status !== 'pending') throw new Conflict('Course revision is not pending', 'STALE_REVISION');
+  if (revision.status !== 'pending') throw new Conflict('Course revision is not pending', 'ALREADY_DECIDED');
   return { course, revision };
 }
 

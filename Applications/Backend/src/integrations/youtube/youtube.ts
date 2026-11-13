@@ -17,13 +17,13 @@ export function extractYoutubeId(input: string): string {
   try {
     url = new URL(trimmed);
   } catch {
-    throw new Unprocessable('Invalid YouTube link');
+    throw new Unprocessable('Invalid YouTube link', 'VIDEO_INVALID_LINK');
   }
   if (url.protocol !== 'https:' && url.protocol !== 'http:') {
-    throw new Unprocessable('Invalid YouTube link');
+    throw new Unprocessable('Invalid YouTube link', 'VIDEO_INVALID_LINK');
   }
   const host = url.hostname.toLowerCase();
-  if (!supportedHosts.has(host)) throw new Unprocessable('Invalid YouTube link');
+  if (!supportedHosts.has(host)) throw new Unprocessable('Invalid YouTube link', 'VIDEO_INVALID_LINK');
 
   const parts = url.pathname.split('/').filter(Boolean);
   const candidate =
@@ -32,7 +32,7 @@ export function extractYoutubeId(input: string): string {
     ['embed', 'shorts', 'live', 'v'].includes(parts[0] ?? '') ? parts[1] :
     undefined;
   if (!candidate || !videoIdPattern.test(candidate)) {
-    throw new Unprocessable('Invalid YouTube link');
+    throw new Unprocessable('Invalid YouTube link', 'VIDEO_INVALID_LINK');
   }
   return candidate;
 }
@@ -44,24 +44,24 @@ export type YoutubeMetadata = {
 };
 
 export async function checkYoutube(youtubeVideoId: string): Promise<YoutubeMetadata> {
-  if (!videoIdPattern.test(youtubeVideoId)) throw new Unprocessable('Invalid YouTube video id');
+  if (!videoIdPattern.test(youtubeVideoId)) throw new Unprocessable('Invalid YouTube video id', 'VIDEO_INVALID_LINK');
   let response: Response;
   try {
     response = await fetch(
       `https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(`https://www.youtube.com/watch?v=${youtubeVideoId}`)}`
     );
   } catch {
-    throw new BadGateway('YouTube is unreachable');
+    throw new BadGateway('YouTube is unreachable', 'YOUTUBE_UNREACHABLE');
   }
   if ([401, 403, 404].includes(response.status)) {
-    throw new Unprocessable('Video is private, deleted, or not embeddable');
+    throw new Unprocessable('Video is private, deleted, or not embeddable', 'VIDEO_UNAVAILABLE');
   }
-  if (!response.ok) throw new BadGateway('YouTube is unreachable');
+  if (!response.ok) throw new BadGateway('YouTube is unreachable', 'YOUTUBE_UNREACHABLE');
   let metadata: unknown;
   try {
     metadata = await response.json();
   } catch {
-    throw new BadGateway('YouTube returned an invalid response');
+    throw new BadGateway('YouTube returned an invalid response', 'YOUTUBE_UNREACHABLE');
   }
   if (
     typeof metadata !== 'object' ||
@@ -71,7 +71,7 @@ export async function checkYoutube(youtubeVideoId: string): Promise<YoutubeMetad
     !('thumbnail_url' in metadata) ||
     typeof metadata.thumbnail_url !== 'string'
   ) {
-    throw new BadGateway('YouTube returned an invalid response');
+    throw new BadGateway('YouTube returned an invalid response', 'YOUTUBE_UNREACHABLE');
   }
   return {
     youtubeVideoId,

@@ -1,12 +1,12 @@
 import type { Request, Response } from 'express';
 import { isUuid } from '../../core/ids.js';
-import { BadRequest } from '../../core/http/app-error.js';
+import { invalidParameter } from '../../core/http/app-error.js';
 import { parseEmptyBody, routeParam } from '../../core/http/validate.js';
 import * as service from './enrollments.service.js';
 
 function courseId(req: Request): string {
   const id = routeParam(req, 'id');
-  if (!isUuid(id)) throw new BadRequest('Invalid course id');
+  if (!isUuid(id)) throw invalidParameter('courseId');
   return id;
 }
 

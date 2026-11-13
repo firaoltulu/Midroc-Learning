@@ -15,8 +15,8 @@ export async function enrollmentSeries(input: {
   const from = new Date(`${input.from}T00:00:00.000Z`);
   const to = new Date(`${input.to}T00:00:00.000Z`);
   const dayCount = Math.floor((to.getTime() - from.getTime()) / 86_400_000) + 1;
-  if (dayCount < 1) throw new Unprocessable('The from date must not be after the to date');
-  if (dayCount > 400) throw new Unprocessable('Date range cannot exceed 400 days');
+  if (dayCount < 1) throw new Unprocessable('The from date must not be after the to date', 'INVALID_DATE_RANGE');
+  if (dayCount > 400) throw new Unprocessable('Date range cannot exceed 400 days', 'DATE_RANGE_TOO_LONG', { maxDays: 400 });
   return repository.enrollmentSeries(db, input);
 }
 

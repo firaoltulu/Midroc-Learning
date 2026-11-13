@@ -1,14 +1,14 @@
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 import { isUuid } from '../../core/ids.js';
-import { BadRequest } from '../../core/http/app-error.js';
+import { invalidParameter } from '../../core/http/app-error.js';
 import { parseInput, routeParam } from '../../core/http/validate.js';
 import * as service from './exams.service.js';
 import { submitSchema } from './exams.schemas.js';
 
 function uuidParam(req: Request, key: string): string {
   const value = routeParam(req, key);
-  if (!isUuid(value)) throw new BadRequest(`Invalid ${key}`);
+  if (!isUuid(value)) throw invalidParameter(key);
   return value;
 }
 

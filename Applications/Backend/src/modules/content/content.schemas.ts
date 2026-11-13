@@ -15,7 +15,13 @@ export const modulePatchSchema = z.object({
   description: z.string().max(4000).optional()
 }).strict().refine((value) => Object.keys(value).length > 0);
 
-const uniqueIds = z.array(z.string().uuid()).min(1).refine((ids) => new Set(ids).size === ids.length);
+const uniqueIds = z
+  .array(z.string().uuid())
+  .min(1)
+  .refine((ids) => new Set(ids).size === ids.length, {
+    message: 'Ids must be unique',
+    params: { code: 'DUPLICATE_ID' }
+  });
 export const moduleOrderSchema = z.object({ moduleIds: uniqueIds }).strict();
 export const itemOrderSchema = z.object({ itemIds: uniqueIds }).strict();
 
@@ -63,7 +69,11 @@ const revisionVideoSchema = z.object({
   title: z.string().trim().min(1).max(200),
   url: z.string().min(1).max(2000).optional(),
   youtubeVideoId: z.string().regex(/^[A-Za-z0-9_-]{11}$/).optional()
-}).strict().refine((value) => value.url !== undefined || value.youtubeVideoId !== undefined);
+}).strict().refine((value) => value.url !== undefined || value.youtubeVideoId !== undefined, {
+  message: 'A video link is required',
+  path: ['url'],
+  params: { code: 'VIDEO_LINK_REQUIRED' }
+});
 
 const revisionPdfSchema = z.object({
   id: z.string().uuid().optional(),
@@ -120,7 +130,11 @@ export const revisionTreeSchema = z.object({
     ['Choice', choiceIds]
   ] as const) {
     if (new Set(ids).size !== ids.length) {
-      context.addIssue({ code: 'custom', message: `${label} ids must be unique` });
+      context.addIssue({
+        code: 'custom',
+        message: `${label} ids must be unique`,
+        params: { code: 'DUPLICATE_ID' }
+      });
     }
   }
 });

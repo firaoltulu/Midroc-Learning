@@ -29,14 +29,14 @@ export async function changeRole(
   id: string,
   role: 'user' | 'admin'
 ): Promise<{ user: User; claimSynced: boolean }> {
-  if (actor.id === id) throw new Forbidden('Administrators cannot change their own role');
+  if (actor.id === id) throw new Forbidden('Administrators cannot change their own role', 'SELF_CHANGE_FORBIDDEN');
   const result = await withTx(async (tx) => {
     await repository.lockAdminRoster(tx);
     const user = await repository.getUserForUpdate(tx, id);
     if (!user) throw new NotFound('User not found');
     if (user.role === 'admin' && role !== 'admin' && user.status === 'active') {
       if (await repository.activeAdminCount(tx) <= 1) {
-        throw new Conflict('The platform must retain an active administrator');
+        throw new Conflict('The platform must retain an active administrator', 'LAST_ADMIN');
       }
     }
     await repository.updateRole(tx, id, role);
@@ -59,14 +59,14 @@ export async function changeStatus(
   id: string,
   status: 'active' | 'suspended'
 ): Promise<{ user: User; sessionsRevoked: boolean }> {
-  if (actor.id === id) throw new Forbidden('Administrators cannot change their own status');
+  if (actor.id === id) throw new Forbidden('Administrators cannot change their own status', 'SELF_CHANGE_FORBIDDEN');
   const result = await withTx(async (tx) => {
     await repository.lockAdminRoster(tx);
     const user = await repository.getUserForUpdate(tx, id);
     if (!user) throw new NotFound('User not found');
     if (user.role === 'admin' && user.status === 'active' && status !== 'active') {
       if (await repository.activeAdminCount(tx) <= 1) {
-        throw new Conflict('The platform must retain an active administrator');
+        throw new Conflict('The platform must retain an active administrator', 'LAST_ADMIN');
       }
     }
     await repository.updateStatus(tx, id, status);

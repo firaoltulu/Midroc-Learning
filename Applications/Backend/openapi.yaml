@@ -1,63 +1,128 @@
 openapi: 3.1.0
 info:
   title: Learning Platform API
-  version: 1.0.0
+  version: 1.1.0
+  description: |
+    REST API of the learning platform. All endpoints except /health need a Firebase ID token
+    (`Authorization: Bearer <token>`).
+
+    **Errors.** Every non-2xx response has the body `Error`: `{ error, code, params?, issues? }`.
+    Clients translate by `code` (stable) and never show `error` (English, for developers).
+    Validation failures (`VALIDATION_FAILED`) list `issues` with the field `path`, the issue `code`
+    and its `params` (e.g. `minimum`). Codes any authenticated endpoint can return:
+    `UNAUTHENTICATED`, `INVALID_TOKEN` (401), `ACCOUNT_SUSPENDED`, `EMAIL_REQUIRED` (403),
+    `RATE_LIMITED` (429), `INTERNAL_ERROR` (500); every endpoint with a JSON body can return
+    `VALIDATION_FAILED` and `MALFORMED_JSON` (400); endpoints with an id in the path return
+    `INVALID_PARAMETER` (400) for a malformed id; `/admin/*` returns `ADMIN_REQUIRED` (403).
+
+    **Role changes.** When a response carries `X-Token-Refresh: true`, the user's role claim
+    changed: refresh the ID token and refetch `/me`.
 servers:
   - url: /api
 security:
   - FirebaseBearer: []
+
 paths:
   /health:
     get:
+      summary: Liveness and database check
       security: []
       responses:
         "200":
           description: Database and API are available.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { type: string, const: ok }
+        default: { $ref: "#/components/responses/Error" }
+
   /me:
     get:
+      summary: The signed-in user's profile (created on first call)
+      description: >-
+        `role` and `status` come from the database and are authoritative. A suspended account is
+        refused here (and on every other endpoint) with 403 `ACCOUNT_SUSPENDED`.
       responses:
         "200":
-          description: Current database-backed user profile.
-        "401":
-          description: Missing or invalid Firebase token.
-        "403":
-          description: >-
-            The account is suspended (`code: ACCOUNT_SUSPENDED`; returned by every authenticated
-            endpoint), or the token has no email address (no code).
+          description: Current user.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /me/courses:
+    get:
+      summary: Courses I own (any status), most recently updated first
+      responses:
+        "200":
+          description: Owned courses.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Course" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /me/enrollments:
+    get:
+      summary: My enrollments with progress, most recent first
+      responses:
+        "200":
+          description: Enrollments.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Enrollment" }
+        default: { $ref: "#/components/responses/Error" }
+
   /courses:
     get:
+      summary: Published course catalog
       parameters:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/PageSize"
         - in: query
           name: q
+          description: Title search (case-insensitive substring).
           schema: { type: string, maxLength: 200 }
         - in: query
           name: category
           schema: { type: string, maxLength: 100 }
         - in: query
           name: language
-          schema: { type: string, enum: [en, am] }
+          schema: { $ref: "#/components/schemas/CourseLanguage" }
       responses:
         "200":
-          description: Published course catalog.
+          description: A page of published courses.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CatalogPage" }
+        default: { $ref: "#/components/responses/Error" }
     post:
+      summary: Create a draft course
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              $ref: "#/components/schemas/CourseCreate"
+            schema: { $ref: "#/components/schemas/CourseCreate" }
       responses:
         "201":
           description: Course created in draft status.
-        "400":
-          description: Invalid or unknown input fields.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Course" }
+        default: { $ref: "#/components/responses/Error" }
+
   /courses/categories:
     get:
+      summary: Categories used by published courses
       responses:
         "200":
-          description: Categories used by published courses.
+          description: Category names, sorted.
           content:
             application/json:
               schema:
@@ -67,89 +132,145 @@ paths:
                   items:
                     type: array
                     items: { type: string }
+        default: { $ref: "#/components/responses/Error" }
+
   /courses/{id}:
     parameters:
-      - $ref: "#/components/parameters/Uuid"
+      - $ref: "#/components/parameters/Id"
     get:
+      summary: Course detail with its outline (no video ids, file keys or answers)
+      description: >-
+        Published courses for everyone; other statuses only for the owner and administrators
+        (otherwise `NOT_FOUND`).
       responses:
-        "200": { description: Course detail and safe item metadata. }
-        "404": { description: Course not found or not permitted. }
+        "200":
+          description: Course detail.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CourseDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+    patch:
+      summary: Edit course fields
+      description: >-
+        Draft and rejected courses: any field. Published courses: only minor fields
+        (`thumbnailUrl`, `tags`, `estimatedDurationMinutes`) for the owner; major fields need a
+        revision (`REVISION_REQUIRED`). Administrators may edit any field.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CoursePatch" }
+      responses:
+        "200":
+          description: The updated course.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Course" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "`LOCKED` (in review or archived) or `REVISION_REQUIRED`."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        default: { $ref: "#/components/responses/Error" }
     delete:
+      summary: Delete a course (archived instead when it has enrollments)
       responses:
         "204": { description: Course deleted or archived. }
-    patch:
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              additionalProperties: false
-              minProperties: 1
-              properties:
-                title: { type: string, minLength: 1, maxLength: 200 }
-                description: { type: string, maxLength: 20000 }
-                category: { type: [string, "null"], maxLength: 100 }
-                language: { type: string, enum: [en, am] }
-                thumbnailUrl: { type: [string, "null"], format: uri }
-                tags: { type: array, maxItems: 30, items: { type: string } }
-                estimatedDurationMinutes:
-                  { type: [integer, "null"], minimum: 0 }
-      responses:
-        "200":
-          {
-            description: Course fields updated according to minor/major policy.,
-          }
-        "409":
-          { description: Course locked or a major edit requires a revision. }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+
   /courses/{id}/submit:
     parameters:
-      - $ref: "#/components/parameters/Uuid"
+      - $ref: "#/components/parameters/Id"
     post:
+      summary: Submit a draft or rejected course for review
       responses:
-        "204": { description: Course submitted for review. }
-        "422": { description: Course completeness validation failed. }
+        "204": { description: Course is now pending review. }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "`LOCKED`: the course is already in review or not a draft/rejected course."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "422":
+          description: >-
+            `COURSE_INCOMPLETE` with `params.problems`, a list of `DESCRIPTION_REQUIRED`,
+            `NO_MODULES`, `EMPTY_MODULE`, `EMPTY_EXAM`.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /courses/{id}/enroll:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      summary: Enroll in a published course (idempotent)
+      responses:
+        "201":
+          description: New enrollment.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EnrollResult" }
+        "200":
+          description: Already enrolled.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EnrollResult" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "`NOT_PUBLISHED`, `LOCKED` or `OWNER_CANNOT_ENROLL`."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        default: { $ref: "#/components/responses/Error" }
+    delete:
+      summary: Unenroll (progress and exam history are kept)
+      responses:
+        "204": { description: Enrollment removed. }
+        default: { $ref: "#/components/responses/Error" }
+
   /courses/{courseId}/authoring:
     parameters:
-      - in: path
-        name: courseId
-        required: true
-        schema: { type: string, format: uuid }
+      - $ref: "#/components/parameters/CourseId"
     get:
+      summary: Full content tree for the owner or an administrator (includes correct answers)
       responses:
         "200":
-          {
-            description: Owner/admin content tree; the only endpoint returning correct answers.,
-          }
-        "404": { description: Course not found or not permitted. }
+          description: Authoring view.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthoringView" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+
   /courses/{courseId}/modules:
     parameters:
-      - in: path
-        name: courseId
-        required: true
-        schema: { type: string, format: uuid }
+      - $ref: "#/components/parameters/CourseId"
     post:
+      summary: Add a module (draft and rejected courses)
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              additionalProperties: false
-              required: [title]
-              properties:
-                title: { type: string, minLength: 1 }
-                description: { type: string }
+            schema: { $ref: "#/components/schemas/ModuleCreate" }
       responses:
-        "201": { description: Module created. }
-        "409": { description: Published course requires a structural revision. }
+        "201":
+          description: Module created at the end.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ModuleSummary" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/StructureLocked" }
+        default: { $ref: "#/components/responses/Error" }
+
   /courses/{courseId}/modules/order:
     parameters:
-      - in: path
-        name: courseId
-        required: true
-        schema: { type: string, format: uuid }
+      - $ref: "#/components/parameters/CourseId"
     put:
+      summary: Reorder modules (the complete list of module ids)
       requestBody:
         required: true
         content:
@@ -159,54 +280,69 @@ paths:
               additionalProperties: false
               required: [moduleIds]
               properties:
-                moduleIds:
-                  { type: array, items: { type: string, format: uuid } }
+                moduleIds: { $ref: "#/components/schemas/UniqueIds" }
       responses:
-        "204": { description: Module ordering updated. }
+        "204": { description: Order saved. }
+        "400":
+          description: "`INVALID_ORDER`: the list must contain every module exactly once."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/StructureLocked" }
+        default: { $ref: "#/components/responses/Error" }
+
   /modules/{moduleId}:
     parameters:
-      - in: path
-        name: moduleId
-        required: true
-        schema: { type: string, format: uuid }
+      - $ref: "#/components/parameters/ModuleId"
     patch:
-      responses:
-        "204": { description: Module title/description updated. }
-    delete:
-      responses:
-        "204": { description: Module removed. }
-        "409": { description: Published course requires a structural revision. }
-  /modules/{moduleId}/items:
-    parameters:
-      - in: path
-        name: moduleId
-        required: true
-        schema: { type: string, format: uuid }
-    post:
+      summary: Edit a module's title or description
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              additionalProperties: false
-              required: [type, title]
-              properties:
-                type: { type: string, enum: [video, pdf, exam] }
-                title: { type: string }
-                url: { type: string }
-                fileKey: { type: string, pattern: "^[0-9a-fA-F-]{36}\\.pdf$" }
-                questions: { type: array, minItems: 1 }
+            schema: { $ref: "#/components/schemas/ModulePatch" }
       responses:
-        "201": { description: Module item created. }
-        "422": { description: Media link or PDF failed verification. }
+        "204": { description: Module updated. }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/StructureLocked" }
+        default: { $ref: "#/components/responses/Error" }
+    delete:
+      summary: Delete a module and its items
+      responses:
+        "204": { description: Module deleted. }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/StructureLocked" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /modules/{moduleId}/items:
+    parameters:
+      - $ref: "#/components/parameters/ModuleId"
+    post:
+      summary: Add a video, PDF or exam item
+      description: Video links are verified with YouTube; PDFs must have been uploaded first.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ItemCreate" }
+      responses:
+        "201":
+          description: Item created at the end of the module.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ItemSummary" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/StructureLocked" }
+        "422": { $ref: "#/components/responses/MediaRejected" }
+        "502": { $ref: "#/components/responses/YoutubeUnreachable" }
+        default: { $ref: "#/components/responses/Error" }
+
   /modules/{moduleId}/items/order:
     parameters:
-      - in: path
-        name: moduleId
-        required: true
-        schema: { type: string, format: uuid }
+      - $ref: "#/components/parameters/ModuleId"
     put:
+      summary: Reorder a module's items (the complete list of item ids)
       requestBody:
         required: true
         content:
@@ -216,56 +352,86 @@ paths:
               additionalProperties: false
               required: [itemIds]
               properties:
-                itemIds: { type: array, items: { type: string, format: uuid } }
+                itemIds: { $ref: "#/components/schemas/UniqueIds" }
       responses:
-        "204": { description: Item ordering updated. }
+        "204": { description: Order saved. }
+        "400":
+          description: "`INVALID_ORDER`: the list must contain every item exactly once."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/StructureLocked" }
+        default: { $ref: "#/components/responses/Error" }
+
   /items/{itemId}:
     parameters:
-      - $ref: "#/components/parameters/ItemUuid"
+      - $ref: "#/components/parameters/ItemId"
     patch:
+      summary: Edit an item (title, or its type's fields)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ItemPatch" }
       responses:
-        "204": { description: Item title or type-specific details updated. }
-        "409": { description: Published structural edit requires a revision. }
+        "204": { description: Item updated. }
+        "400":
+          description: "`ITEM_TYPE_MISMATCH`: fields that don't belong to the item's type."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/StructureLocked" }
+        "422": { $ref: "#/components/responses/MediaRejected" }
+        "502": { $ref: "#/components/responses/YoutubeUnreachable" }
+        default: { $ref: "#/components/responses/Error" }
     delete:
+      summary: Delete an item
       responses:
-        "204": { description: Item and its cascading progress removed. }
+        "204": { description: Item deleted. }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/StructureLocked" }
+        default: { $ref: "#/components/responses/Error" }
+
   /items/{itemId}/questions:
     parameters:
-      - $ref: "#/components/parameters/ItemUuid"
+      - $ref: "#/components/parameters/ItemId"
     put:
+      summary: Replace an exam's questions (existing ones matched by id)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [questions]
+              properties:
+                questions:
+                  type: array
+                  minItems: 1
+                  items: { $ref: "#/components/schemas/QuestionInput" }
       responses:
-        "204": { description: Exam questions reconciled by id. }
+        "204": { description: Questions saved. }
+        "400":
+          description: >-
+            `VALIDATION_FAILED` (issue codes include `CORRECT_CHOICE_REQUIRED`,
+            `SINGLE_CORRECT_CHOICE_REQUIRED`, `DUPLICATE_ID`) or `INVALID_CONTENT_REFERENCE`.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404": { $ref: "#/components/responses/NotFound" }
         "409":
-          {
-            description: Published course requires a revision or references are stale.,
-          }
-  /me/courses:
-    get:
-      responses:
-        "200": { description: Courses owned by the current user. }
-  /me/enrollments:
-    get:
-      responses:
-        "200": { description: Enrollments and course progress. }
-  /courses/{id}/enroll:
-    parameters:
-      - $ref: "#/components/parameters/Uuid"
-    post:
-      responses:
-        "201": { description: New enrollment. }
-        "200": { description: Existing enrollment returned idempotently. }
-        "409":
-          {
-            description: Course is locked,
-            unpublished,
-            or owned by the learner.,
-          }
-    delete:
-      responses:
-        "204":
-          { description: Enrollment removed; progress and exam history remain. }
+          description: "`LOCKED`, `REVISION_REQUIRED` or `STALE_REVISION` (ids changed meanwhile)."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        default: { $ref: "#/components/responses/Error" }
+
   /pdf-uploads:
     post:
+      summary: Upload a PDF (not yet attached to any item)
       requestBody:
         required: true
         content:
@@ -277,30 +443,64 @@ paths:
                 file: { type: string, format: binary }
       responses:
         "201":
-          {
-            description: PDF validated and saved without attaching it to course content.,
-          }
-        "413": { description: File exceeds 50 MB. }
-        "422": { description: Invalid, corrupt, or encrypted PDF. }
+          description: Validated and stored; attach it with its `fileKey`.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PdfUpload" }
+        "400":
+          description: "`PDF_REQUIRED` or `INVALID_UPLOAD`."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "413":
+          description: "`PDF_TOO_LARGE` (`params.maxMegabytes`)."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "422":
+          description: "`PDF_INVALID`: not a PDF, corrupt, encrypted or without pages."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        default: { $ref: "#/components/responses/Error" }
+
   /items/{itemId}/video:
     parameters:
-      - $ref: "#/components/parameters/ItemUuid"
+      - $ref: "#/components/parameters/ItemId"
     get:
-      responses:
-        "200": { description: Authorized YouTube video identifier. }
-        "404": { description: Item not found or not permitted. }
-  /items/{itemId}/pdf:
-    parameters:
-      - $ref: "#/components/parameters/ItemUuid"
-    get:
+      summary: The YouTube video id of a video item (enrolled learners, owner, admins)
       responses:
         "200":
-          { description: Nginx internal redirect streams the authorized PDF. }
-        "404": { description: Item not found or not permitted. }
+          description: Video id (not cached).
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [youtubeVideoId]
+                properties:
+                  youtubeVideoId: { type: string }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /items/{itemId}/pdf:
+    parameters:
+      - $ref: "#/components/parameters/ItemId"
+    get:
+      summary: The PDF of a PDF item (streamed by the web server)
+      responses:
+        "200":
+          description: The PDF file.
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+
   /items/{itemId}/progress:
     parameters:
-      - $ref: "#/components/parameters/ItemUuid"
+      - $ref: "#/components/parameters/ItemId"
     put:
+      summary: Save progress on a video or PDF item
       requestBody:
         required: true
         content:
@@ -308,44 +508,69 @@ paths:
             schema:
               type: object
               additionalProperties: false
+              minProperties: 1
               properties:
                 lastPositionSeconds: { type: integer, minimum: 0 }
                 completed: { type: boolean }
       responses:
-        "204": { description: Progress updated. }
-        "404": { description: Item not found or not enrolled. }
+        "204": { description: Progress saved. }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "`EXAM_PROGRESS_BY_ATTEMPT`: exams are completed by passing an attempt."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        default: { $ref: "#/components/responses/Error" }
+
   /exams/{examId}:
     parameters:
-      - in: path
-        name: examId
-        required: true
-        schema: { type: string, format: uuid }
+      - $ref: "#/components/parameters/ExamId"
     get:
+      summary: Exam overview and questions (no correct answers)
       responses:
-        "200": { description: Exam questions without correct-answer flags. }
-        "404": { description: Exam not found or not permitted. }
+        "200":
+          description: Exam settings and questions.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ExamOverview" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+
   /exams/{examId}/start:
     parameters:
-      - in: path
-        name: examId
-        required: true
-        schema: { type: string, format: uuid }
+      - $ref: "#/components/parameters/ExamId"
     post:
+      summary: Start an attempt, or resume the open one
       responses:
         "201":
-          {
-            description: Existing open attempt resumed or a new attempt started.,
-          }
-        "409": { description: Attempt limit reached. }
+          description: The attempt and its questions.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ExamStart" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "`ATTEMPTS_EXHAUSTED`."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        default: { $ref: "#/components/responses/Error" }
+
   /exams/{examId}/attempts:
     parameters:
-      - in: path
-        name: examId
-        required: true
-        schema: { type: string, format: uuid }
+      - $ref: "#/components/parameters/ExamId"
     get:
+      summary: My attempt history for an exam
       responses:
-        "200": { description: Current user's attempt history. }
+        "200":
+          description: Attempts, newest first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Attempt" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+
   /attempts/{attemptId}/submit:
     parameters:
       - in: path
@@ -353,6 +578,7 @@ paths:
         required: true
         schema: { type: string, format: uuid }
     post:
+      summary: Submit answers and get the graded result
       requestBody:
         required: true
         content:
@@ -362,32 +588,142 @@ paths:
               additionalProperties: false
               required: [answers]
               properties:
-                answers: { type: array }
+                answers:
+                  type: array
+                  items:
+                    type: object
+                    additionalProperties: false
+                    required: [questionId, choiceIds]
+                    properties:
+                      questionId: { type: string, format: uuid }
+                      choiceIds:
+                        type: array
+                        items: { type: string, format: uuid }
       responses:
-        "200": { description: Graded attempt and conditional answer reveal. }
-        "410": { description: Late submit recorded as a zero-score failure. }
-        "409": { description: Attempt already submitted. }
+        "200":
+          description: Graded attempt.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ExamResult" }
+        "400":
+          description: "`INVALID_CHOICE` or `SINGLE_ANSWER_ONLY`."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "`ATTEMPT_ALREADY_SUBMITTED`."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "410":
+          description: >-
+            `EXAM_TIME_EXCEEDED`: submitted after the time limit (plus a 30 s grace period);
+            recorded as a failed attempt with score 0.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /courses/{courseId}/revision:
+    parameters:
+      - $ref: "#/components/parameters/CourseId"
+    get:
+      summary: The pending revision of a published course, and the last decision
+      responses:
+        "200":
+          description: Revision state.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RevisionState" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+    put:
+      summary: Save proposed changes to a published course for review
+      description: >-
+        Merges into the pending revision (creating one if needed). `course` holds major field
+        changes; `modules` is the complete proposed tree. Existing modules, items, questions and
+        choices keep their `id`; new ones have none.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RevisionInput" }
+      responses:
+        "200":
+          description: The saved pending revision.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CourseRevision" }
+        "400":
+          description: "`VALIDATION_FAILED` or `INVALID_CONTENT_REFERENCE` (an id not in this course)."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "`LOCKED`: only published courses have revisions."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "422": { $ref: "#/components/responses/MediaRejected" }
+        "502": { $ref: "#/components/responses/YoutubeUnreachable" }
+        default: { $ref: "#/components/responses/Error" }
+    delete:
+      summary: Withdraw the pending revision
+      responses:
+        "204": { description: Revision withdrawn. }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "`LOCKED`: only published courses have revisions."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        default: { $ref: "#/components/responses/Error" }
+
   /admin/users:
     get:
+      summary: Users (administrators only)
       parameters:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/PageSize"
         - in: query
           name: q
-          schema: { type: string }
+          description: Email search.
+          schema: { type: string, maxLength: 200 }
         - in: query
           name: role
-          schema: { type: string, enum: [user, admin] }
+          schema: { $ref: "#/components/schemas/Role" }
         - in: query
           name: status
-          schema: { type: string, enum: [active, suspended] }
+          schema: { $ref: "#/components/schemas/AccountStatus" }
       responses:
-        "200": { description: Paginated users; administrator only. }
-        "403": { description: Administrator access required. }
+        "200":
+          description: A page of users.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserPage" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /admin/users/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      summary: One user
+      responses:
+        "200":
+          description: The user.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+
   /admin/users/{id}/role:
     parameters:
-      - $ref: "#/components/parameters/Uuid"
+      - $ref: "#/components/parameters/Id"
     patch:
+      summary: Change a user's role
       requestBody:
         required: true
         content:
@@ -397,16 +733,30 @@ paths:
               additionalProperties: false
               required: [role]
               properties:
-                role: { type: string, enum: [user, admin] }
+                role: { $ref: "#/components/schemas/Role" }
       responses:
         "200":
-          {
-            description: Role change and Firebase claim synchronization status.,
-          }
+          description: >-
+            The updated user. `claimSynced: false` means the Firebase role claim could not be
+            updated yet (the database role still applies).
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user, claimSynced]
+                properties:
+                  user: { $ref: "#/components/schemas/User" }
+                  claimSynced: { type: boolean }
+        "403": { $ref: "#/components/responses/SelfChangeForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/LastAdmin" }
+        default: { $ref: "#/components/responses/Error" }
+
   /admin/users/{id}/status:
     parameters:
-      - $ref: "#/components/parameters/Uuid"
+      - $ref: "#/components/parameters/Id"
     patch:
+      summary: Suspend or reactivate a user
       requestBody:
         required: true
         content:
@@ -416,50 +766,148 @@ paths:
               additionalProperties: false
               required: [status]
               properties:
-                status: { type: string, enum: [active, suspended] }
+                status: { $ref: "#/components/schemas/AccountStatus" }
       responses:
-        "200": { description: Account status and session revocation status. }
+        "200":
+          description: >-
+            The updated user. `sessionsRevoked: false` means existing Firebase sessions could not
+            be revoked (the API still refuses the account).
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user, sessionsRevoked]
+                properties:
+                  user: { $ref: "#/components/schemas/User" }
+                  sessionsRevoked: { type: boolean }
+        "403": { $ref: "#/components/responses/SelfChangeForbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/LastAdmin" }
+        default: { $ref: "#/components/responses/Error" }
+
   /admin/courses:
     get:
+      summary: All courses
       parameters:
         - $ref: "#/components/parameters/Page"
         - $ref: "#/components/parameters/PageSize"
+        - in: query
+          name: status
+          schema: { $ref: "#/components/schemas/CourseStatus" }
+        - in: query
+          name: q
+          description: Title search.
+          schema: { type: string, maxLength: 200 }
       responses:
         "200":
-          { description: All courses, optionally filtered by status and title. }
+          description: A page of courses.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CoursePage" }
+        default: { $ref: "#/components/responses/Error" }
+
   /admin/moderation:
     get:
+      summary: Review queues, oldest first
       responses:
-        "200": { description: Pending course review queue. }
+        "200":
+          description: Courses awaiting review and pending revisions.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ModerationQueue" }
+        default: { $ref: "#/components/responses/Error" }
+
   /admin/courses/{id}/approve:
     parameters:
-      - $ref: "#/components/parameters/Uuid"
+      - $ref: "#/components/parameters/Id"
     post:
+      summary: Publish a course awaiting review
       responses:
         "204": { description: Course published. }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "`LOCKED`: the course is not pending review."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        default: { $ref: "#/components/responses/Error" }
+
   /admin/courses/{id}/reject:
     parameters:
-      - $ref: "#/components/parameters/Uuid"
+      - $ref: "#/components/parameters/Id"
     post:
+      summary: Return a course to its owner with a reason
       requestBody:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              additionalProperties: false
-              required: [reason]
-              properties:
-                reason: { type: string, minLength: 1 }
+            schema: { $ref: "#/components/schemas/Rejection" }
       responses:
-        "204": { description: Course returned to editable rejected status. }
-  /admin/analytics/overview:
+        "204": { description: Course rejected (editable again). }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "`LOCKED`: the course is not pending review."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /admin/revisions/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
     get:
+      summary: A revision with its proposed changes (before and after)
       responses:
         "200":
-          { description: Aggregate user, course, enrollment, and exam metrics. }
+          description: Revision and diff.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RevisionReview" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /admin/revisions/{id}/approve:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      summary: Apply a pending revision to the live course
+      responses:
+        "204": { description: Revision applied. }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/RevisionConflict" }
+        "422": { $ref: "#/components/responses/MediaRejected" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /admin/revisions/{id}/reject:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    post:
+      summary: Reject a pending revision with a reason
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Rejection" }
+      responses:
+        "204": { description: Revision rejected. }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/RevisionConflict" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /admin/analytics/overview:
+    get:
+      summary: Platform totals
+      responses:
+        "200":
+          description: Totals.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AnalyticsOverview" }
+        default: { $ref: "#/components/responses/Error" }
+
   /admin/analytics/enrollments:
     get:
+      summary: Enrollments over time (UTC buckets, zero-filled)
       parameters:
         - in: query
           name: from
@@ -476,45 +924,120 @@ paths:
           name: courseId
           schema: { type: string, format: uuid }
       responses:
-        "200": { description: UTC zero-filled enrollment time series. }
-        "422": { description: Invalid or greater-than-400-day time window. }
+        "200":
+          description: One point per bucket.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [date, count]
+                  properties:
+                    date: { type: string, format: date-time, description: Bucket start (UTC). }
+                    count: { type: integer }
+        "422":
+          description: "`INVALID_DATE_RANGE` (from after to) or `DATE_RANGE_TOO_LONG` (`params.maxDays`)."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        default: { $ref: "#/components/responses/Error" }
+
   /admin/analytics/courses:
     get:
-      responses:
-        "200": { description: Top courses by enrollment count. }
-  /admin/analytics/courses/{courseId}:
-    parameters:
-      - in: path
-        name: courseId
-        required: true
-        schema: { type: string, format: uuid }
-    get:
-      responses:
-        "200": { description: Course enrollment, completion, and exam metrics. }
-  /admin/videos/unavailable:
-    get:
+      summary: Courses with the most enrollments
       responses:
         "200":
-          { description: Unavailable videos requiring administrator attention. }
+          description: Top courses.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [id, title, status, enrollmentCount]
+                  properties:
+                    id: { type: string, format: uuid }
+                    title: { type: string }
+                    status: { $ref: "#/components/schemas/CourseStatus" }
+                    enrollmentCount: { type: integer }
+        default: { $ref: "#/components/responses/Error" }
+
+  /admin/analytics/courses/{courseId}:
+    parameters:
+      - $ref: "#/components/parameters/CourseId"
+    get:
+      summary: One course's enrollment, completion and exam figures
+      responses:
+        "200":
+          description: Course figures.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CourseAnalytics" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /admin/videos/unavailable:
+    get:
+      summary: Videos YouTube reports as unavailable, in published or in-review courses
+      responses:
+        "200":
+          description: Unavailable videos, most recently checked first.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/UnavailableVideo" }
+        default: { $ref: "#/components/responses/Error" }
+
   /admin/jobs/youtube-check:
     post:
+      summary: Check videos with YouTube now
       responses:
-        "200": { description: YouTube check counters. }
+        "200":
+          description: Summary of the check.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/YoutubeCheckResult" }
+        "409":
+          description: "`JOB_ALREADY_RUNNING`."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        default: { $ref: "#/components/responses/Error" }
+
 components:
   securitySchemes:
     FirebaseBearer:
       type: http
       scheme: bearer
       bearerFormat: Firebase ID token
+
   parameters:
-    Uuid:
+    Id:
       in: path
       name: id
       required: true
       schema: { type: string, format: uuid }
-    ItemUuid:
+    CourseId:
+      in: path
+      name: courseId
+      required: true
+      schema: { type: string, format: uuid }
+    ModuleId:
+      in: path
+      name: moduleId
+      required: true
+      schema: { type: string, format: uuid }
+    ItemId:
       in: path
       name: itemId
+      required: true
+      schema: { type: string, format: uuid }
+    ExamId:
+      in: path
+      name: examId
+      description: The exam's item id.
       required: true
       schema: { type: string, format: uuid }
     Page:
@@ -525,7 +1048,220 @@ components:
       in: query
       name: pageSize
       schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+
+  responses:
+    Error:
+      description: >-
+        Any error. Common codes: `UNAUTHENTICATED`, `INVALID_TOKEN` (401), `ACCOUNT_SUSPENDED`,
+        `EMAIL_REQUIRED`, `ADMIN_REQUIRED`, `FORBIDDEN` (403), `VALIDATION_FAILED`,
+        `MALFORMED_JSON`, `INVALID_PARAMETER`, `BAD_REQUEST` (400), `PAYLOAD_TOO_LARGE` (413),
+        `RATE_LIMITED` (429), `INTERNAL_ERROR` (500).
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NotFound:
+      description: "`NOT_FOUND`: missing, or not visible to this user."
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    StructureLocked:
+      description: >-
+        `LOCKED` (in review or archived) or `REVISION_REQUIRED` (a published course's structure
+        changes through a revision); `STALE_REVISION` when the item changed meanwhile.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    MediaRejected:
+      description: >-
+        `VIDEO_INVALID_LINK`, `VIDEO_UNAVAILABLE` (private, deleted or not embeddable) or
+        `PDF_INVALID`.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    YoutubeUnreachable:
+      description: "`YOUTUBE_UNREACHABLE`: YouTube could not be reached to verify the video."
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    SelfChangeForbidden:
+      description: "`SELF_CHANGE_FORBIDDEN`: administrators can't change their own role or status."
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    LastAdmin:
+      description: "`LAST_ADMIN`: the platform must keep at least one active administrator."
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    RevisionConflict:
+      description: >-
+        `ALREADY_DECIDED` (the revision was already approved or rejected), `STALE_REVISION` (the
+        live course changed since it was proposed: reject it) or `LOCKED`.
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
   schemas:
+    Error:
+      type: object
+      required: [error, code]
+      properties:
+        error: { type: string, description: English message for developers. Never shown to users. }
+        code:
+          type: string
+          description: Stable error code; clients translate by it.
+          examples: [NOT_FOUND, LOCKED, VALIDATION_FAILED]
+        params:
+          type: object
+          additionalProperties: true
+          description: Values for the client's message (e.g. `problems`, `maxMegabytes`).
+        issues:
+          type: array
+          description: Present with `VALIDATION_FAILED`.
+          items: { $ref: "#/components/schemas/ValidationIssue" }
+        detail: { type: string, description: Development only (500). }
+    ValidationIssue:
+      type: object
+      required: [path, code, message, params]
+      properties:
+        path:
+          type: array
+          items: { type: [string, integer] }
+          description: Field path, e.g. `["questions", 0, "choices"]`.
+        code:
+          type: string
+          description: >-
+            A zod issue code (`too_small`, `too_big`, `invalid_type`, `invalid_format`,
+            `invalid_value`, `unrecognized_keys`, ...) or a rule of our own:
+            `CORRECT_CHOICE_REQUIRED`, `SINGLE_CORRECT_CHOICE_REQUIRED`, `DUPLICATE_ID`,
+            `HTTP_URL_REQUIRED`, `VIDEO_LINK_REQUIRED`, `INVALID_DATE`.
+        message: { type: string, description: English, for developers. }
+        params:
+          type: object
+          additionalProperties: true
+          description: 'Issue values, e.g. `{ "origin": "string", "minimum": 3 }`.'
+
+    Role: { type: string, enum: [user, admin] }
+    AccountStatus: { type: string, enum: [active, suspended] }
+    CourseStatus: { type: string, enum: [draft, pending_review, published, rejected, archived] }
+    CourseLanguage: { type: string, enum: [en, am] }
+    ItemType: { type: string, enum: [video, pdf, exam] }
+    UniqueIds:
+      type: array
+      minItems: 1
+      uniqueItems: true
+      items: { type: string, format: uuid }
+
+    User:
+      type: object
+      required: [id, email, name, role, status, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string }
+        name: { type: [string, "null"] }
+        role: { $ref: "#/components/schemas/Role" }
+        status: { $ref: "#/components/schemas/AccountStatus" }
+        createdAt: { type: string, format: date-time }
+    UserPage:
+      allOf:
+        - $ref: "#/components/schemas/PageInfo"
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/User" }
+
+    PageInfo:
+      type: object
+      required: [page, pageSize, total]
+      properties:
+        page: { type: integer }
+        pageSize: { type: integer }
+        total: { type: integer }
+
+    Course:
+      type: object
+      required:
+        - id
+        - ownerId
+        - title
+        - description
+        - category
+        - language
+        - thumbnailUrl
+        - tags
+        - estimatedDurationMinutes
+        - status
+        - rejectionReason
+        - createdAt
+        - publishedAt
+      properties:
+        id: { type: string, format: uuid }
+        ownerId: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: string }
+        category: { type: [string, "null"] }
+        language: { $ref: "#/components/schemas/CourseLanguage" }
+        thumbnailUrl: { type: [string, "null"] }
+        tags: { type: array, items: { type: string } }
+        estimatedDurationMinutes: { type: [integer, "null"] }
+        status: { $ref: "#/components/schemas/CourseStatus" }
+        rejectionReason: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
+        publishedAt: { type: [string, "null"], format: date-time }
+    CatalogCourse:
+      allOf:
+        - $ref: "#/components/schemas/Course"
+        - type: object
+          required: [enrolled, moduleCount]
+          properties:
+            enrolled: { type: boolean, description: The current user is enrolled. }
+            moduleCount: { type: integer }
+    CatalogPage:
+      allOf:
+        - $ref: "#/components/schemas/PageInfo"
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/CatalogCourse" }
+    CoursePage:
+      allOf:
+        - $ref: "#/components/schemas/PageInfo"
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/Course" }
+    CourseDetail:
+      allOf:
+        - $ref: "#/components/schemas/Course"
+        - type: object
+          required: [modules]
+          properties:
+            modules:
+              type: array
+              items:
+                type: object
+                required: [id, title, description, position, items]
+                properties:
+                  id: { type: string, format: uuid }
+                  title: { type: string }
+                  description: { type: string }
+                  position: { type: integer }
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, type, title]
+                      properties:
+                        id: { type: string, format: uuid }
+                        type: { $ref: "#/components/schemas/ItemType" }
+                        title: { type: string }
+
     CourseCreate:
       type: object
       additionalProperties: false
@@ -534,10 +1270,564 @@ components:
         title: { type: string, minLength: 1, maxLength: 200 }
         description: { type: string, maxLength: 20000, default: "" }
         category: { type: [string, "null"], maxLength: 100 }
-        language: { type: string, enum: [en, am], default: en }
+        language: { $ref: "#/components/schemas/CourseLanguage" }
+        thumbnailUrl:
+          type: [string, "null"]
+          format: uri
+          description: http or https only (`HTTP_URL_REQUIRED`).
+        tags:
+          type: array
+          maxItems: 30
+          items: { type: string, minLength: 1, maxLength: 40 }
+        estimatedDurationMinutes: { type: [integer, "null"], minimum: 0 }
+    CoursePatch:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, maxLength: 20000 }
+        category: { type: [string, "null"], maxLength: 100 }
+        language: { $ref: "#/components/schemas/CourseLanguage" }
         thumbnailUrl: { type: [string, "null"], format: uri }
         tags:
           type: array
           maxItems: 30
           items: { type: string, minLength: 1, maxLength: 40 }
         estimatedDurationMinutes: { type: [integer, "null"], minimum: 0 }
+
+    Enrollment:
+      type: object
+      required: [id, title, description, category, language, thumbnailUrl, enrolledAt, progressPercent]
+      properties:
+        id: { type: string, format: uuid, description: The course id. }
+        title: { type: string }
+        description: { type: string }
+        category: { type: [string, "null"] }
+        language: { $ref: "#/components/schemas/CourseLanguage" }
+        thumbnailUrl: { type: [string, "null"] }
+        enrolledAt: { type: string, format: date-time }
+        progressPercent: { type: integer, minimum: 0, maximum: 100 }
+    EnrollResult:
+      type: object
+      required: [enrolled]
+      properties:
+        enrolled: { type: boolean, const: true }
+
+    ModuleCreate:
+      type: object
+      additionalProperties: false
+      required: [title]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, maxLength: 4000, default: "" }
+    ModulePatch:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, maxLength: 4000 }
+    ModuleSummary:
+      type: object
+      required: [id, title, description, position]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: string }
+        position: { type: integer }
+    ExamSettings:
+      type: object
+      properties:
+        instructions: { type: string, maxLength: 4000, default: "" }
+        passingScorePercent: { type: integer, minimum: 0, maximum: 100, default: 60 }
+        maxAttempts: { type: [integer, "null"], minimum: 1, default: null }
+        timeLimitMinutes: { type: [integer, "null"], minimum: 1, default: null }
+    PdfFileKey:
+      type: string
+      pattern: "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\\.pdf$"
+    ItemCreate:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required: [type, title, url]
+          properties:
+            type: { type: string, const: video }
+            title: { type: string, minLength: 1, maxLength: 200 }
+            url: { type: string, minLength: 1, maxLength: 2000, description: A YouTube link. }
+        - type: object
+          additionalProperties: false
+          required: [type, title, fileKey]
+          properties:
+            type: { type: string, const: pdf }
+            title: { type: string, minLength: 1, maxLength: 200 }
+            fileKey: { $ref: "#/components/schemas/PdfFileKey" }
+        - allOf:
+            - $ref: "#/components/schemas/ExamSettings"
+            - type: object
+              required: [type, title]
+              properties:
+                type: { type: string, const: exam }
+                title: { type: string, minLength: 1, maxLength: 200 }
+                questions:
+                  type: array
+                  minItems: 1
+                  items: { $ref: "#/components/schemas/QuestionInput" }
+      discriminator: { propertyName: type }
+    ItemPatch:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      description: "`url` for videos, `fileKey` for PDFs, exam settings for exams."
+      properties:
+        title: { type: string, minLength: 1, maxLength: 200 }
+        url: { type: string, minLength: 1, maxLength: 2000 }
+        fileKey: { $ref: "#/components/schemas/PdfFileKey" }
+        instructions: { type: string, maxLength: 4000 }
+        passingScorePercent: { type: integer, minimum: 0, maximum: 100 }
+        maxAttempts: { type: [integer, "null"], minimum: 1 }
+        timeLimitMinutes: { type: [integer, "null"], minimum: 1 }
+    ItemSummary:
+      type: object
+      required: [id, type, title, position]
+      properties:
+        id: { type: string, format: uuid }
+        type: { $ref: "#/components/schemas/ItemType" }
+        title: { type: string }
+        position: { type: integer }
+    QuestionInput:
+      type: object
+      additionalProperties: false
+      required: [prompt, choices]
+      description: >-
+        At least one correct choice (`CORRECT_CHOICE_REQUIRED`); exactly one when
+        `isMultiple` is false (`SINGLE_CORRECT_CHOICE_REQUIRED`). Omit `id` for new questions.
+      properties:
+        id: { type: string, format: uuid }
+        prompt: { type: string, minLength: 1, maxLength: 10000 }
+        isMultiple: { type: boolean, default: false }
+        points: { type: integer, minimum: 1, default: 1 }
+        choices:
+          type: array
+          minItems: 2
+          maxItems: 10
+          items:
+            type: object
+            additionalProperties: false
+            required: [text, isCorrect]
+            properties:
+              id: { type: string, format: uuid }
+              text: { type: string, minLength: 1, maxLength: 2000 }
+              isCorrect: { type: boolean }
+    AuthoringQuestion:
+      type: object
+      required: [id, prompt, isMultiple, points, position, choices]
+      properties:
+        id: { type: string, format: uuid }
+        prompt: { type: string }
+        isMultiple: { type: boolean }
+        points: { type: integer }
+        position: { type: integer }
+        choices:
+          type: array
+          items:
+            type: object
+            required: [id, text, isCorrect]
+            properties:
+              id: { type: string, format: uuid }
+              text: { type: string }
+              isCorrect: { type: boolean }
+    AuthoringItem:
+      type: object
+      required:
+        - id
+        - type
+        - title
+        - position
+        - youtubeVideoId
+        - youtubeTitle
+        - isAvailable
+        - fileKey
+        - sizeBytes
+        - pageCount
+        - instructions
+        - passingScorePercent
+        - maxAttempts
+        - timeLimitMinutes
+      description: Fields of other item types are null. Exams also carry `questions`.
+      properties:
+        id: { type: string, format: uuid }
+        type: { $ref: "#/components/schemas/ItemType" }
+        title: { type: string }
+        position: { type: integer }
+        youtubeVideoId: { type: [string, "null"] }
+        youtubeTitle: { type: [string, "null"] }
+        isAvailable: { type: [boolean, "null"] }
+        fileKey: { type: [string, "null"] }
+        sizeBytes: { type: [integer, "null"] }
+        pageCount: { type: [integer, "null"] }
+        instructions: { type: [string, "null"] }
+        passingScorePercent: { type: [integer, "null"] }
+        maxAttempts: { type: [integer, "null"] }
+        timeLimitMinutes: { type: [integer, "null"] }
+        questions:
+          type: array
+          items: { $ref: "#/components/schemas/AuthoringQuestion" }
+    AuthoringView:
+      type: object
+      required: [course, modules]
+      properties:
+        course: { $ref: "#/components/schemas/CourseDetail" }
+        modules:
+          type: array
+          items:
+            allOf:
+              - $ref: "#/components/schemas/ModuleSummary"
+              - type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/AuthoringItem" }
+
+    PdfUpload:
+      type: object
+      required: [fileKey, sizeBytes, pageCount]
+      properties:
+        fileKey: { $ref: "#/components/schemas/PdfFileKey" }
+        sizeBytes: { type: integer }
+        pageCount: { type: integer }
+
+    LearnerQuestion:
+      type: object
+      required: [id, prompt, isMultiple, points, position, choices]
+      properties:
+        id: { type: string, format: uuid }
+        prompt: { type: string }
+        isMultiple: { type: boolean }
+        points: { type: integer }
+        position: { type: integer }
+        choices:
+          type: array
+          items:
+            type: object
+            required: [id, text, position]
+            properties:
+              id: { type: string, format: uuid }
+              text: { type: string }
+              position: { type: integer }
+    ExamOverview:
+      type: object
+      required: [instructions, passingScorePercent, maxAttempts, timeLimitMinutes, questions]
+      properties:
+        instructions: { type: string }
+        passingScorePercent: { type: integer }
+        maxAttempts: { type: [integer, "null"] }
+        timeLimitMinutes: { type: [integer, "null"] }
+        questions:
+          type: array
+          items: { $ref: "#/components/schemas/LearnerQuestion" }
+    ExamStart:
+      type: object
+      required: [attempt, questions, expiresAt]
+      properties:
+        attempt:
+          type: object
+          required: [id, startedAt]
+          properties:
+            id: { type: string, format: uuid }
+            startedAt: { type: string, format: date-time }
+        questions:
+          type: array
+          items: { $ref: "#/components/schemas/LearnerQuestion" }
+        expiresAt:
+          type: [string, "null"]
+          format: date-time
+          description: Null without a time limit. Submits are accepted up to 30 s after it.
+    ExamResult:
+      type: object
+      required: [scorePercent, passed, revealAnswers, results]
+      properties:
+        scorePercent: { type: number, minimum: 0, maximum: 100 }
+        passed: { type: boolean }
+        revealAnswers:
+          type: boolean
+          description: True when passed or when no attempts remain; then results carry correctChoiceIds.
+        results:
+          type: array
+          items:
+            type: object
+            required: [questionId, correct, selectedChoiceIds]
+            properties:
+              questionId: { type: string, format: uuid }
+              correct: { type: boolean }
+              selectedChoiceIds: { type: array, items: { type: string, format: uuid } }
+              correctChoiceIds: { type: array, items: { type: string, format: uuid } }
+    Attempt:
+      type: object
+      required: [id, startedAt, submittedAt, scorePercent, passed]
+      properties:
+        id: { type: string, format: uuid }
+        startedAt: { type: string, format: date-time }
+        submittedAt: { type: [string, "null"], format: date-time }
+        scorePercent: { type: [number, "null"] }
+        passed: { type: [boolean, "null"] }
+
+    RevisionTreeItem:
+      oneOf:
+        - type: object
+          additionalProperties: false
+          required: [type, title]
+          description: "`url` (a new link, verified) or `youtubeVideoId` (unchanged video)."
+          properties:
+            id: { type: string, format: uuid }
+            type: { type: string, const: video }
+            title: { type: string, minLength: 1, maxLength: 200 }
+            url: { type: string, minLength: 1, maxLength: 2000 }
+            youtubeVideoId: { type: string, pattern: "^[A-Za-z0-9_-]{11}$" }
+        - type: object
+          additionalProperties: false
+          required: [type, title, fileKey]
+          properties:
+            id: { type: string, format: uuid }
+            type: { type: string, const: pdf }
+            title: { type: string, minLength: 1, maxLength: 200 }
+            fileKey: { $ref: "#/components/schemas/PdfFileKey" }
+        - allOf:
+            - $ref: "#/components/schemas/ExamSettings"
+            - type: object
+              required: [type, title, questions]
+              properties:
+                id: { type: string, format: uuid }
+                type: { type: string, const: exam }
+                title: { type: string, minLength: 1, maxLength: 200 }
+                questions:
+                  type: array
+                  minItems: 1
+                  items: { $ref: "#/components/schemas/QuestionInput" }
+      discriminator: { propertyName: type }
+    RevisionTreeModule:
+      type: object
+      additionalProperties: false
+      required: [title, items]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string, minLength: 1, maxLength: 200 }
+        description: { type: string, maxLength: 4000, default: "" }
+        items:
+          type: array
+          minItems: 1
+          items: { $ref: "#/components/schemas/RevisionTreeItem" }
+    RevisionInput:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        course:
+          type: object
+          additionalProperties: false
+          minProperties: 1
+          description: Major course fields.
+          properties:
+            title: { type: string, minLength: 1, maxLength: 200 }
+            description: { type: string, maxLength: 20000 }
+            category: { type: [string, "null"], maxLength: 100 }
+            language: { $ref: "#/components/schemas/CourseLanguage" }
+        modules:
+          type: array
+          minItems: 1
+          items: { $ref: "#/components/schemas/RevisionTreeModule" }
+    CourseRevision:
+      type: object
+      required:
+        - id
+        - courseId
+        - data
+        - status
+        - rejectionReason
+        - submittedBy
+        - submittedAt
+        - reviewedBy
+        - reviewedAt
+      properties:
+        id: { type: string, format: uuid }
+        courseId: { type: string, format: uuid }
+        data:
+          type: object
+          required: [course]
+          properties:
+            course:
+              type: object
+              additionalProperties: true
+              description: Changed major fields only.
+            modules:
+              type: array
+              description: The proposed tree (video items carry the verified youtubeVideoId).
+              items: { type: object, additionalProperties: true }
+            base:
+              type: object
+              description: Ids of the live content when the revision was started.
+              properties:
+                modules: { type: array, items: { type: string } }
+                items: { type: array, items: { type: string } }
+                questions: { type: array, items: { type: string } }
+                choices: { type: array, items: { type: string } }
+        status: { type: string, enum: [pending, approved, rejected] }
+        rejectionReason: { type: [string, "null"] }
+        submittedBy: { type: string, format: uuid }
+        submittedAt: { type: string, format: date-time }
+        reviewedBy: { type: [string, "null"], format: uuid }
+        reviewedAt: { type: [string, "null"], format: date-time }
+    RevisionDecision:
+      type: object
+      required: [id, status, reason, reviewedBy, reviewedAt]
+      properties:
+        id: { type: string, format: uuid }
+        status: { type: string, enum: [approved, rejected] }
+        reason: { type: [string, "null"] }
+        reviewedBy: { type: [string, "null"], format: uuid }
+        reviewedAt: { type: [string, "null"], format: date-time }
+    RevisionState:
+      type: object
+      required: [revision, lastDecision]
+      properties:
+        revision:
+          oneOf:
+            - $ref: "#/components/schemas/CourseRevision"
+            - type: "null"
+        lastDecision:
+          oneOf:
+            - $ref: "#/components/schemas/RevisionDecision"
+            - type: "null"
+    RevisionReview:
+      type: object
+      required:
+        - id
+        - courseId
+        - status
+        - rejectionReason
+        - submittedBy
+        - submittedAt
+        - lastDecision
+        - diff
+      properties:
+        id: { type: string, format: uuid }
+        courseId: { type: string, format: uuid }
+        status: { type: string, enum: [pending, approved, rejected] }
+        rejectionReason: { type: [string, "null"] }
+        submittedBy: { type: string, format: uuid }
+        submittedAt: { type: string, format: date-time }
+        lastDecision:
+          oneOf:
+            - $ref: "#/components/schemas/RevisionDecision"
+            - type: "null"
+        diff:
+          type: object
+          required: [course, modules]
+          properties:
+            course:
+              type: object
+              required: [before, after]
+              description: Major fields (title, description, category, language).
+              properties:
+                before: { type: object, additionalProperties: true }
+                after: { type: object, additionalProperties: true }
+            modules:
+              type: object
+              required: [before, after]
+              description: The live tree (authoring shape) and the proposed tree.
+              properties:
+                before: { type: array, items: { type: object, additionalProperties: true } }
+                after: { type: array, items: { type: object, additionalProperties: true } }
+    Rejection:
+      type: object
+      additionalProperties: false
+      required: [reason]
+      properties:
+        reason: { type: string, minLength: 1, maxLength: 4000 }
+    ModerationQueue:
+      type: object
+      required: [courses, revisions]
+      properties:
+        courses:
+          type: array
+          items: { $ref: "#/components/schemas/Course" }
+        revisions:
+          type: array
+          items:
+            type: object
+            required: [id, courseId, courseTitle, ownerId, submittedBy, submittedAt]
+            properties:
+              id: { type: string, format: uuid }
+              courseId: { type: string, format: uuid }
+              courseTitle: { type: string }
+              ownerId: { type: string, format: uuid }
+              submittedBy: { type: string, format: uuid }
+              submittedAt: { type: string, format: date-time }
+
+    AnalyticsOverview:
+      type: object
+      required:
+        - userCount
+        - courseCount
+        - publishedCourseCount
+        - enrollmentCount
+        - submittedAttemptCount
+        - averageExamScore
+      properties:
+        userCount: { type: integer }
+        courseCount: { type: integer }
+        publishedCourseCount: { type: integer }
+        enrollmentCount: { type: integer }
+        submittedAttemptCount: { type: integer }
+        averageExamScore: { type: [number, "null"] }
+    CourseAnalytics:
+      type: object
+      required:
+        - id
+        - title
+        - status
+        - enrollmentCount
+        - itemCount
+        - completedItemCount
+        - submittedAttemptCount
+        - averageExamScore
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        status: { $ref: "#/components/schemas/CourseStatus" }
+        enrollmentCount: { type: integer }
+        itemCount: { type: integer }
+        completedItemCount: { type: integer }
+        submittedAttemptCount: { type: integer }
+        averageExamScore: { type: [number, "null"] }
+    UnavailableVideo:
+      type: object
+      required: [itemId, itemTitle, youtubeTitle, lastCheckedAt, courseId, courseTitle]
+      properties:
+        itemId: { type: string, format: uuid }
+        itemTitle: { type: string }
+        youtubeTitle: { type: [string, "null"] }
+        lastCheckedAt: { type: [string, "null"], format: date-time }
+        courseId: { type: string, format: uuid }
+        courseTitle: { type: string }
+    YoutubeCheckResult:
+      type: object
+      required:
+        - checked
+        - available
+        - newlyUnavailable
+        - recovered
+        - stillUnavailable
+        - unreachable
+        - aborted
+        - skipped
+      properties:
+        checked: { type: integer }
+        available: { type: integer }
+        newlyUnavailable: { type: integer }
+        recovered: { type: integer }
+        stillUnavailable: { type: integer }
+        unreachable: { type: integer }
+        aborted: { type: boolean, description: Stopped early after repeated YouTube failures. }
+        skipped: { type: boolean, const: false }

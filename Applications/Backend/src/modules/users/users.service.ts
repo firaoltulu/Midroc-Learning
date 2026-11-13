@@ -10,7 +10,7 @@ export async function findByFirebaseUid(uid: string): Promise<User | undefined> 
 }
 
 export async function createFromToken(profile: FirebaseProfile): Promise<User> {
-  if (!profile.email) throw new Forbidden('An email address is required');
+  if (!profile.email) throw new Forbidden('An email address is required', 'EMAIL_REQUIRED');
   return withTx(async (tx) => {
     const firstAdmin =
       profile.emailVerified && config.ADMIN_EMAILS.includes(profile.email.toLowerCase());

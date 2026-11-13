@@ -69,9 +69,13 @@ export async function submitCourse(actor: Actor, id: string): Promise<void> {
     if (!['draft', 'rejected'].includes(course.status)) {
       throw new Conflict('Course cannot be submitted in its current state', 'LOCKED');
     }
-    if (!course.description.trim()) throw new Unprocessable('Course description is required', ['Course description is required']);
-    const problems = await repository.courseReadinessProblems(tx, id);
-    if (problems.length) throw new Unprocessable('Course is incomplete', problems);
+    const problems = [
+      ...(course.description.trim() ? [] : ['DESCRIPTION_REQUIRED' as const]),
+      ...(await repository.courseReadinessProblems(tx, id))
+    ];
+    if (problems.length) {
+      throw new Unprocessable('Course is incomplete', 'COURSE_INCOMPLETE', { problems });
+    }
     await repository.submitCourse(tx, id);
   });
 }

@@ -20,18 +20,18 @@ export async function authenticate(
 ): Promise<void> {
   const authorization = req.header('authorization');
   if (!authorization?.startsWith('Bearer ')) {
-    res.status(401).json({ error: 'Authentication required' });
+    res.status(401).json({ error: 'Authentication required', code: 'UNAUTHENTICATED' });
     return;
   }
   let token;
   try {
     token = await verifyIdToken(authorization.slice(7));
   } catch {
-    res.status(401).json({ error: 'Invalid authentication token' });
+    res.status(401).json({ error: 'Invalid authentication token', code: 'INVALID_TOKEN' });
     return;
   }
   if (!token.email) {
-    next(new Forbidden('An email address is required'));
+    next(new Forbidden('An email address is required', 'EMAIL_REQUIRED'));
     return;
   }
   try {
@@ -58,7 +58,7 @@ export async function authenticate(
 
 export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
   if (req.user.role !== 'admin') {
-    res.status(403).json({ error: 'Administrator access required' });
+    res.status(403).json({ error: 'Administrator access required', code: 'ADMIN_REQUIRED' });
     return;
   }
   next();

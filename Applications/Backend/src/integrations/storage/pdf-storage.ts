@@ -7,7 +7,7 @@ import { BadRequest, NotFound } from '../../core/http/app-error.js';
 const keyPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.pdf$/i;
 
 function resolveKey(fileKey: string): string {
-  if (!keyPattern.test(fileKey)) throw new BadRequest('Invalid PDF file key');
+  if (!keyPattern.test(fileKey)) throw new BadRequest('Invalid PDF file key', 'INVALID_FILE_KEY');
   return path.join(config.PDF_ROOT, fileKey);
 }
 
@@ -64,7 +64,7 @@ export async function listTemporaryPdfFiles(): Promise<string[]> {
 
 export async function statTemporaryPdf(fileName: string): Promise<{ modifiedAt: Date }> {
   if (path.basename(fileName) !== fileName || fileName.includes('..')) {
-    throw new BadRequest('Invalid temporary filename');
+    throw new BadRequest('Invalid temporary filename', 'INVALID_UPLOAD');
   }
   const result = await stat(path.join(config.PDF_ROOT, '_tmp', fileName));
   return { modifiedAt: result.mtime };
@@ -72,7 +72,7 @@ export async function statTemporaryPdf(fileName: string): Promise<{ modifiedAt: 
 
 export async function removeTemporaryPdf(fileName: string): Promise<void> {
   if (path.basename(fileName) !== fileName || fileName.includes('..')) {
-    throw new BadRequest('Invalid temporary filename');
+    throw new BadRequest('Invalid temporary filename', 'INVALID_UPLOAD');
   }
   await rm(path.join(config.PDF_ROOT, '_tmp', fileName), { force: true });
 }

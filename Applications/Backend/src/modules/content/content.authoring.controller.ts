@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { isUuid } from '../../core/ids.js';
-import { BadRequest } from '../../core/http/app-error.js';
+import { invalidParameter } from '../../core/http/app-error.js';
 import { parseEmptyBody, parseInput, routeParam } from '../../core/http/validate.js';
 import * as service from './content.authoring.service.js';
 import {
@@ -15,7 +15,7 @@ import {
 
 function uuidParam(req: Request, key: string): string {
   const value = routeParam(req, key);
-  if (!isUuid(value)) throw new BadRequest(`Invalid ${key}`);
+  if (!isUuid(value)) throw invalidParameter(key);
   return value;
 }
 

@@ -12,6 +12,8 @@ export type YoutubeCheckResult = {
   stillUnavailable: number;
   unreachable: number;
   aborted: boolean;
+  /** Another check holds the lock; nothing was done. */
+  skipped: boolean;
 };
 
 function emptyResult(): YoutubeCheckResult {
@@ -22,7 +24,8 @@ function emptyResult(): YoutubeCheckResult {
     recovered: 0,
     stillUnavailable: 0,
     unreachable: 0,
-    aborted: false
+    aborted: false,
+    skipped: false
   };
 }
 
@@ -39,7 +42,7 @@ export async function runYoutubeCheck(options: {
   const result = emptyResult();
   try {
     locked = await repository.tryYoutubeJobLock(client);
-    if (!locked) return result;
+    if (!locked) return { ...result, skipped: true };
     const videos = await repository.dueYoutubeVideos(client, maxAgeHours, batchSize);
     let consecutiveFailures = 0;
     for (const [index, video] of videos.entries()) {

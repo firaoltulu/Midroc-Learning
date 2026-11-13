@@ -13,36 +13,36 @@ export async function verifyVideoLink(input: string): Promise<YoutubeMetadata> {
 }
 
 export async function uploadPdf(contents: Buffer | undefined) {
-  if (!contents) throw new BadRequest('A PDF file is required');
+  if (!contents) throw new BadRequest('A PDF file is required', 'PDF_REQUIRED');
   if (contents.byteLength > 50 * 1024 * 1024) {
-    throw new BadRequest('PDF must be 50 MB or smaller');
+    throw new BadRequest('PDF must be 50 MB or smaller', 'PDF_TOO_LARGE', { maxMegabytes: 50 });
   }
   if (contents.subarray(0, 5).toString('ascii') !== '%PDF-') {
-    throw new Unprocessable('The uploaded file is not a PDF');
+    throw new Unprocessable('The uploaded file is not a PDF', 'PDF_INVALID');
   }
   let document: PDFDocument;
   try {
     document = await PDFDocument.load(contents, { ignoreEncryption: false });
   } catch {
-    throw new Unprocessable('The PDF is corrupt or encrypted');
+    throw new Unprocessable('The PDF is corrupt or encrypted', 'PDF_INVALID');
   }
   const pageCount = document.getPageCount();
-  if (pageCount < 1) throw new Unprocessable('The PDF must contain at least one page');
+  if (pageCount < 1) throw new Unprocessable('The PDF must contain at least one page', 'PDF_INVALID');
   return { ...(await savePdf(contents)), pageCount };
 }
 
 export async function verifyPdfFile(fileKey: string): Promise<{ sizeBytes: number; pageCount: number }> {
   const contents = await readPdf(fileKey);
   if (contents.subarray(0, 5).toString('ascii') !== '%PDF-') {
-    throw new Unprocessable('The selected file is not a valid PDF');
+    throw new Unprocessable('The selected file is not a valid PDF', 'PDF_INVALID');
   }
   try {
     const pdf = await PDFDocument.load(contents, { ignoreEncryption: false });
     const pageCount = pdf.getPageCount();
-    if (pageCount < 1) throw new Unprocessable('The selected PDF has no pages');
+    if (pageCount < 1) throw new Unprocessable('The selected PDF has no pages', 'PDF_INVALID');
     return { sizeBytes: contents.byteLength, pageCount };
   } catch {
-    throw new Unprocessable('The selected PDF is corrupt or encrypted');
+    throw new Unprocessable('The selected PDF is corrupt or encrypted', 'PDF_INVALID');
   }
 }
 

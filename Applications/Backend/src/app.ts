@@ -53,7 +53,14 @@ export function buildApp(authentication: RequestHandler = authenticate): express
       next(error);
     }
   });
-  app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, limit: 300 }));
+  app.use(
+    '/api',
+    rateLimit({
+      windowMs: 15 * 60 * 1000,
+      limit: 300,
+      message: { error: 'Too many requests', code: 'RATE_LIMITED' }
+    })
+  );
   app.use('/api', authentication);
   app.use('/api', meRoutes, coursesRoutes, enrollmentsRoutes, editingRoutes, contentRoutes, learningRoutes, examsRoutes);
 
@@ -62,7 +69,7 @@ export function buildApp(authentication: RequestHandler = authenticate): express
   adminRoutes.use(coursesAdminRoutes, moderationAdminRoutes, contentAdminRoutes, analyticsAdminRoutes);
   app.use('/api/admin', requireAdmin, adminRoutes);
   app.use((_req, res) => {
-    res.status(404).json({ error: 'Not found' });
+    res.status(404).json({ error: 'Not found', code: 'NOT_FOUND' });
   });
   app.use(errorHandler);
   return app;

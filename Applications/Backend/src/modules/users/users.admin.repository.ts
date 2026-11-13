@@ -1,4 +1,5 @@
 import type { Queryable } from '../../core/db/pool.js';
+import { toPage } from '../../core/db/sql.js';
 import type { User } from './users.types.js';
 
 export async function lockAdminRoster(db: Queryable): Promise<void> {
@@ -14,7 +15,7 @@ export async function listUsers(
     limit: number;
     offset: number;
   }
-): Promise<{ items: Array<User & { total: string }>; total: number }> {
+): Promise<{ items: User[]; total: number }> {
   const { rows } = await db.query<User & { total: string }>(
     `SELECT id, email, name, role, status, created_at AS "createdAt",
        count(*) OVER() AS total
@@ -26,7 +27,7 @@ export async function listUsers(
      LIMIT $4 OFFSET $5`,
     [input.q ?? null, input.role ?? null, input.status ?? null, input.limit, input.offset]
   );
-  return { items: rows, total: Number(rows[0]?.total ?? 0) };
+  return toPage(rows);
 }
 
 export async function getUserForUpdate(db: Queryable, id: string): Promise<User | undefined> {

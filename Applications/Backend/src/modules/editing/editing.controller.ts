@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import { isUuid } from '../../core/ids.js';
-import { BadRequest } from '../../core/http/app-error.js';
+import { invalidParameter } from '../../core/http/app-error.js';
 import { parseEmptyBody, parseInput, routeParam } from '../../core/http/validate.js';
 import {
   coursePatchSchema,
@@ -15,7 +15,7 @@ import { patchCourse as patchCourseService } from './editing.service.js';
 
 export async function patchCourse(req: Request, res: Response): Promise<void> {
   const courseId = routeParam(req, 'id');
-  if (!isUuid(courseId)) throw new BadRequest('Invalid course id');
+  if (!isUuid(courseId)) throw invalidParameter('courseId');
   res.json(await patchCourseService(req.user, courseId, parseInput(coursePatchSchema, req.body)));
 }
 
@@ -40,6 +40,6 @@ export async function deleteCourseRevision(req: Request, res: Response): Promise
 
 function courseIdParam(req: Request): string {
   const courseId = routeParam(req, 'courseId');
-  if (!isUuid(courseId)) throw new BadRequest('Invalid course id');
+  if (!isUuid(courseId)) throw invalidParameter('courseId');
   return courseId;
 }
