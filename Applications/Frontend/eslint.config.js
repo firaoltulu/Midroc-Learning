@@ -45,6 +45,11 @@ export default tseslint.config(
     },
     rules: {
       '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
+      // TanStack Router's idiom is `throw redirect(...)` (a Response, not an Error).
+      '@typescript-eslint/only-throw-error': [
+        'error',
+        { allow: [{ from: 'package', package: '@tanstack/router-core', name: 'Redirect' }] },
+      ],
     },
   },
   {
@@ -136,7 +141,12 @@ export default tseslint.config(
   },
   {
     files: ['src/**/*.test.{ts,tsx}', 'src/test/**'],
-    rules: { 'i18next/no-literal-string': 'off', 'no-restricted-globals': 'off' },
+    rules: {
+      'i18next/no-literal-string': 'off',
+      'no-restricted-globals': 'off',
+      // Asymmetric matchers (expect.objectContaining, ...) are typed `any` by design.
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+    },
   },
 
   prettier,

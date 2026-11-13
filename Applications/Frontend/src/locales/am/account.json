@@ -1,0 +1,16 @@
+{
+  "title": "መለያ",
+  "description": "በሚድሮክ ትምህርት ላይ ያለዎት መገለጫ።",
+  "fields": {
+    "name": "ስም",
+    "email": "ኢሜይል",
+    "role": "ሚና",
+    "memberSince": "የተመዘገቡበት ቀን"
+  },
+  "roles": {
+    "user": "ተማሪና የኮርስ አዘጋጅ",
+    "admin": "አስተዳዳሪ"
+  },
+  "noName": "አልተሞላም",
+  "signOut": "ውጣ"
+}

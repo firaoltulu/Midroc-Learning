@@ -18,7 +18,8 @@
   },
   "nav": {
     "home": "Home",
-    "design": "Design system"
+    "design": "Design system",
+    "admin": "Administration"
   },
   "theme": {
     "menuLabel": "Color theme: {{mode}}",
@@ -58,5 +59,9 @@
   "home": {
     "title": "Welcome to Midroc Learning",
     "body": "Courses, learning and exams are on their way."
+  },
+  "password": {
+    "show": "Show password",
+    "hide": "Hide password"
   }
 }

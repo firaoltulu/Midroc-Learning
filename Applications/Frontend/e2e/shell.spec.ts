@@ -11,7 +11,7 @@ test.describe('themes', () => {
   for (const scheme of ['light', 'dark'] as const) {
     test(`follows the system ${scheme} scheme by default`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: scheme });
-      await page.goto('/');
+      await page.goto('/login');
       await expect(page.locator('html')).toHaveAttribute(`data-${scheme}`, '');
       expect(await bodyBackground(page)).toBe(PAGE_BG[scheme]);
       // Header logos are decorative (the link carries the name), so select by variant.
@@ -24,7 +24,7 @@ test.describe('themes', () => {
 
   test('a manual choice overrides the system and survives a reload', async ({ page }) => {
     await page.emulateMedia({ colorScheme: 'light' });
-    await page.goto('/');
+    await page.goto('/login');
     await page.getByRole('button', { name: /Color theme/ }).click();
     await page.getByRole('menuitemradio', { name: 'Dark' }).click();
     await expect(page.locator('html')).toHaveAttribute('data-dark', '');
@@ -42,7 +42,7 @@ test.describe('themes', () => {
 
 test.describe('accessibility basics', () => {
   test('the skip link is the first stop and moves focus to the main content', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/login');
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await page.keyboard.press('Tab');
     const skip = page.getByRole('link', { name: 'Skip to content' });
@@ -55,7 +55,7 @@ test.describe('accessibility basics', () => {
   for (const scheme of ['light', 'dark'] as const) {
     test(`keyboard focus shows a visible ring in ${scheme}`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: scheme });
-      await page.goto('/');
+      await page.goto('/login');
       const themeButton = page.getByRole('button', { name: /Color theme/ });
       await themeButton.focus();
       // Focus via keyboard so :focus-visible applies.
@@ -91,14 +91,15 @@ test('unknown routes show the NotFound screen inside the shell', async ({ page }
   await expect(page.getByRole('heading', { level: 1, name: 'Page not found' })).toBeVisible();
   await expect(page.getByRole('banner')).toBeVisible();
   await page.getByRole('link', { name: 'Go to the home page' }).click();
-  await expect(page).toHaveURL('/');
+  // Home needs sign-in, so the link ends on the login page.
+  await expect(page).toHaveURL(/\/login/);
 });
 
 test.describe('mobile', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
   test('navigation lives in a drawer and the header shows the mark', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/login');
     await expect(page.getByRole('banner').locator('img[data-variant="mark"]')).toBeVisible();
     await expect(
       page.getByRole('banner').getByRole('link', { name: 'Design system' }),

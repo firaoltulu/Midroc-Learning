@@ -1,0 +1,16 @@
+{
+  "title": "Account",
+  "description": "Your profile on Midroc Learning.",
+  "fields": {
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "memberSince": "Member since"
+  },
+  "roles": {
+    "user": "Learner and author",
+    "admin": "Administrator"
+  },
+  "noName": "Not set",
+  "signOut": "Sign out"
+}

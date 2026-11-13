@@ -11,3 +11,7 @@ test-results
 
 # Claude Code local skills (not part of the app)
 .claude/skills/
+
+# Firebase emulator logs
+firebase-debug.log
+*-debug.log

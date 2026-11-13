@@ -4,10 +4,19 @@ import Typography from '@mui/material/Typography';
 import { useRouter, type ErrorComponentProps } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { NotAllowedError, NotAllowedScreen } from '../features/auth';
 import { ButtonLink } from '../shared/ui/router-links';
 
-/** Route-level error boundary: a calm message with a retry, never the raw error text. */
+/**
+ * Route-level error boundary: a calm message with a retry, never the raw error text.
+ * The admin guard's NotAllowedError gets the friendly "not allowed" screen instead.
+ */
 export function RouteErrorScreen({ error, reset }: ErrorComponentProps) {
+  if (error instanceof NotAllowedError) return <NotAllowedScreen />;
+  return <GenericRouteError error={error} reset={reset} />;
+}
+
+function GenericRouteError({ error, reset }: Pick<ErrorComponentProps, 'error' | 'reset'>) {
   const { t } = useTranslation('common');
   const router = useRouter();
 

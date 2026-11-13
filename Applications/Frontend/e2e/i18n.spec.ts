@@ -28,15 +28,14 @@ test('switching to Amharic translates the UI, sets lang/title, loads the font an
   page,
 }) => {
   const ethiopic = trackEthiopicFont(page);
-  await page.goto('/');
+  await page.goto('/login');
   await page.getByRole('button', { name: 'Language: English' }).click();
   await page.getByRole('menuitemradio', { name: 'አማርኛ' }).click();
 
   await expect(page.locator('html')).toHaveAttribute('lang', 'am');
   await expect(page).toHaveTitle('ሚድሮክ ትምህርት');
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'ወደ ሚድሮክ ትምህርት እንኳን ደህና መጡ' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'ይግቡ' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'በGoogle ይቀጥሉ' })).toBeVisible();
 
   await expect.poll(() => ethiopic.some((url) => /\.woff2/.test(url))).toBe(true);
   await expect
@@ -57,9 +56,9 @@ test.describe('browser language', () => {
   test.use({ locale: 'am-ET' });
 
   test('an Amharic browser gets Amharic without choosing', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/login');
     await expect(page.locator('html')).toHaveAttribute('lang', 'am');
-    await expect(page.getByRole('link', { name: 'መነሻ' }).first()).toBeAttached();
+    await expect(page.getByRole('heading', { level: 1, name: 'ይግቡ' })).toBeVisible();
   });
 });
 

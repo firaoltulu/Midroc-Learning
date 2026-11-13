@@ -15,18 +15,24 @@ import { BrandLogo } from '../../shared/ui/brand/brand-logo';
 import { LanguageSwitcher } from '../../shared/ui/language-switcher';
 import { ButtonLink, ListItemLink, RouterLink } from '../../shared/ui/router-links';
 import { ThemeModeSwitch } from '../../shared/ui/theme-mode-switch';
-import { navItems } from './nav-items';
+import { isVerified, useAuth, useMe, UserMenu } from '../../features/auth';
+import { visibleNavItems } from './nav-items';
 
 export const MAIN_CONTENT_ID = 'main-content';
 
 const drawerWidth = 280;
 
 /**
- * Slim top bar (logo, primary nav, language switcher, theme switch; the user menu comes in
- * phase 4), mobile navigation drawer, skip link and the main landmark.
+ * Slim top bar (logo, primary nav, language switcher, theme switch, user menu), mobile
+ * navigation drawer, skip link and the main landmark. Navigation and the user menu appear
+ * only once a verified user is signed in; admin entries follow the role from /me.
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const { t } = useTranslation('common');
+  const auth = useAuth();
+  const signedIn = auth.status === 'signedIn' && isVerified(auth.user);
+  const { data: me } = useMe({ enabled: signedIn });
+  const navItems = visibleNavItems(signedIn, signedIn && me?.role === 'admin');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const closeDrawer = () => {
     setDrawerOpen(false);
@@ -99,6 +105,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Box sx={{ flex: 1 }} />
             <LanguageSwitcher />
             <ThemeModeSwitch />
+            {signedIn ? <UserMenu /> : null}
           </Toolbar>
         </Container>
       </AppBar>
