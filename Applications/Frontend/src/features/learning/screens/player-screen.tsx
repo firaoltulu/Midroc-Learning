@@ -2,7 +2,6 @@ import ArrowBackOutlined from '@mui/icons-material/ArrowBackOutlined';
 import ArrowForwardOutlined from '@mui/icons-material/ArrowForwardOutlined';
 import CelebrationOutlined from '@mui/icons-material/CelebrationOutlined';
 import ListAltOutlined from '@mui/icons-material/ListAltOutlined';
-import QuizOutlined from '@mui/icons-material/QuizOutlined';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -18,7 +17,6 @@ import { useTranslation } from 'react-i18next';
 import { isApiError } from '../../../shared/api/errors';
 import { useContentLang } from '../../../shared/i18n/content-lang';
 import { useErrorMessage } from '../../../shared/i18n/error-messages';
-import { EmptyState } from '../../../shared/ui/empty-state';
 import { ErrorState } from '../../../shared/ui/error-state';
 import { PageHeader } from '../../../shared/ui/page-header';
 import { ButtonLink, RouterLink } from '../../../shared/ui/router-links';
@@ -31,6 +29,7 @@ import { playerNavigation, type PlayerNavigation } from '../model/player-navigat
 // Heavy players load only when an item of their type opens.
 const VideoItem = lazy(() => import('../components/video-item'));
 const PdfItem = lazy(() => import('../components/pdf-item'));
+const ExamItem = lazy(() => import('../components/exam/exam-item'));
 
 /** /learn/$courseId/$itemId: the item, the course outline and previous/next. */
 export function PlayerScreen({ courseId, itemId }: { courseId: string; itemId: string }) {
@@ -197,22 +196,7 @@ function Player({ course, nav }: { course: CourseDetail; nav: PlayerNavigation }
               completed={completed}
             />
           ) : (
-            <EmptyState
-              icon={<QuizOutlined />}
-              title={t('learning:player.examSoon.title')}
-              description={t('learning:player.examSoon.body')}
-              action={
-                nav.next ? (
-                  <ButtonLink
-                    variant="outlined"
-                    to="/learn/$courseId/$itemId"
-                    params={{ courseId: course.id, itemId: nav.next.id }}
-                  >
-                    {t('learning:player.next')}
-                  </ButtonLink>
-                ) : undefined
-              }
-            />
+            <ExamItem courseId={course.id} examId={item.id} contentLang={contentLang} />
           )}
         </Suspense>
 

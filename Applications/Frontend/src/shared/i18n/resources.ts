@@ -13,13 +13,26 @@ import common from '../../locales/en/common.json';
 import courses from '../../locales/en/courses.json';
 import design from '../../locales/en/design.json';
 import errors from '../../locales/en/errors.json';
+import exam from '../../locales/en/exam.json';
 import learning from '../../locales/en/learning.json';
 import validation from '../../locales/en/validation.json';
 
 export const defaultNS = 'common';
 
 export const resources = {
-  en: { common, errors, validation, auth, catalog, courses, learning, account, admin, design },
+  en: {
+    common,
+    errors,
+    validation,
+    auth,
+    catalog,
+    courses,
+    learning,
+    exam,
+    account,
+    admin,
+    design,
+  },
 } as const;
 
 export type Namespace = keyof (typeof resources)['en'];

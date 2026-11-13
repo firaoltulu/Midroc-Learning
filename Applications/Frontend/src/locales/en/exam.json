@@ -1,0 +1,101 @@
+{
+  "timer": {
+    "label": "Time left",
+    "announce_one": "{{count}} minute left",
+    "announce_other": "{{count}} minutes left"
+  },
+  "history": {
+    "title": "Your attempts",
+    "date": "Date",
+    "score": "Score",
+    "outcome": "Result",
+    "passed": "Passed",
+    "notPassed": "Not passed"
+  },
+  "result": {
+    "percent": "{{percent}}%",
+    "passed": "You passed",
+    "notPassed": "You didn't pass this time",
+    "attemptsUnlimited": "You can try again as often as you like.",
+    "attemptsLeft_zero": "No attempts left",
+    "attemptsLeft_one": "{{count}} attempt left",
+    "attemptsLeft_other": "{{count}} attempts left",
+    "tryAgain": "Try again",
+    "yourAnswers": "Your answers",
+    "answersHidden": "Correct answers appear once you pass or have used all your attempts.",
+    "questionCorrect": "Question {{number}}: correct",
+    "questionIncorrect": "Question {{number}}: incorrect",
+    "yourAnswer": "Your answer",
+    "noAnswer": "Not answered",
+    "correctAnswer_one": "Correct answer",
+    "correctAnswer_other": "Correct answers"
+  },
+  "overview": {
+    "questions": "Questions",
+    "questionCount_one": "{{count}} question",
+    "questionCount_other": "{{count}} questions",
+    "passingScore": "Passing score",
+    "timeLimit": "Time limit",
+    "noTimeLimit": "None",
+    "minutes_one": "{{count}} minute",
+    "minutes_other": "{{count}} minutes",
+    "attempts": "Attempts",
+    "unlimited": "Unlimited",
+    "attemptsLeft_zero": "None left",
+    "attemptsLeft_one": "{{count}} left",
+    "attemptsLeft_other": "{{count}} left",
+    "instructions": "Instructions",
+    "alreadyPassed": "You've passed this exam. You can take it again to practice.",
+    "timerNote_one": "You'll have {{count}} minute once you start. Whatever you've answered is submitted when time runs out.",
+    "timerNote_other": "You'll have {{count}} minutes once you start. Whatever you've answered is submitted when time runs out.",
+    "noAttemptsLeft": "You've used all your attempts for this exam.",
+    "noQuestions": "This exam has no questions yet.",
+    "starting": "Starting…",
+    "resume": "Resume exam",
+    "tryAgain": "Try again",
+    "start": "Start exam"
+  },
+  "taking": {
+    "answeredCount": "{{answered}} of {{total}} answered",
+    "questionOf": "Question {{number}} of {{total}}",
+    "selectAll": "Select all that apply",
+    "selectOne": "Select one answer",
+    "points_one": "{{count}} point",
+    "points_other": "{{count}} points",
+    "hint": "{{hint}} · {{points}}",
+    "choices": "Answers",
+    "previous": "Previous",
+    "next": "Next",
+    "review": "Review answers"
+  },
+  "review": {
+    "title": "Review your answers",
+    "unanswered_one": "{{count}} question isn't answered yet.",
+    "unanswered_other": "{{count}} questions aren't answered yet.",
+    "allAnswered": "Every question is answered.",
+    "changeLabel": "Go to question {{number}}",
+    "change": "Change",
+    "answer": "Answer",
+    "questionStatus": "Question {{number}} · {{status}}",
+    "answered": "Answered",
+    "notAnswered": "Not answered",
+    "submitting": "Submitting…",
+    "submit": "Submit answers"
+  },
+  "confirm": {
+    "title_one": "Submit with {{count}} question unanswered?",
+    "title_other": "Submit with {{count}} questions unanswered?",
+    "body": "Unanswered questions count as wrong. You can go back and answer them first.",
+    "submit": "Submit anyway",
+    "keepAnswering": "Keep answering"
+  },
+  "navigator": {
+    "label": "Questions",
+    "answered": "Question {{number}}, answered",
+    "notAnswered": "Question {{number}}, not answered"
+  },
+  "notice": {
+    "timeExceeded": "Time ran out before your answers arrived, so this attempt counts as not passed.",
+    "alreadySubmitted": "This attempt was already submitted, perhaps in another tab. Your attempts are listed below."
+  }
+}

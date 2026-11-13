@@ -84,6 +84,33 @@ const outline = [
   },
 ];
 
+const examQuestions = [
+  {
+    id: 'q1',
+    prompt: 'What do you wear on a construction site?',
+    isMultiple: false,
+    points: 1,
+    position: 0,
+    choices: [
+      { id: 'q1-a', text: 'A hard hat', position: 0 },
+      { id: 'q1-b', text: 'Sandals', position: 1 },
+    ],
+  },
+  {
+    id: 'q2',
+    prompt: 'Which are fire hazards?',
+    isMultiple: true,
+    points: 1,
+    position: 1,
+    choices: [
+      { id: 'q2-a', text: 'Oily rags', position: 0 },
+      { id: 'q2-b', text: 'Blocked exits', position: 1 },
+      { id: 'q2-c', text: 'A fire extinguisher', position: 2 },
+    ],
+  },
+];
+const examKey: Record<string, string[]> = { q1: ['q1-a'], q2: ['q2-a', 'q2-b'] };
+
 export interface MockApi {
   /** Request paths (with query strings) received so far. */
   requests: string[];
@@ -125,6 +152,13 @@ export async function mockApi(page: Page, me: MockUser): Promise<MockApi> {
   const requests: string[] = [];
   const progress: MockApi['progress'] = [];
   const completedItems = new Set<string>();
+  const attempts: {
+    id: string;
+    startedAt: string;
+    submittedAt: string | null;
+    scorePercent: number | null;
+    passed: boolean | null;
+  }[] = [];
   const withState = (c: ReturnType<typeof course>) => ({ ...c, enrolled: enrolled.has(c.id) });
 
   const handle = async (route: Route) => {
@@ -163,6 +197,78 @@ export async function mockApi(page: Page, me: MockUser): Promise<MockApi> {
         modules: outline,
         completedItemIds: [...completedItems],
         pendingRevision: null,
+      });
+    }
+    if (path === '/exams/item-3' && method === 'GET') {
+      const used = attempts.length;
+      return json({
+        instructions: 'Answer both questions.',
+        passingScorePercent: 50,
+        maxAttempts: 3,
+        timeLimitMinutes: 10,
+        questionCount: examQuestions.length,
+        attemptsUsed: used,
+        attemptsRemaining: 3 - used,
+        passed: attempts.some((attempt) => attempt.passed),
+        hasOpenAttempt: attempts.some((attempt) => attempt.submittedAt === null),
+      });
+    }
+    if (path === '/exams/item-3/attempts') return json([...attempts].reverse());
+    if (path === '/exams/item-3/start' && method === 'POST') {
+      const open = attempts.find((attempt) => attempt.submittedAt === null);
+      const attempt = open ?? {
+        id: `attempt-${String(attempts.length + 1)}`,
+        startedAt: new Date().toISOString(),
+        submittedAt: null,
+        scorePercent: null,
+        passed: null,
+      };
+      if (!open) attempts.push(attempt);
+      return route.fulfill({
+        status: 201,
+        json: {
+          attemptId: attempt.id,
+          resumed: Boolean(open),
+          startedAt: attempt.startedAt,
+          expiresAt: new Date(Date.parse(attempt.startedAt) + 10 * 60_000).toISOString(),
+          questions: examQuestions,
+        },
+        headers: { Date: new Date().toUTCString() },
+      });
+    }
+    const submitMatch = /^\/attempts\/([^/]+)\/submit$/.exec(path);
+    if (submitMatch?.[1] && method === 'POST') {
+      const attempt = attempts.find((entry) => entry.id === submitMatch[1]);
+      if (!attempt) return json({ error: 'Attempt not found', code: 'NOT_FOUND' }, 404);
+      const { answers } = request.postDataJSON() as {
+        answers: { questionId: string; choiceIds: string[] }[];
+      };
+      const results = examQuestions.map((question) => {
+        const selected =
+          answers.find((answer) => answer.questionId === question.id)?.choiceIds ?? [];
+        const correct = examKey[question.id] ?? [];
+        return {
+          questionId: question.id,
+          isCorrect:
+            selected.length === correct.length && selected.every((id) => correct.includes(id)),
+          selectedChoiceIds: selected,
+        };
+      });
+      const scorePercent =
+        (results.filter((entry) => entry.isCorrect).length / results.length) * 100;
+      Object.assign(attempt, {
+        submittedAt: new Date().toISOString(),
+        scorePercent,
+        passed: scorePercent >= 50,
+      });
+      if (attempt.passed) completedItems.add('item-3');
+      return json({
+        scorePercent,
+        passed: attempt.passed,
+        attemptsUsed: attempts.length,
+        attemptsRemaining: 3 - attempts.length,
+        revealAnswers: false,
+        results,
       });
     }
     if (path === '/items/item-1/video') {

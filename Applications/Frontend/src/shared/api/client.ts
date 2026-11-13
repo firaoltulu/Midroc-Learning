@@ -140,6 +140,19 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 }
 
 /**
+ * A JSON request that also returns the response headers and when the response arrived, e.g.
+ * to correct for clock skew with the `Date` header (same-origin API, so it is readable).
+ */
+export async function apiRequestWithMeta(
+  path: string,
+  options: RequestOptions = {},
+): Promise<{ data: unknown; headers: Headers; receivedAt: number }> {
+  const response = await fetchApi(path, options);
+  const receivedAt = Date.now();
+  return { data: await readBody(response), headers: response.headers, receivedAt };
+}
+
+/**
  * A binary download with the auth header (e.g. a PDF: a plain link can't carry the token).
  * Not cached by the browser; the caller owns the Blob.
  */

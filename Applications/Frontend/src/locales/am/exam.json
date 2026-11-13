@@ -1,0 +1,101 @@
+{
+  "timer": {
+    "label": "የቀረው ጊዜ",
+    "announce_one": "{{count}} ደቂቃ ቀርቷል",
+    "announce_other": "{{count}} ደቂቃዎች ቀርተዋል"
+  },
+  "history": {
+    "title": "የእርስዎ ሙከራዎች",
+    "date": "ቀን",
+    "score": "ውጤት",
+    "outcome": "ሁኔታ",
+    "passed": "አልፈዋል",
+    "notPassed": "አላለፉም"
+  },
+  "result": {
+    "percent": "{{percent}}%",
+    "passed": "አልፈዋል",
+    "notPassed": "በዚህ ጊዜ አላለፉም",
+    "attemptsUnlimited": "የፈለጉትን ያህል ጊዜ እንደገና መሞከር ይችላሉ።",
+    "attemptsLeft_zero": "ምንም ሙከራ አልቀረም",
+    "attemptsLeft_one": "{{count}} ሙከራ ቀርቷል",
+    "attemptsLeft_other": "{{count}} ሙከራዎች ቀርተዋል",
+    "tryAgain": "እንደገና ይሞክሩ",
+    "yourAnswers": "የእርስዎ መልሶች",
+    "answersHidden": "ትክክለኛ መልሶቹ የሚታዩት ካለፉ ወይም ሁሉንም ሙከራዎች ከተጠቀሙ በኋላ ነው።",
+    "questionCorrect": "ጥያቄ {{number}}፦ ትክክል",
+    "questionIncorrect": "ጥያቄ {{number}}፦ ትክክል አይደለም",
+    "yourAnswer": "የእርስዎ መልስ",
+    "noAnswer": "አልተመለሰም",
+    "correctAnswer_one": "ትክክለኛው መልስ",
+    "correctAnswer_other": "ትክክለኛዎቹ መልሶች"
+  },
+  "overview": {
+    "questions": "ጥያቄዎች",
+    "questionCount_one": "{{count}} ጥያቄ",
+    "questionCount_other": "{{count}} ጥያቄዎች",
+    "passingScore": "የማለፊያ ውጤት",
+    "timeLimit": "የጊዜ ገደብ",
+    "noTimeLimit": "የለም",
+    "minutes_one": "{{count}} ደቂቃ",
+    "minutes_other": "{{count}} ደቂቃዎች",
+    "attempts": "ሙከራዎች",
+    "unlimited": "ያልተገደበ",
+    "attemptsLeft_zero": "አልቀረም",
+    "attemptsLeft_one": "{{count}} ቀርቷል",
+    "attemptsLeft_other": "{{count}} ቀርተዋል",
+    "instructions": "መመሪያዎች",
+    "alreadyPassed": "ይህን ፈተና አልፈዋል። ለልምምድ እንደገና መውሰድ ይችላሉ።",
+    "timerNote_one": "ሲጀምሩ {{count}} ደቂቃ ይኖርዎታል። ጊዜው ሲያልቅ የመለሱት ሁሉ ይገባል።",
+    "timerNote_other": "ሲጀምሩ {{count}} ደቂቃዎች ይኖሩዎታል። ጊዜው ሲያልቅ የመለሱት ሁሉ ይገባል።",
+    "noAttemptsLeft": "ለዚህ ፈተና የተፈቀዱልዎትን ሙከራዎች በሙሉ ተጠቅመዋል።",
+    "noQuestions": "ይህ ፈተና እስካሁን ጥያቄዎች የሉትም።",
+    "starting": "በመጀመር ላይ…",
+    "resume": "ፈተናውን ይቀጥሉ",
+    "tryAgain": "እንደገና ይሞክሩ",
+    "start": "ፈተናውን ይጀምሩ"
+  },
+  "taking": {
+    "answeredCount": "ከ{{total}} {{answered}} ተመልሰዋል",
+    "questionOf": "ጥያቄ {{number}} ከ{{total}}",
+    "selectAll": "የሚመለከታቸውን ሁሉ ይምረጡ",
+    "selectOne": "አንድ መልስ ይምረጡ",
+    "points_one": "{{count}} ነጥብ",
+    "points_other": "{{count}} ነጥቦች",
+    "hint": "{{hint}} · {{points}}",
+    "choices": "መልሶች",
+    "previous": "ቀዳሚ",
+    "next": "ቀጣይ",
+    "review": "መልሶችን ይከልሱ"
+  },
+  "review": {
+    "title": "መልሶችዎን ይከልሱ",
+    "unanswered_one": "{{count}} ጥያቄ ገና አልተመለሰም።",
+    "unanswered_other": "{{count}} ጥያቄዎች ገና አልተመለሱም።",
+    "allAnswered": "ሁሉም ጥያቄዎች ተመልሰዋል።",
+    "changeLabel": "ወደ ጥያቄ {{number}} ይሂዱ",
+    "change": "ይቀይሩ",
+    "answer": "ይመልሱ",
+    "questionStatus": "ጥያቄ {{number}} · {{status}}",
+    "answered": "ተመልሷል",
+    "notAnswered": "አልተመለሰም",
+    "submitting": "በማስገባት ላይ…",
+    "submit": "መልሶችን ያስገቡ"
+  },
+  "confirm": {
+    "title_one": "{{count}} ጥያቄ ሳይመለስ ያስገባሉ?",
+    "title_other": "{{count}} ጥያቄዎች ሳይመለሱ ያስገባሉ?",
+    "body": "ያልተመለሱ ጥያቄዎች እንደ ስህተት ይቆጠራሉ። መጀመሪያ ተመልሰው ሊመልሷቸው ይችላሉ።",
+    "submit": "ቢሆንም ያስገቡ",
+    "keepAnswering": "መመለስዎን ይቀጥሉ"
+  },
+  "navigator": {
+    "label": "ጥያቄዎች",
+    "answered": "ጥያቄ {{number}}፣ ተመልሷል",
+    "notAnswered": "ጥያቄ {{number}}፣ አልተመለሰም"
+  },
+  "notice": {
+    "timeExceeded": "መልሶችዎ ከመድረሳቸው በፊት ጊዜው ስላለቀ ይህ ሙከራ እንዳላለፈ ይቆጠራል።",
+    "alreadySubmitted": "ይህ ሙከራ አስቀድሞ ገብቷል፤ ምናልባት በሌላ ትር። ሙከራዎችዎ ከታች ተዘርዝረዋል።"
+  }
+}

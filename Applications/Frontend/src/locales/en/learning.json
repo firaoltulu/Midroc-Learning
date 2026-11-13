@@ -55,10 +55,6 @@
       "title": "Course completed",
       "body": "You've finished every item. Well done."
     },
-    "examSoon": {
-      "title": "Exams open soon",
-      "body": "You'll take this exam here in an upcoming update. Go on with the next item for now."
-    },
     "notEnrolled": {
       "title": "Enroll to start this course",
       "body": "Items open once you're enrolled.",

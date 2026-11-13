@@ -7,6 +7,8 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // Route-level tests render the whole app (lazy chunks included) and run in parallel.
+    testTimeout: 15_000,
     include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.mjs'],
     env: {
       VITE_FIREBASE_API_KEY: 'test-api-key',
