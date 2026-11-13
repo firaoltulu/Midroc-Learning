@@ -3,7 +3,6 @@
   "loading": "በመጫን ላይ",
   "actions": {
     "cancel": "ይቅር",
-    "confirm": "አረጋግጥ",
     "retry": "እንደገና ሞክር",
     "close": "ዝጋ",
     "goHome": "ወደ መነሻ ገጽ ሂድ"
@@ -26,6 +25,13 @@
     "system": "እንደ መሣሪያው",
     "light": "ብሩህ",
     "dark": "ጨለማ"
+  },
+  "language": {
+    "menuLabel": "ቋንቋ፦ {{language}}"
+  },
+  "languages": {
+    "en": "English",
+    "am": "አማርኛ"
   },
   "status": {
     "draft": "ረቂቅ",

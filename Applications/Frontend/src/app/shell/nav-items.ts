@@ -1,11 +1,11 @@
 import HomeOutlined from '@mui/icons-material/HomeOutlined';
 import PaletteOutlined from '@mui/icons-material/PaletteOutlined';
+import type { ParseKeys } from 'i18next';
 import type { ComponentType } from 'react';
-import type { TranslationKey } from '../../shared/i18n/translate';
 
 export interface NavItem {
   to: '/' | '/design';
-  labelKey: TranslationKey<'common'>;
+  labelKey: ParseKeys;
   Icon: ComponentType;
 }
 

@@ -10,7 +10,7 @@ import MenuItem from '@mui/material/MenuItem';
 import { useColorScheme } from '@mui/material/styles';
 import Tooltip from '@mui/material/Tooltip';
 import { useId, useState, type ComponentType } from 'react';
-import { useTranslation } from '../i18n/translate';
+import { useTranslation } from 'react-i18next';
 
 export type ColorMode = 'system' | 'light' | 'dark';
 

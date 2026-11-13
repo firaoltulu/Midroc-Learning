@@ -131,6 +131,10 @@ export default tseslint.config(
     rules: { 'react-refresh/only-export-components': 'off' },
   },
   {
+    files: ['scripts/**/*.test.mjs'],
+    languageOptions: { globals: { ...globals.node, ...globals.vitest } },
+  },
+  {
     files: ['src/**/*.test.{ts,tsx}', 'src/test/**'],
     rules: { 'i18next/no-literal-string': 'off', 'no-restricted-globals': 'off' },
   },

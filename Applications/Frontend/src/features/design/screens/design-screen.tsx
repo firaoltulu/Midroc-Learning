@@ -5,10 +5,21 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
+import Tab from '@mui/material/Tab';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { useState, type ReactNode } from 'react';
-import { useTranslation } from '../../../shared/i18n/translate';
+import { Fragment, useState, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import { resolveCalendar } from '../../../shared/i18n/format-date';
+import { useCalendarPreference, useDateFormat } from '../../../shared/i18n/use-date-format';
+import { useLanguage } from '../../../shared/i18n/use-language';
 import type { ResolvedColorScheme } from '../../../shared/theme/use-resolved-color-scheme';
 import { BrandLogo } from '../../../shared/ui/brand/brand-logo';
 import { ConfirmDialog } from '../../../shared/ui/confirm-dialog';
@@ -34,6 +45,10 @@ export function DesignScreen() {
   return (
     <>
       <PageHeader title={t('title')} description={t('intro')} />
+
+      <Section title={t('sections.dates')} headingLevel="h2">
+        <DateSamples />
+      </Section>
 
       <Section title={t('sections.overlays')} headingLevel="h2">
         <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
@@ -224,7 +239,101 @@ function SchemePanel({ scheme }: { scheme: ResolvedColorScheme }) {
             <CardGridSkeleton count={2} />
           </Stack>
         </Section>
+
+        <Section title={t('sections.longText')}>
+          <LongLabels />
+        </Section>
       </Stack>
+    </Box>
+  );
+}
+
+/** Long labels in tabs, a button, a chip and table headers: they must wrap, never clip. */
+function LongLabels() {
+  const { t } = useTranslation('design');
+  const [tab, setTab] = useState(0);
+
+  return (
+    <Stack spacing={2} sx={{ minWidth: 0 }}>
+      <Tabs
+        value={tab}
+        onChange={(_event, value: number) => {
+          setTab(value);
+        }}
+        variant="scrollable"
+        allowScrollButtonsMobile
+      >
+        <Tab label={t('long.tabDetails')} />
+        <Tab label={t('long.tabContent')} />
+        <Tab label={t('long.tabReview')} />
+      </Tabs>
+      <Box>
+        <Button variant="contained" sx={{ maxWidth: '100%' }}>
+          {t('long.button')}
+        </Button>
+      </Box>
+      <Box>
+        <Chip
+          label={t('long.chip')}
+          sx={{
+            height: 'auto',
+            maxWidth: '100%',
+            '& .MuiChip-label': { whiteSpace: 'normal', py: 0.5 },
+          }}
+        />
+      </Box>
+      <TableContainer sx={{ border: 1, borderColor: 'divider', borderRadius: '10px' }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>{t('long.columnTitle')}</TableCell>
+              <TableCell align="right">{t('long.columnLearners')}</TableCell>
+              <TableCell>{t('long.columnUpdated')}</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            <TableRow>
+              <TableCell>{t('samples.cardTitle')}</TableCell>
+              <TableCell align="right">128</TableCell>
+              <TableCell>
+                <StatusChip status="pending_review" />
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Stack>
+  );
+}
+
+/** One fixed moment in the current language and calendar setting. */
+function DateSamples() {
+  const { t } = useTranslation('design');
+  const language = useLanguage();
+  const [preference] = useCalendarPreference();
+  const { formatDate, formatDateTime, formatRelative } = useDateFormat();
+  const sample = new Date(2026, 10, 13, 9, 30);
+  const now = new Date(2026, 10, 13, 12, 30);
+
+  const rows: [string, string][] = [
+    [t('dates.calendar'), t(`dates.calendarName.${resolveCalendar(language, preference)}`)],
+    [t('dates.date'), formatDate(sample)],
+    [t('dates.dateTime'), formatDateTime(sample)],
+    [t('dates.relative'), formatRelative(sample, now)],
+  ];
+
+  return (
+    <Box component="dl" sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 1, m: 0 }}>
+      {rows.map(([label, value]) => (
+        <Fragment key={label}>
+          <Typography component="dt" color="text.secondary">
+            {label}
+          </Typography>
+          <Typography component="dd" sx={{ m: 0 }}>
+            {value}
+          </Typography>
+        </Fragment>
+      ))}
     </Box>
   );
 }
@@ -239,7 +348,8 @@ function Section({
   headingLevel?: 'h2' | 'h3';
 }) {
   return (
-    <Stack component="section" spacing={1.5}>
+    // Page-level (h2) sections sit in a plain flow, so they carry their own bottom margin.
+    <Stack component="section" spacing={1.5} sx={{ mb: headingLevel === 'h2' ? 4 : 0 }}>
       <Typography variant="h5" component={headingLevel} color="text.secondary">
         {title}
       </Typography>

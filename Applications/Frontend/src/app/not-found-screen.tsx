@@ -1,6 +1,6 @@
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useTranslation } from '../shared/i18n/translate';
+import { useTranslation } from 'react-i18next';
 import { ButtonLink } from '../shared/ui/router-links';
 
 export function NotFoundScreen() {

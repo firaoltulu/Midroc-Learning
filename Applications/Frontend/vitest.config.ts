@@ -7,7 +7,7 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.mjs'],
     env: {
       VITE_FIREBASE_API_KEY: 'test-api-key',
       VITE_FIREBASE_AUTH_DOMAIN: 'test.firebaseapp.com',

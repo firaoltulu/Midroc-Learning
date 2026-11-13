@@ -3,7 +3,6 @@
   "loading": "Loading",
   "actions": {
     "cancel": "Cancel",
-    "confirm": "Confirm",
     "retry": "Try again",
     "close": "Close",
     "goHome": "Go to the home page"
@@ -26,6 +25,13 @@
     "system": "Match device",
     "light": "Light",
     "dark": "Dark"
+  },
+  "language": {
+    "menuLabel": "Language: {{language}}"
+  },
+  "languages": {
+    "en": "English",
+    "am": "አማርኛ"
   },
   "status": {
     "draft": "Draft",

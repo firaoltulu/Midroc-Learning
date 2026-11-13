@@ -2,7 +2,7 @@ import ErrorOutlineOutlined from '@mui/icons-material/ErrorOutlineOutlined';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useTranslation } from '../i18n/translate';
+import { useTranslation } from 'react-i18next';
 
 export interface ErrorStateProps {
   title?: string;

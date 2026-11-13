@@ -5,7 +5,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import { useId, useState } from 'react';
-import { useTranslation } from '../i18n/translate';
+import { useTranslation } from 'react-i18next';
 
 export interface ConfirmDialogProps {
   open: boolean;

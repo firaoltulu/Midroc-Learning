@@ -4,7 +4,7 @@ import Snackbar from '@mui/material/Snackbar';
 import { visuallyHidden } from '@mui/utils';
 import Box from '@mui/material/Box';
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
-import { useTranslation } from '../../i18n/translate';
+import { useTranslation } from 'react-i18next';
 import { ToastContext, type ToastApi, type ToastOptions } from './toast-context';
 
 interface QueuedToast extends ToastOptions {

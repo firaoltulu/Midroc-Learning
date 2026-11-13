@@ -1,4 +1,4 @@
-import { useTranslation } from '../../../shared/i18n/translate';
+import { useTranslation } from 'react-i18next';
 import { PageHeader } from '../../../shared/ui/page-header';
 
 /** Placeholder landing screen. Replaced by the catalog in phase 6. */

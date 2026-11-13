@@ -16,7 +16,29 @@
     "emptyState": "Empty state",
     "errorState": "Error state",
     "skeletons": "Loading skeletons",
-    "overlays": "Dialog and toast"
+    "overlays": "Dialog and toast",
+    "longText": "Long labels",
+    "dates": "Dates"
+  },
+  "long": {
+    "tabDetails": "Course details and settings",
+    "tabContent": "Modules, lessons and exams",
+    "tabReview": "Review and submit",
+    "button": "Submit all changes for administrator review",
+    "columnTitle": "Course title",
+    "columnLearners": "Enrolled learners",
+    "columnUpdated": "Last updated by the owner",
+    "chip": "Waiting for administrator approval"
+  },
+  "dates": {
+    "date": "Date",
+    "dateTime": "Date and time",
+    "relative": "Relative",
+    "calendar": "Calendar",
+    "calendarName": {
+      "gregory": "Gregorian",
+      "ethiopic": "Ethiopian"
+    }
   },
   "samples": {
     "heading": "Heading level {{level}}",

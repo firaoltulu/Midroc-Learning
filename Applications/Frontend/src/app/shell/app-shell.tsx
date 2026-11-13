@@ -10,8 +10,9 @@ import ListItemText from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
 import Toolbar from '@mui/material/Toolbar';
 import { useState, type ReactNode } from 'react';
-import { useTranslation } from '../../shared/i18n/translate';
+import { useTranslation } from 'react-i18next';
 import { BrandLogo } from '../../shared/ui/brand/brand-logo';
+import { LanguageSwitcher } from '../../shared/ui/language-switcher';
 import { ButtonLink, ListItemLink, RouterLink } from '../../shared/ui/router-links';
 import { ThemeModeSwitch } from '../../shared/ui/theme-mode-switch';
 import { navItems } from './nav-items';
@@ -21,8 +22,8 @@ export const MAIN_CONTENT_ID = 'main-content';
 const drawerWidth = 280;
 
 /**
- * Slim top bar (logo, primary nav, theme switch; language switcher and user menu come in
- * phases 3-4), mobile navigation drawer, skip link and the main landmark.
+ * Slim top bar (logo, primary nav, language switcher, theme switch; the user menu comes in
+ * phase 4), mobile navigation drawer, skip link and the main landmark.
  */
 export function AppShell({ children }: { children: ReactNode }) {
   const { t } = useTranslation('common');
@@ -96,6 +97,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Box>
 
             <Box sx={{ flex: 1 }} />
+            <LanguageSwitcher />
             <ThemeModeSwitch />
           </Toolbar>
         </Container>

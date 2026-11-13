@@ -3,7 +3,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useRouter, type ErrorComponentProps } from '@tanstack/react-router';
 import { useEffect } from 'react';
-import { useTranslation } from '../shared/i18n/translate';
+import { useTranslation } from 'react-i18next';
 import { ButtonLink } from '../shared/ui/router-links';
 
 /** Route-level error boundary: a calm message with a retry, never the raw error text. */

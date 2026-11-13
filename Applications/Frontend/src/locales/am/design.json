@@ -16,7 +16,29 @@
     "emptyState": "ባዶ ሁኔታ",
     "errorState": "የስህተት ሁኔታ",
     "skeletons": "የመጫኛ ማሳያዎች",
-    "overlays": "የማረጋገጫ መስኮትና ማሳወቂያ"
+    "overlays": "የማረጋገጫ መስኮትና ማሳወቂያ",
+    "longText": "ረጅም መለያዎች",
+    "dates": "ቀኖች"
+  },
+  "long": {
+    "tabDetails": "የኮርሱ ዝርዝሮችና ቅንብሮች",
+    "tabContent": "ክፍሎች፣ ትምህርቶችና ፈተናዎች",
+    "tabReview": "ይገምግሙና ያስገቡ",
+    "button": "ሁሉንም ለውጦች ለአስተዳዳሪ ግምገማ አስገባ",
+    "columnTitle": "የኮርስ ርዕስ",
+    "columnLearners": "የተመዘገቡ ተማሪዎች",
+    "columnUpdated": "ባለቤቱ ለመጨረሻ ጊዜ ያዘመነበት",
+    "chip": "የአስተዳዳሪ ማጽደቅን በመጠባበቅ ላይ"
+  },
+  "dates": {
+    "date": "ቀን",
+    "dateTime": "ቀንና ሰዓት",
+    "relative": "አንጻራዊ",
+    "calendar": "የቀን አቆጣጠር",
+    "calendarName": {
+      "gregory": "እንደ ግሪጎሪያን",
+      "ethiopic": "እንደ ኢትዮጵያ"
+    }
   },
   "samples": {
     "heading": "ርዕስ ደረጃ {{level}}",

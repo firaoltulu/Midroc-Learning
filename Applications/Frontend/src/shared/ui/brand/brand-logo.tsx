@@ -1,5 +1,5 @@
 import Box from '@mui/material/Box';
-import { useTranslation } from '../../i18n/translate';
+import { useTranslation } from 'react-i18next';
 import {
   useResolvedColorScheme,
   type ResolvedColorScheme,

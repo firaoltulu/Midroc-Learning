@@ -1,5 +1,5 @@
 import Chip, { type ChipProps } from '@mui/material/Chip';
-import { useTranslation } from '../i18n/translate';
+import { useTranslation } from 'react-i18next';
 import { statusTone, type CourseStatus } from './status-tone';
 
 export type { CourseStatus } from './status-tone';

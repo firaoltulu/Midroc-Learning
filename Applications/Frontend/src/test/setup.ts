@@ -30,3 +30,8 @@ Object.defineProperty(window, 'matchMedia', {
       dispatchEvent: () => false,
     }) as unknown as MediaQueryList,
 });
+
+// Real i18next with the bundled English resources, so components render actual strings.
+import { initI18n } from '../shared/i18n/setup';
+
+await initI18n({ lng: 'en' });

@@ -4,7 +4,7 @@ import CardContent from '@mui/material/CardContent';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import type { ReactNode } from 'react';
-import { useTranslation } from '../i18n/translate';
+import { useTranslation } from 'react-i18next';
 
 /** Wraps skeleton shapes and announces "Loading" once to assistive technology. */
 export function LoadingRegion({ children, label }: { children: ReactNode; label?: string }) {
