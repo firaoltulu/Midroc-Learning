@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { HomePage } from '../features/home';
+import { HomeScreen } from '../features/catalog';
 
 export const Route = createFileRoute('/')({
-  component: HomePage
+  component: HomeScreen,
 });

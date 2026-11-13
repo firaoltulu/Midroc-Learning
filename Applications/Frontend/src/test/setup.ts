@@ -1,11 +1,8 @@
-import '@testing-library/jest-dom/vitest';
-import { cleanup } from '@testing-library/react';
-import { beforeEach, afterEach } from 'vitest';
-import i18n from '../shared/i18n/i18n';
+/// <reference types="@testing-library/jest-dom/vitest" />
+import * as matchers from '@testing-library/jest-dom/matchers';
 
-afterEach(cleanup);
-
-beforeEach(async () => {
-  localStorage.clear();
-  await i18n.changeLanguage('en');
-});
+// Use the global `expect` (Vitest globals) instead of `import { expect } from 'vitest'`:
+// on Windows a lower-case drive letter (d:\ vs D:\) can make a setup file resolve a second
+// `vitest` instance, which breaks hooks and matcher registration.
+// Testing Library cleans up after each test automatically because globals are enabled.
+expect.extend(matchers);

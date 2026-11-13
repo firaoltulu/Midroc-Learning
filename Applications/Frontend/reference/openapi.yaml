@@ -31,6 +31,9 @@ paths:
         - in: query
           name: category
           schema: { type: string, maxLength: 100 }
+        - in: query
+          name: language
+          schema: { type: string, enum: [en, am] }
       responses:
         "200":
           description: Published course catalog.
@@ -46,6 +49,20 @@ paths:
           description: Course created in draft status.
         "400":
           description: Invalid or unknown input fields.
+  /courses/categories:
+    get:
+      responses:
+        "200":
+          description: Categories used by published courses.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { type: string }
   /courses/{id}:
     parameters:
       - $ref: "#/components/parameters/Uuid"
@@ -69,6 +86,7 @@ paths:
                 title: { type: string, minLength: 1, maxLength: 200 }
                 description: { type: string, maxLength: 20000 }
                 category: { type: [string, "null"], maxLength: 100 }
+                language: { type: string, enum: [en, am] }
                 thumbnailUrl: { type: [string, "null"], format: uri }
                 tags: { type: array, maxItems: 30, items: { type: string } }
                 estimatedDurationMinutes:
@@ -512,6 +530,7 @@ components:
         title: { type: string, minLength: 1, maxLength: 200 }
         description: { type: string, maxLength: 20000, default: "" }
         category: { type: [string, "null"], maxLength: 100 }
+        language: { type: string, enum: [en, am], default: en }
         thumbnailUrl: { type: [string, "null"], format: uri }
         tags:
           type: array
