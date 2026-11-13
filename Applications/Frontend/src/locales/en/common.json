@@ -1,5 +1,51 @@
 {
   "appName": "Midroc Learning",
+  "loading": "Loading",
+  "actions": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "retry": "Try again",
+    "close": "Close",
+    "goHome": "Go to the home page"
+  },
+  "brand": {
+    "logoAlt": "Midroc Investment Group",
+    "homeLink": "Midroc Learning home"
+  },
+  "shell": {
+    "skipToContent": "Skip to content",
+    "openNavigation": "Open navigation",
+    "primaryNavigation": "Main navigation"
+  },
+  "nav": {
+    "home": "Home",
+    "design": "Design system"
+  },
+  "theme": {
+    "menuLabel": "Color theme: {{mode}}",
+    "system": "Match device",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "status": {
+    "draft": "Draft",
+    "pending_review": "In review",
+    "published": "Published",
+    "rejected": "Rejected",
+    "archived": "Archived"
+  },
+  "errorState": {
+    "title": "This couldn't load",
+    "body": "Check your connection, then try again."
+  },
+  "routeError": {
+    "title": "Something went wrong",
+    "body": "This page couldn't load. Try again, or go back to the home page."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "The page you're looking for doesn't exist or has moved."
+  },
   "home": {
     "title": "Welcome to Midroc Learning",
     "body": "Courses, learning and exams are on their way."

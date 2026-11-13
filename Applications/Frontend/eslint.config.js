@@ -61,6 +61,9 @@ export default tseslint.config(
     extends: [reactHooks.configs.flat['recommended-latest'], jsxA11y.flatConfigs.strict],
     rules: {
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      // Raw DOM autofocus stays banned; components (e.g. the initial button in a dialog,
+      // per the WAI-ARIA dialog pattern) may set it deliberately.
+      'jsx-a11y/no-autofocus': ['error', { ignoreNonDOM: true }],
 
       // No hard-coded UI strings: JSX text and user-facing attributes go through t().
       'i18next/no-literal-string': [

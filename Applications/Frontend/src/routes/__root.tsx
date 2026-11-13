@@ -1,6 +1,14 @@
 import { createRootRoute, Outlet } from '@tanstack/react-router';
+import { AppShell } from '../app/shell/app-shell';
 
-// Phase 2 replaces this with the app shell (top bar, drawer, skip link, error boundary).
 export const Route = createRootRoute({
-  component: Outlet,
+  component: RootLayout,
 });
+
+function RootLayout() {
+  return (
+    <AppShell>
+      <Outlet />
+    </AppShell>
+  );
+}

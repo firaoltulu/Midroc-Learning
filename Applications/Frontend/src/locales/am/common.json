@@ -1,5 +1,51 @@
 {
   "appName": "ሚድሮክ ትምህርት",
+  "loading": "በመጫን ላይ",
+  "actions": {
+    "cancel": "ይቅር",
+    "confirm": "አረጋግጥ",
+    "retry": "እንደገና ሞክር",
+    "close": "ዝጋ",
+    "goHome": "ወደ መነሻ ገጽ ሂድ"
+  },
+  "brand": {
+    "logoAlt": "ሚድሮክ ኢንቨስትመንት ግሩፕ",
+    "homeLink": "የሚድሮክ ትምህርት መነሻ ገጽ"
+  },
+  "shell": {
+    "skipToContent": "ወደ ዋናው ይዘት ይለፉ",
+    "openNavigation": "ማውጫውን ክፈት",
+    "primaryNavigation": "ዋና ማውጫ"
+  },
+  "nav": {
+    "home": "መነሻ",
+    "design": "የዲዛይን ሥርዓት"
+  },
+  "theme": {
+    "menuLabel": "የቀለም ገጽታ፦ {{mode}}",
+    "system": "እንደ መሣሪያው",
+    "light": "ብሩህ",
+    "dark": "ጨለማ"
+  },
+  "status": {
+    "draft": "ረቂቅ",
+    "pending_review": "በግምገማ ላይ",
+    "published": "የታተመ",
+    "rejected": "ውድቅ የተደረገ",
+    "archived": "በማህደር የተቀመጠ"
+  },
+  "errorState": {
+    "title": "ይህ ሊጫን አልቻለም",
+    "body": "ግንኙነትዎን ያረጋግጡና እንደገና ይሞክሩ።"
+  },
+  "routeError": {
+    "title": "የሆነ ችግር ተፈጥሯል",
+    "body": "ይህ ገጽ ሊጫን አልቻለም። እንደገና ይሞክሩ ወይም ወደ መነሻ ገጽ ይመለሱ።"
+  },
+  "notFound": {
+    "title": "ገጹ አልተገኘም",
+    "body": "የሚፈልጉት ገጽ የለም ወይም ወደ ሌላ ቦታ ተዛውሯል።"
+  },
   "home": {
     "title": "ወደ ሚድሮክ ትምህርት እንኳን ደህና መጡ",
     "body": "ኮርሶች፣ ትምህርቶች እና ፈተናዎች በቅርቡ ይቀርባሉ።"

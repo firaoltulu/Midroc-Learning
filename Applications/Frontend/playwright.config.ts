@@ -1,6 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const port = 5173;
+// E2E runs against a production build (vite preview): closer to deployment, and no dev-time
+// dependency optimizer reloading the page in the middle of a test. Own port, always rebuilt.
+const port = 4180;
 
 export default defineConfig({
   testDir: './e2e',
@@ -14,9 +16,10 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: `npm run dev -- --port ${port} --strictPort`,
+    command: `npx vite build && npx vite preview --port ${port} --strictPort`,
     url: `http://localhost:${port}`,
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
+    timeout: 180_000,
     // E2E runs against a mocked API (page.route); these values only satisfy env validation.
     env: {
       VITE_FIREBASE_API_KEY: 'e2e-api-key',
