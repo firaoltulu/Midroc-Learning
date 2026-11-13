@@ -1,6 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { configureApiAuth } from '../../shared/api/client';
-import { authKeys } from './api/keys';
+import { meKeys } from '../../shared/api/query-keys';
 import type { AuthController } from './model/auth-controller';
 import type { AuthState } from './model/auth-state';
 import { clearUserData } from './lib/user-data';
@@ -11,7 +11,8 @@ const uidOf = (state: AuthState) => (state.status === 'signedIn' ? state.user.ui
  * Wires auth into the app. Call once at startup, before the router loads (it must be
  * synchronous: React runs child effects before parent effects, so an effect would be late).
  * - The API client sends this user's ID token and handles `X-Token-Refresh`
- *   (force a new token, then refetch /me).
+ *   (force a new token, then refetch /me). A token refused after a refresh signs the user
+ *   out ("session ended"); ACCOUNT_SUSPENDED from any endpoint signs them out ("suspended").
  * - When a session ends (sign-out, revoked session, or a different user signs in), the query
  *   cache and per-user local data are cleared.
  * - `onChange` runs after every auth change (the app re-runs route guards there).
@@ -29,7 +30,18 @@ export function connectAuth({
     getToken: (force) => controller.getIdToken(force),
     onTokenRefresh: async () => {
       await controller.getIdToken(true);
-      await queryClient.invalidateQueries({ queryKey: authKeys.me });
+      await queryClient.invalidateQueries({ queryKey: meKeys.me });
+    },
+    // Signing out re-runs the guards, which send the user to /login with the reason.
+    onUnauthorized: async () => {
+      if (controller.getState().status === 'signedIn') {
+        await controller.signOut({ reason: 'sessionExpired' });
+      }
+    },
+    onAccountSuspended: async () => {
+      if (controller.getState().status === 'signedIn') {
+        await controller.signOut({ reason: 'suspended' });
+      }
     },
   });
 

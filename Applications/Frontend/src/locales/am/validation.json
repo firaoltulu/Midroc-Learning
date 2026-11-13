@@ -1,0 +1,51 @@
+{
+  "fallback": "ይህን እሴት ያረጋግጡ።",
+  "invalid_type": {
+    "default": "ትክክለኛ እሴት ያስገቡ።"
+  },
+  "too_small": {
+    "string_one": "ቢያንስ {{count}} ቁምፊ ያስገቡ።",
+    "string_other": "ቢያንስ {{count}} ቁምፊዎች ያስገቡ።",
+    "array_one": "ቢያንስ {{count}} ንጥል ያክሉ።",
+    "array_other": "ቢያንስ {{count}} ንጥሎች ያክሉ።",
+    "number": "{{minimum}} ወይም ከዚያ በላይ ያስገቡ።",
+    "int": "{{minimum}} ወይም ከዚያ በላይ የሆነ ሙሉ ቁጥር ያስገቡ።",
+    "date": "ከዚህ በኋላ ያለ ቀን ይምረጡ።",
+    "file": "ፋይሉ በጣም ትንሽ ነው።",
+    "default": "ይህ እሴት በጣም ትንሽ ነው።"
+  },
+  "too_big": {
+    "string_one": "ከ{{count}} ቁምፊ አይብለጥ።",
+    "string_other": "ከ{{count}} ቁምፊዎች አይብለጥ።",
+    "array_one": "ከ{{count}} ንጥል አይብለጥ።",
+    "array_other": "ከ{{count}} ንጥሎች አይብለጥ።",
+    "number": "{{maximum}} ወይም ከዚያ በታች ያስገቡ።",
+    "int": "{{maximum}} ወይም ከዚያ በታች የሆነ ሙሉ ቁጥር ያስገቡ።",
+    "date": "ከዚህ በፊት ያለ ቀን ይምረጡ።",
+    "file": "ፋይሉ በጣም ትልቅ ነው።",
+    "default": "ይህ እሴት በጣም ትልቅ ነው።"
+  },
+  "invalid_format": {
+    "email": "ትክክለኛ የኢሜይል አድራሻ ያስገቡ።",
+    "url": "በhttp:// ወይም https:// የሚጀምር ሊንክ ያስገቡ።",
+    "uuid": "ይህ ማጣቀሻ ትክክል አይደለም።",
+    "datetime": "ትክክለኛ ቀንና ሰዓት ያስገቡ።",
+    "date": "ትክክለኛ ቀን ያስገቡ።",
+    "default": "በሚጠበቀው ቅርጸት ያስገቡ።"
+  },
+  "not_multiple_of": {
+    "default": "የ{{divisor}} ብዜት ያስገቡ።"
+  },
+  "invalid_value": {
+    "default": "ካሉት አማራጮች አንዱን ይምረጡ።"
+  },
+  "unrecognized_keys": {
+    "default": "ይህ ያልተፈቀዱ መስኮችን ይዟል።"
+  },
+  "invalid_union": {
+    "default": "ትክክለኛ እሴት ያስገቡ።"
+  },
+  "custom": {
+    "default": "ይህን እሴት ያረጋግጡ።"
+  }
+}

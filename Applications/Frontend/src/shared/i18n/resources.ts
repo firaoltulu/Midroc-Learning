@@ -10,11 +10,13 @@ import admin from '../../locales/en/admin.json';
 import auth from '../../locales/en/auth.json';
 import common from '../../locales/en/common.json';
 import design from '../../locales/en/design.json';
+import errors from '../../locales/en/errors.json';
+import validation from '../../locales/en/validation.json';
 
 export const defaultNS = 'common';
 
 export const resources = {
-  en: { common, auth, account, admin, design },
+  en: { common, errors, validation, auth, account, admin, design },
 } as const;
 
 export type Namespace = keyof (typeof resources)['en'];

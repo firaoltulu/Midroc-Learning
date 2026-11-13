@@ -3,12 +3,15 @@
  *
  * A "feature" is a folder directly under src/features/, except admin, whose
  * sub-areas (src/features/admin/<area>/) are features of their own.
- * A feature's public API is its index.ts.
+ * A feature's public API is its index.ts; test helpers it offers to other tests live in its
+ * testing.ts (test code only).
  */
 
 // Captures the feature root, e.g. "catalog" or "admin/users".
 const FEATURE = '^src/features/(admin/[^/]+|(?!admin/)[^/]+)/';
-const FEATURE_INDEX = '^src/features/(admin/[^/]+|(?!admin/)[^/]+)/index\\.tsx?$';
+const FEATURE_INDEX = '^src/features/(admin/[^/]+|(?!admin/)[^/]+)/(index|testing)\\.tsx?$';
+const FEATURE_TESTING = '^src/features/(admin/[^/]+|(?!admin/)[^/]+)/testing\\.tsx?$';
+const TEST_CODE = ['\\.test\\.tsx?$', '^src/test/'];
 
 /** @type {import('dependency-cruiser').IConfiguration} */
 module.exports = {
@@ -49,6 +52,13 @@ module.exports = {
       comment: 'Features are wired by routes/app, never the other way around.',
       from: { path: '^src/features/' },
       to: { path: ['^src/routes/', '^src/app/', '^src/routeTree\\.gen\\.ts$'] },
+    },
+    {
+      name: 'feature-testing-api-in-tests-only',
+      severity: 'error',
+      comment: "A feature's testing.ts (fakes, fixtures) is for test code only.",
+      from: { path: '^src/', pathNot: TEST_CODE },
+      to: { path: FEATURE_TESTING },
     },
     {
       name: 'no-test-code-in-app',

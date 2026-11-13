@@ -9,7 +9,7 @@ export interface AuthUser {
 }
 
 /** Why the app signed the user out, when it did so itself (shown on the login page). */
-export type SignOutReason = 'suspended';
+export type SignOutReason = 'suspended' | 'sessionExpired';
 
 export type AuthState =
   | { status: 'loading' }

@@ -1,6 +1,8 @@
 import { QueryClient } from '@tanstack/react-query';
+import { http, HttpResponse } from 'msw';
+import { api, server } from '../../test/msw';
 import { isRedirect } from '@tanstack/react-router';
-import { authKeys } from './api/keys';
+import { meKeys } from '../../shared/api/query-keys';
 import type { Me } from './api/me';
 import {
   NotAllowedError,
@@ -39,16 +41,17 @@ async function outcome(run: () => unknown) {
   }
 }
 
-function mockMeResponse(status: number, body: unknown) {
-  // A fresh Response per call: /me retries once on server errors.
-  return vi
-    .spyOn(globalThis, 'fetch')
-    .mockImplementation(() => Promise.resolve(new Response(JSON.stringify(body), { status })));
+/** Answers GET /me with `status` and `body`; returns how many requests it received. */
+function mockMeResponse(status: number, body: Record<string, unknown>) {
+  let calls = 0;
+  server.use(
+    http.get(api('/me'), () => {
+      calls += 1;
+      return HttpResponse.json(body, { status });
+    }),
+  );
+  return () => calls;
 }
-
-afterEach(() => {
-  vi.restoreAllMocks();
-});
 
 describe('requireAuthenticated (_authenticated layout)', () => {
   it('waits while auth is loading: no redirect and no content until the state is known', async () => {
@@ -89,7 +92,7 @@ describe('requireAuthenticated (_authenticated layout)', () => {
   it('treats Google accounts as verified and loads /me', async () => {
     const { fake, context, queryClient } = setup();
     fake.signIn(passwordUser({ emailVerified: false, providerIds: ['google.com'] }));
-    queryClient.setQueryData(authKeys.me, me());
+    queryClient.setQueryData(meKeys.me, me());
     expect(await outcome(() => requireAuthenticated({ context, location }))).toEqual({
       resolved: { me: me() },
     });
@@ -98,12 +101,11 @@ describe('requireAuthenticated (_authenticated layout)', () => {
   it('fetches /me with the bearer token when it is not cached', async () => {
     const { fake, context } = setup();
     fake.signIn();
-    const fetchSpy = mockMeResponse(200, me());
+    const calls = mockMeResponse(200, me());
     expect(await outcome(() => requireAuthenticated({ context, location }))).toEqual({
       resolved: { me: me() },
     });
-    expect(fetchSpy).toHaveBeenCalledOnce();
-    expect(fetchSpy).toHaveBeenCalledWith('/api/me', expect.anything());
+    expect(calls()).toBe(1);
   });
 
   it('signs out a suspended account (403 ACCOUNT_SUSPENDED) and explains on /login', async () => {
@@ -134,7 +136,7 @@ describe('requireAuthenticated (_authenticated layout)', () => {
   it('also signs out when /me reports status "suspended"', async () => {
     const { fake, context, queryClient } = setup();
     fake.signIn();
-    queryClient.setQueryData(authKeys.me, me({ status: 'suspended' }));
+    queryClient.setQueryData(meKeys.me, me({ status: 'suspended' }));
     expect(await outcome(() => requireAuthenticated({ context, location }))).toEqual({
       redirect: expect.objectContaining({ to: '/login', search: { reason: 'suspended' } }),
     });

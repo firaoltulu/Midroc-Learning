@@ -55,6 +55,11 @@ export function LoginScreen({ search }: { search: AuthSearch }) {
           {t('login.suspended')}
         </Alert>
       ) : null}
+      {search.reason === 'sessionExpired' ? (
+        <Alert severity="info" variant="outlined">
+          {t('login.sessionExpired')}
+        </Alert>
+      ) : null}
       <GoogleSignIn onError={setError} />
       <Stack component="form" spacing={2} noValidate onSubmit={(event) => void onSubmit(event)}>
         <AuthErrorAlert error={error} />

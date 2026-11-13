@@ -1,7 +1,7 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
 import { z } from 'zod';
 import { ApiError, apiRequest } from '../../../shared/api/client';
-import { authKeys } from './keys';
+import { meKeys } from '../../../shared/api/query-keys';
 
 /**
  * GET /me: the database profile. Its `role` and `status` are authoritative for UI guards
@@ -21,7 +21,7 @@ export type Me = z.infer<typeof meSchema>;
 
 export const meQueryOptions = () =>
   queryOptions({
-    queryKey: authKeys.me,
+    queryKey: meKeys.me,
     queryFn: async ({ signal }) => meSchema.parse(await apiRequest('/me', { signal })),
     staleTime: 60_000,
     // Retry once on network or server errors; a 4xx (e.g. a suspended account) won't change.

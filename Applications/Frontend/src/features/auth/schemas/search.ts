@@ -6,7 +6,7 @@ import { z } from 'zod';
  */
 export const authSearchSchema = z.object({
   redirect: z.string().max(2000).optional().catch(undefined),
-  reason: z.enum(['suspended']).optional().catch(undefined),
+  reason: z.enum(['suspended', 'sessionExpired']).optional().catch(undefined),
 });
 
 export type AuthSearch = z.infer<typeof authSearchSchema>;

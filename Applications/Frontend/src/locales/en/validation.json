@@ -1,0 +1,51 @@
+{
+  "fallback": "Check this value.",
+  "invalid_type": {
+    "default": "Enter a valid value."
+  },
+  "too_small": {
+    "string_one": "Enter at least {{count}} character.",
+    "string_other": "Enter at least {{count}} characters.",
+    "array_one": "Add at least {{count}} item.",
+    "array_other": "Add at least {{count}} items.",
+    "number": "Enter {{minimum}} or more.",
+    "int": "Enter a whole number of {{minimum}} or more.",
+    "date": "Choose a later date.",
+    "file": "The file is too small.",
+    "default": "This value is too small."
+  },
+  "too_big": {
+    "string_one": "Use no more than {{count}} character.",
+    "string_other": "Use no more than {{count}} characters.",
+    "array_one": "Use no more than {{count}} item.",
+    "array_other": "Use no more than {{count}} items.",
+    "number": "Enter {{maximum}} or less.",
+    "int": "Enter a whole number of {{maximum}} or less.",
+    "date": "Choose an earlier date.",
+    "file": "The file is too large.",
+    "default": "This value is too large."
+  },
+  "invalid_format": {
+    "email": "Enter a valid email address.",
+    "url": "Enter a link that starts with http:// or https://.",
+    "uuid": "This reference isn't valid.",
+    "datetime": "Enter a valid date and time.",
+    "date": "Enter a valid date.",
+    "default": "Use the expected format."
+  },
+  "not_multiple_of": {
+    "default": "Enter a multiple of {{divisor}}."
+  },
+  "invalid_value": {
+    "default": "Choose one of the available options."
+  },
+  "unrecognized_keys": {
+    "default": "This contains fields that aren't allowed."
+  },
+  "invalid_union": {
+    "default": "Enter a valid value."
+  },
+  "custom": {
+    "default": "Check this value."
+  }
+}

@@ -81,6 +81,7 @@ export function createFirebaseAuthController(): AuthController {
   // While sign-up finishes (profile name, verification email) the new user is not published,
   // so the guards don't move on to /verify-email before the email has been sent.
   let holdPublishing = false;
+  let signingOut: Promise<void> | null = null;
   const publish = (user: User | null) => {
     if (holdPublishing) return;
     if (user) {
@@ -169,9 +170,16 @@ export function createFirebaseAuthController(): AuthController {
       publish(auth.currentUser);
     },
 
-    async signOut(options = {}) {
-      signOutReason = options.reason;
-      await signOut(auth);
+    signOut(options = {}) {
+      // One sign-out at a time: the API client and a route guard may both react to the
+      // same suspension.
+      signingOut ??= (async () => {
+        signOutReason = options.reason;
+        await signOut(auth);
+      })().finally(() => {
+        signingOut = null;
+      });
+      return signingOut;
     },
 
     takeRedirectError() {

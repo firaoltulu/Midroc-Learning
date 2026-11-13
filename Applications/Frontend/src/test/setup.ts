@@ -35,3 +35,16 @@ Object.defineProperty(window, 'matchMedia', {
 import { initI18n } from '../shared/i18n/setup';
 
 await initI18n({ lng: 'en' });
+
+// Mock API (MSW): every test starts from the default handlers; unhandled requests fail.
+import { resetMockApi, server } from './msw';
+
+beforeAll(() => {
+  server.listen({ onUnhandledFrame: 'error' });
+});
+afterEach(() => {
+  resetMockApi();
+});
+afterAll(() => {
+  server.close();
+});

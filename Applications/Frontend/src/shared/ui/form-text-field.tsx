@@ -8,7 +8,10 @@ import { forwardRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 export type FormTextFieldProps = Omit<TextFieldProps, 'error' | 'helperText'> & {
-  /** A translation key from a zod/react-hook-form error (e.g. 'auth:form.emailRequired'). */
+  /**
+   * The field's error message: a translation key from a zod schema (e.g.
+   * 'auth:form.emailRequired'), or text already translated by useApplyApiIssues.
+   */
   errorKey?: string | undefined;
   /** Shown when there is no error. */
   hint?: string;
@@ -20,7 +23,7 @@ export type FormTextFieldProps = Omit<TextFieldProps, 'error' | 'helperText'> & 
  */
 export const FormTextField = forwardRef<HTMLInputElement, FormTextFieldProps>(
   function FormTextField({ errorKey, hint, type, slotProps, ...props }, ref) {
-    const { t } = useTranslation('common');
+    const { t, i18n } = useTranslation('common');
     const [visible, setVisible] = useState(false);
     const isPassword = type === 'password';
 
@@ -30,7 +33,7 @@ export const FormTextField = forwardRef<HTMLInputElement, FormTextFieldProps>(
         inputRef={ref}
         type={isPassword && visible ? 'text' : type}
         error={Boolean(errorKey)}
-        helperText={errorKey ? t(errorKey as ParseKeys) : hint}
+        helperText={errorKey ? (i18n.exists(errorKey) ? t(errorKey as ParseKeys) : errorKey) : hint}
         fullWidth
         slotProps={{
           ...slotProps,
