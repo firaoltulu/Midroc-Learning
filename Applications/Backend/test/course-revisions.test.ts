@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { db, setDatabaseForTests } from '../src/core/db/pool.js';
-import { Conflict } from '../src/core/http/app-error.js';
+import { Conflict, Unprocessable } from '../src/core/http/app-error.js';
 import {
   approveCourseRevision,
   saveCourseRevision
@@ -223,6 +223,30 @@ describe('published course revisions', () => {
     });
     expect(revision.data.modules?.[0]?.id).toMatch(/[0-9a-f-]{36}/);
     expect(revision.data.modules?.[0]?.items.every((item) => item.id)).toBe(true);
+  });
+
+  it('a refused video says which item it is (moduleIndex, itemIndex)', async () => {
+    const { owner } = await setup();
+    mocks.verifyVideoLink.mockRejectedValueOnce(
+      new Unprocessable('Video is private, deleted, or not embeddable', 'VIDEO_UNAVAILABLE')
+    );
+    await expect(saveCourseRevision(owner, courseId, {
+      modules: [
+        existingExamTree,
+        {
+          title: 'New module',
+          description: '',
+          items: [
+            { type: 'pdf', title: 'PDF', fileKey: '6a8f6633-60da-428e-8e98-4a2d0ba91867.pdf' },
+            { type: 'video', title: 'Video', url: 'https://youtu.be/private0000' }
+          ]
+        }
+      ]
+    })).rejects.toMatchObject({
+      status: 422,
+      code: 'VIDEO_UNAVAILABLE',
+      params: { moduleIndex: 1, itemIndex: 1 }
+    });
   });
 
   it('preserves moved exam and question IDs when applying the revision', async () => {

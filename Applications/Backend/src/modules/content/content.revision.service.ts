@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { Queryable } from '../../core/db/pool.js';
+import { AppError } from '../../core/http/app-error.js';
 import { verifyPdfFile, verifyVideoLink } from './content.service.js';
 import {
   applyRevisionTree,
@@ -15,13 +16,34 @@ function uuid(id?: string): string {
   return id ?? randomUUID();
 }
 
+/**
+ * Runs a media check (video link, PDF) for one item of the proposed tree. A refusal carries
+ * the item's position (`moduleIndex`, `itemIndex`) so the client can show it on that item.
+ */
+async function verifyAt<T>(moduleIndex: number, itemIndex: number, check: () => Promise<T>): Promise<T> {
+  try {
+    return await check();
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw new AppError(error.message, error.status, error.code, {
+        ...error.params,
+        moduleIndex,
+        itemIndex
+      });
+    }
+    throw error;
+  }
+}
+
 export async function prepareRevisionTree(input: RevisionTreeInput): Promise<RevisionTree> {
   const modules: RevisionTree['modules'] = [];
-  for (const module of input.modules) {
+  for (const [moduleIndex, module] of input.modules.entries()) {
     const items: RevisionTree['modules'][number]['items'] = [];
-    for (const item of module.items) {
+    for (const [itemIndex, item] of module.items.entries()) {
       if (item.type === 'video') {
-        const video = await verifyVideoLink(item.url ?? `https://youtu.be/${item.youtubeVideoId}`);
+        const video = await verifyAt(moduleIndex, itemIndex, () =>
+          verifyVideoLink(item.url ?? `https://youtu.be/${item.youtubeVideoId}`)
+        );
         items.push({
           id: uuid(item.id),
           type: 'video',
@@ -31,7 +53,7 @@ export async function prepareRevisionTree(input: RevisionTreeInput): Promise<Rev
           thumbnailUrl: video.thumbnailUrl
         });
       } else if (item.type === 'pdf') {
-        const pdf = await verifyPdfFile(item.fileKey);
+        const pdf = await verifyAt(moduleIndex, itemIndex, () => verifyPdfFile(item.fileKey));
         items.push({
           id: uuid(item.id),
           type: 'pdf',
