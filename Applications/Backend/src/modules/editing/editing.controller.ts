@@ -24,12 +24,12 @@ export async function courseRevision(req: Request, res: Response): Promise<void>
 }
 
 export async function saveCourseRevision(req: Request, res: Response): Promise<void> {
-  const revision = await saveCourseRevisionService(
+  const result = await saveCourseRevisionService(
     req.user,
     courseIdParam(req),
     parseInput(courseRevisionPutSchema, req.body)
   );
-  res.json(revision);
+  res.json(result);
 }
 
 export async function deleteCourseRevision(req: Request, res: Response): Promise<void> {

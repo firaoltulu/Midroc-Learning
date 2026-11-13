@@ -2,7 +2,7 @@ import type { Actor } from '../../core/actor.js';
 import { getPdfKey, getVideoForPlayback } from '../content/index.js';
 import { saveProgress } from '../enrollments/index.js';
 
-export async function videoForLearner(itemId: string, actor: Actor): Promise<string> {
+export async function videoForLearner(itemId: string, actor: Actor) {
   return getVideoForPlayback(itemId, actor);
 }
 

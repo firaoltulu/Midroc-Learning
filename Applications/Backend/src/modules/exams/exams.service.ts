@@ -33,7 +33,21 @@ export async function getExam(examId: string, actor: Actor) {
   assertCanView(context, actor);
   const exam = await repository.getExam(db, examId);
   if (!exam) throw new NotFound('Exam not found');
-  return { ...exam, questions: await repository.learnerQuestions(db, examId) };
+  // Questions are only sent once an attempt starts.
+  const standing = await repository.learnerStanding(db, actor.id, examId);
+  return {
+    ...exam,
+    questionCount: standing.questionCount,
+    attemptsUsed: standing.attemptsUsed,
+    attemptsRemaining: remainingAttempts(exam.maxAttempts, standing.attemptsUsed),
+    passed: standing.passed,
+    hasOpenAttempt: standing.openAttemptId !== null
+  };
+}
+
+/** Null when attempts are unlimited. */
+function remainingAttempts(maxAttempts: number | null, used: number): number | null {
+  return maxAttempts === null ? null : Math.max(0, maxAttempts - used);
 }
 
 export async function startAttempt(examId: string, actor: Actor) {
@@ -60,11 +74,13 @@ export async function startAttempt(examId: string, actor: Actor) {
     if (!attempt && context.maxAttempts !== null && attempts >= context.maxAttempts) {
       return { kind: 'exhausted' as const };
     }
+    const resumed = attempt !== undefined;
     if (!attempt) attempt = await repository.insertAttempt(tx, actor.id, examId);
     const questions = await repository.learnerQuestions(tx, examId);
     return {
       kind: 'active' as const,
       attempt,
+      resumed,
       questions,
       timeLimitMinutes: context.timeLimitMinutes
     };
@@ -75,7 +91,13 @@ export async function startAttempt(examId: string, actor: Actor) {
   const expiresAt = outcome.timeLimitMinutes === null
     ? null
     : new Date(new Date(outcome.attempt.startedAt).getTime() + outcome.timeLimitMinutes * 60_000);
-  return { attempt: outcome.attempt, questions: outcome.questions, expiresAt };
+  return {
+    attemptId: outcome.attempt.id,
+    resumed: outcome.resumed,
+    startedAt: outcome.attempt.startedAt,
+    expiresAt,
+    questions: outcome.questions
+  };
 }
 
 export async function submitAttempt(
@@ -138,7 +160,7 @@ export async function submitAttempt(
         selectedChoiceIds.every((id) => correctChoiceIds.includes(id));
       possiblePoints += question.points;
       if (correct) earnedPoints += question.points;
-      return { questionId: question.id, correct, selectedChoiceIds, correctChoiceIds };
+      return { questionId: question.id, isCorrect: correct, selectedChoiceIds, correctChoiceIds };
     });
     const scorePercent = possiblePoints === 0
       ? 0
@@ -154,6 +176,8 @@ export async function submitAttempt(
       kind: 'submitted' as const,
       scorePercent,
       passed,
+      attemptsUsed: attemptCount,
+      attemptsRemaining: remainingAttempts(context.maxAttempts, attemptCount),
       revealAnswers,
       results: results.map(({ correctChoiceIds, ...result }) => ({
         ...result,
@@ -162,8 +186,8 @@ export async function submitAttempt(
     };
   });
   if (outcome.kind === 'late') throw new Gone('Exam time exceeded', 'EXAM_TIME_EXCEEDED');
-  const { scorePercent, passed, revealAnswers, results } = outcome;
-  return { scorePercent, passed, revealAnswers, results };
+  const { scorePercent, passed, attemptsUsed, attemptsRemaining, revealAnswers, results } = outcome;
+  return { scorePercent, passed, attemptsUsed, attemptsRemaining, revealAnswers, results };
 }
 
 export async function listAttempts(examId: string, actor: Actor) {

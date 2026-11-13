@@ -11,6 +11,44 @@ const courseColumns = `
   created_at AS "createdAt", published_at AS "publishedAt"
 `;
 
+/** courseColumns qualified with `c.`, for queries that join other tables. */
+const joinedCourseColumns = `
+  c.id, c.owner_id AS "ownerId", c.title, c.description, c.category, c.language,
+  c.thumbnail_url AS "thumbnailUrl", c.tags,
+  c.estimated_duration_minutes AS "estimatedDurationMinutes",
+  c.status, c.rejection_reason AS "rejectionReason",
+  c.created_at AS "createdAt", c.published_at AS "publishedAt"
+`;
+
+/** Columns of catalog and detail views (need `c` = courses, `u` = owner, `$1` = viewer id). */
+const listingColumns = `
+  u.name AS "ownerName",
+  EXISTS (SELECT 1 FROM enrollments e WHERE e.course_id = c.id AND e.user_id = $1) AS enrolled,
+  (SELECT count(*)::int FROM modules m WHERE m.course_id = c.id) AS "moduleCount",
+  (SELECT count(*)::int FROM enrollments e WHERE e.course_id = c.id) AS "enrollmentCount"
+`;
+
+export type CatalogCourse = Course & {
+  ownerName: string | null;
+  enrolled: boolean;
+  moduleCount: number;
+  enrollmentCount: number;
+};
+
+export type CourseDetail = CatalogCourse & {
+  modules: Array<{
+    id: string;
+    title: string;
+    description: string;
+    position: number;
+    items: Array<{ id: string; type: 'video' | 'pdf' | 'exam'; title: string }>;
+  }>;
+  /** Items of this course the viewer has completed. */
+  completedItemIds: string[];
+  /** Owner and administrators only (null for everyone else). */
+  pendingRevision: { id: string; submittedAt: Date } | null;
+};
+
 export async function insertCourse(
   db: Queryable,
   ownerId: string,
@@ -62,13 +100,11 @@ export async function listCatalog(
   db: Queryable,
   actorId: string,
   input: { q?: string; category?: string; language?: string; limit: number; offset: number }
-): Promise<{ items: Array<Course & { enrolled: boolean; moduleCount: number }>; total: number }> {
-  const { rows } = await db.query<Course & { enrolled: boolean; moduleCount: number; total: string }>(
-    `SELECT ${courseColumns},
-       EXISTS (SELECT 1 FROM enrollments e WHERE e.course_id = c.id AND e.user_id = $1) AS enrolled,
-       (SELECT count(*)::int FROM modules m WHERE m.course_id = c.id) AS "moduleCount",
+): Promise<{ items: CatalogCourse[]; total: number }> {
+  const { rows } = await db.query<CatalogCourse & { total: string }>(
+    `SELECT ${joinedCourseColumns}, ${listingColumns},
        count(*) OVER() AS total
-     FROM courses c
+     FROM courses c JOIN users u ON u.id = c.owner_id
      WHERE c.status = 'published'
        AND ($2::text IS NULL OR c.title ILIKE '%' || $2 || '%' ESCAPE E'\\\\')
        AND ($3::text IS NULL OR c.category = $3)
@@ -98,10 +134,22 @@ export async function listMine(db: Queryable, ownerId: string): Promise<Course[]
   return rows;
 }
 
-export async function getPublicDetail(db: Queryable, id: string): Promise<unknown> {
-  const course = await findById(db, id);
+export async function getDetail(
+  db: Queryable,
+  id: string,
+  viewer: { id: string; canManage: boolean }
+): Promise<CourseDetail | undefined> {
+  const { rows } = await db.query<CatalogCourse & { pendingRevision: CourseDetail['pendingRevision'] }>(
+    `SELECT ${joinedCourseColumns}, ${listingColumns},
+       (SELECT json_build_object('id', r.id, 'submittedAt', r.submitted_at)
+          FROM course_revisions r WHERE r.course_id = c.id AND r.status = 'pending') AS "pendingRevision"
+     FROM courses c JOIN users u ON u.id = c.owner_id
+     WHERE c.id = $2`,
+    [viewer.id, id]
+  );
+  const course = rows[0];
   if (!course) return undefined;
-  const { rows: modules } = await db.query(
+  const { rows: modules } = await db.query<CourseDetail['modules'][number]>(
     `SELECT m.id, m.title, m.description, m.position,
        COALESCE(json_agg(json_build_object('id', i.id, 'type', i.type, 'title', i.title)
          ORDER BY i.position) FILTER (WHERE i.id IS NOT NULL), '[]'::json) AS items
@@ -109,7 +157,19 @@ export async function getPublicDetail(db: Queryable, id: string): Promise<unknow
      WHERE m.course_id = $1 GROUP BY m.id ORDER BY m.position`,
     [id]
   );
-  return { ...course, modules };
+  const { rows: completed } = await db.query<{ id: string }>(
+    `SELECT p.item_id AS id FROM item_progress p
+     JOIN module_items i ON i.id = p.item_id JOIN modules m ON m.id = i.module_id
+     WHERE m.course_id = $1 AND p.user_id = $2 AND p.completed_at IS NOT NULL`,
+    [id, viewer.id]
+  );
+  return {
+    ...course,
+    rejectionReason: viewer.canManage ? course.rejectionReason : null,
+    pendingRevision: viewer.canManage ? course.pendingRevision : null,
+    modules,
+    completedItemIds: completed.map((row) => row.id)
+  };
 }
 
 export async function submitCourse(db: Queryable, id: string): Promise<void> {

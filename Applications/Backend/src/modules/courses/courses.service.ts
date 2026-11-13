@@ -42,13 +42,14 @@ export async function listCategories(): Promise<string[]> {
   return repository.listCategories(db);
 }
 
-export async function getCourse(id: string, actor: Actor): Promise<unknown> {
+export async function getCourse(id: string, actor: Actor): Promise<repository.CourseDetail> {
   const course = await repository.findById(db, id);
   if (!course) throw new NotFound('Course not found');
-  if (course.status !== 'published' && course.ownerId !== actor.id && actor.role !== 'admin') {
+  const canManage = course.ownerId === actor.id || actor.role === 'admin';
+  if (course.status !== 'published' && !canManage) {
     throw new NotFound('Course not found');
   }
-  const detail = await repository.getPublicDetail(db, id);
+  const detail = await repository.getDetail(db, id, { id: actor.id, canManage });
   if (detail === undefined) throw new NotFound('Course not found');
   return detail;
 }

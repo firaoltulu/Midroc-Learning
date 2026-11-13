@@ -82,11 +82,32 @@ describe('exam attempts', () => {
     expect(JSON.stringify(exam)).not.toContain('isCorrect');
     expect(JSON.stringify(exam)).not.toContain('is_correct');
 
+    // The overview shows the learner's standing, not the questions.
+    expect(exam).not.toHaveProperty('questions');
+    expect(exam).toMatchObject({
+      questionCount: 1,
+      attemptsUsed: 0,
+      attemptsRemaining: 1,
+      passed: false,
+      hasOpenAttempt: false
+    });
+
     const attempt = await startAttempt(examId, actor);
-    const result = await submitAttempt(attempt.attempt.id, actor, [
+    expect(attempt).toMatchObject({ resumed: false, questions: [{ id: questionId }] });
+    const again = await startAttempt(examId, actor);
+    expect(again).toMatchObject({ attemptId: attempt.attemptId, resumed: true });
+
+    const result = await submitAttempt(attempt.attemptId, actor, [
       { questionId, choiceIds: [correctChoiceId] }
     ]);
-    expect(result).toMatchObject({ passed: true, scorePercent: 100, revealAnswers: true });
+    expect(result).toMatchObject({
+      passed: true,
+      scorePercent: 100,
+      attemptsUsed: 1,
+      attemptsRemaining: 0,
+      revealAnswers: true,
+      results: [{ questionId, isCorrect: true, correctChoiceIds: [correctChoiceId] }]
+    });
     const { rows } = await db.query<{ completed: boolean }>(
       `SELECT completed_at IS NOT NULL AS completed FROM item_progress
        WHERE user_id = $1 AND item_id = $2`,
@@ -101,15 +122,15 @@ describe('exam attempts', () => {
     const attempt = await startAttempt(examId, actor);
     await db.query(
       `UPDATE exam_attempts SET started_at = now() - interval '2 minutes' WHERE id = $1`,
-      [attempt.attempt.id]
+      [attempt.attemptId]
     );
     await expect(
-      submitAttempt(attempt.attempt.id, actor, [{ questionId, choiceIds: [correctChoiceId] }])
+      submitAttempt(attempt.attemptId, actor, [{ questionId, choiceIds: [correctChoiceId] }])
     ).rejects.toBeInstanceOf(Gone);
     const { rows } = await db.query<{ scorePercent: number; passed: boolean; submitted: boolean }>(
       `SELECT score_percent AS "scorePercent", passed,
        submitted_at IS NOT NULL AS submitted FROM exam_attempts WHERE id = $1`,
-      [attempt.attempt.id]
+      [attempt.attemptId]
     );
     expect(Number(rows[0]?.scorePercent)).toBe(0);
     expect(rows[0]).toMatchObject({ passed: false, submitted: true });
@@ -120,11 +141,11 @@ describe('exam attempts', () => {
     const attempt = await startAttempt(examId, actor);
     await db.query(
       `UPDATE exam_attempts SET started_at = now() - interval '1 minute 30 seconds' WHERE id = $1`,
-      [attempt.attempt.id]
+      [attempt.attemptId]
     );
 
     await expect(
-      submitAttempt(attempt.attempt.id, actor, [{ questionId, choiceIds: [correctChoiceId] }])
+      submitAttempt(attempt.attemptId, actor, [{ questionId, choiceIds: [correctChoiceId] }])
     ).rejects.toBeInstanceOf(Gone);
   });
 });

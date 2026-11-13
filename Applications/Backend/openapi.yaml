@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Learning Platform API
-  version: 1.1.0
+  version: 1.2.0
   description: |
     REST API of the learning platform. All endpoints except /health need a Firebase ID token
     (`Authorization: Bearer <token>`).
@@ -473,14 +473,10 @@ paths:
       summary: The YouTube video id of a video item (enrolled learners, owner, admins)
       responses:
         "200":
-          description: Video id (not cached).
+          description: The video and where the viewer left off (not cached).
           content:
             application/json:
-              schema:
-                type: object
-                required: [youtubeVideoId]
-                properties:
-                  youtubeVideoId: { type: string }
+              schema: { $ref: "#/components/schemas/VideoPlayback" }
         "404": { $ref: "#/components/responses/NotFound" }
         default: { $ref: "#/components/responses/Error" }
 
@@ -528,10 +524,10 @@ paths:
     parameters:
       - $ref: "#/components/parameters/ExamId"
     get:
-      summary: Exam overview and questions (no correct answers)
+      summary: Exam overview and the viewer's standing (questions come with an attempt)
       responses:
         "200":
-          description: Exam settings and questions.
+          description: Exam settings, attempts and whether an attempt is open.
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ExamOverview" }
@@ -653,10 +649,13 @@ paths:
             schema: { $ref: "#/components/schemas/RevisionInput" }
       responses:
         "200":
-          description: The saved pending revision.
+          description: >-
+            The saved revision and a summary of all its changes against the live course. When the
+            proposal changes nothing, nothing is saved, any pending revision is withdrawn and the
+            response is `{ saved: false, unchanged: true, revision: null, changes: [] }`.
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/CourseRevision" }
+              schema: { $ref: "#/components/schemas/RevisionSaveResult" }
         "400":
           description: "`VALIDATION_FAILED` or `INVALID_CONTENT_REFERENCE` (an id not in this course)."
           content:
@@ -1216,10 +1215,12 @@ components:
       allOf:
         - $ref: "#/components/schemas/Course"
         - type: object
-          required: [enrolled, moduleCount]
+          required: [ownerName, enrolled, moduleCount, enrollmentCount]
           properties:
+            ownerName: { type: [string, "null"] }
             enrolled: { type: boolean, description: The current user is enrolled. }
             moduleCount: { type: integer }
+            enrollmentCount: { type: integer }
     CatalogPage:
       allOf:
         - $ref: "#/components/schemas/PageInfo"
@@ -1239,11 +1240,27 @@ components:
               type: array
               items: { $ref: "#/components/schemas/Course" }
     CourseDetail:
+      description: >-
+        `rejectionReason` and `pendingRevision` are null unless the viewer is the owner or an
+        administrator.
       allOf:
-        - $ref: "#/components/schemas/Course"
+        - $ref: "#/components/schemas/CatalogCourse"
         - type: object
-          required: [modules]
+          required: [modules, completedItemIds, pendingRevision]
           properties:
+            completedItemIds:
+              type: array
+              description: Items of this course the viewer has completed.
+              items: { type: string, format: uuid }
+            pendingRevision:
+              oneOf:
+                - type: object
+                  required: [id, submittedAt]
+                  properties:
+                    id: { type: string, format: uuid }
+                    submittedAt: { type: string, format: date-time }
+                - type: "null"
+
             modules:
               type: array
               items:
@@ -1492,6 +1509,18 @@ components:
                     type: array
                     items: { $ref: "#/components/schemas/AuthoringItem" }
 
+    VideoPlayback:
+      type: object
+      required: [youtubeVideoId, youtubeTitle, isAvailable, lastPositionSeconds, completed]
+      properties:
+        youtubeVideoId: { type: string }
+        youtubeTitle: { type: [string, "null"] }
+        isAvailable:
+          type: boolean
+          description: False when YouTube reports the video private, deleted or not embeddable.
+        lastPositionSeconds: { type: integer, minimum: 0, description: Resume from here. }
+        completed: { type: boolean }
+
     PdfUpload:
       type: object
       required: [fileKey, sizeBytes, pageCount]
@@ -1520,25 +1549,33 @@ components:
               position: { type: integer }
     ExamOverview:
       type: object
-      required: [instructions, passingScorePercent, maxAttempts, timeLimitMinutes, questions]
+      required:
+        - instructions
+        - passingScorePercent
+        - maxAttempts
+        - timeLimitMinutes
+        - questionCount
+        - attemptsUsed
+        - attemptsRemaining
+        - passed
+        - hasOpenAttempt
       properties:
         instructions: { type: string }
         passingScorePercent: { type: integer }
-        maxAttempts: { type: [integer, "null"] }
+        maxAttempts: { type: [integer, "null"], description: Null when unlimited. }
         timeLimitMinutes: { type: [integer, "null"] }
-        questions:
-          type: array
-          items: { $ref: "#/components/schemas/LearnerQuestion" }
+        questionCount: { type: integer }
+        attemptsUsed: { type: integer }
+        attemptsRemaining: { type: [integer, "null"], description: Null when unlimited. }
+        passed: { type: boolean, description: The viewer has passed this exam before. }
+        hasOpenAttempt: { type: boolean, description: Starting will resume it. }
     ExamStart:
       type: object
-      required: [attempt, questions, expiresAt]
+      required: [attemptId, resumed, startedAt, expiresAt, questions]
       properties:
-        attempt:
-          type: object
-          required: [id, startedAt]
-          properties:
-            id: { type: string, format: uuid }
-            startedAt: { type: string, format: date-time }
+        attemptId: { type: string, format: uuid }
+        resumed: { type: boolean, description: An open attempt was resumed. }
+        startedAt: { type: string, format: date-time }
         questions:
           type: array
           items: { $ref: "#/components/schemas/LearnerQuestion" }
@@ -1548,10 +1585,12 @@ components:
           description: Null without a time limit. Submits are accepted up to 30 s after it.
     ExamResult:
       type: object
-      required: [scorePercent, passed, revealAnswers, results]
+      required: [scorePercent, passed, attemptsUsed, attemptsRemaining, revealAnswers, results]
       properties:
         scorePercent: { type: number, minimum: 0, maximum: 100 }
         passed: { type: boolean }
+        attemptsUsed: { type: integer }
+        attemptsRemaining: { type: [integer, "null"], description: Null when unlimited. }
         revealAnswers:
           type: boolean
           description: True when passed or when no attempts remain; then results carry correctChoiceIds.
@@ -1559,10 +1598,10 @@ components:
           type: array
           items:
             type: object
-            required: [questionId, correct, selectedChoiceIds]
+            required: [questionId, isCorrect, selectedChoiceIds]
             properties:
               questionId: { type: string, format: uuid }
-              correct: { type: boolean }
+              isCorrect: { type: boolean }
               selectedChoiceIds: { type: array, items: { type: string, format: uuid } }
               correctChoiceIds: { type: array, items: { type: string, format: uuid } }
     Attempt:
@@ -1680,6 +1719,38 @@ components:
         submittedAt: { type: string, format: date-time }
         reviewedBy: { type: [string, "null"], format: uuid }
         reviewedAt: { type: [string, "null"], format: date-time }
+    RevisionChange:
+      type: object
+      required: [kind, target, title]
+      properties:
+        kind: { type: string, enum: [added, removed, moved, edited, reordered] }
+        target:
+          type: string
+          enum: [course, module, item]
+          description: "`reordered` on the course means its modules were reordered."
+        title: { type: string }
+        itemType: { $ref: "#/components/schemas/ItemType" }
+        fields:
+          type: array
+          description: >-
+            For edited: course fields; module `title`, `description`; item `title`, `type`,
+            `video`, `file`, exam settings or `questions`.
+          items: { type: string }
+        fromModule: { type: string }
+        toModule: { type: string }
+    RevisionSaveResult:
+      type: object
+      required: [saved, unchanged, revision, changes]
+      properties:
+        saved: { type: boolean }
+        unchanged: { type: boolean }
+        revision:
+          oneOf:
+            - $ref: "#/components/schemas/CourseRevision"
+            - type: "null"
+        changes:
+          type: array
+          items: { $ref: "#/components/schemas/RevisionChange" }
     RevisionDecision:
       type: object
       required: [id, status, reason, reviewedBy, reviewedAt]
@@ -1711,6 +1782,7 @@ components:
         - submittedBy
         - submittedAt
         - lastDecision
+        - changes
         - diff
       properties:
         id: { type: string, format: uuid }
@@ -1723,6 +1795,9 @@ components:
           oneOf:
             - $ref: "#/components/schemas/RevisionDecision"
             - type: "null"
+        changes:
+          type: array
+          items: { $ref: "#/components/schemas/RevisionChange" }
         diff:
           type: object
           required: [course, modules]

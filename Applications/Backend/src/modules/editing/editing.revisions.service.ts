@@ -18,6 +18,7 @@ import {
 } from '../content/index.js';
 import type { courseRevisionPutSchema } from './editing.schemas.js';
 import * as repository from './editing.revisions.repository.js';
+import { summarizeRevision, type ModuleLike, type RevisionChange } from './revision-summary.js';
 import type { z } from 'zod';
 
 type RevisionInput = z.infer<typeof courseRevisionPutSchema>;
@@ -55,17 +56,27 @@ export async function getCourseRevision(actor: Actor, courseId: string) {
   return { revision: revision ?? null, lastDecision: decisionSummary(latest) };
 }
 
+export type SaveRevisionResult =
+  | { saved: true; unchanged: false; revision: repository.CourseRevision; changes: RevisionChange[] }
+  | { saved: false; unchanged: true; revision: null; changes: [] };
+
+/**
+ * Merges the input into the course's pending revision and returns the revision with a summary
+ * of all its changes against the live course. When the result would change nothing, nothing is
+ * saved and any pending revision is withdrawn (`unchanged: true`).
+ */
 export async function saveCourseRevision(
   actor: Actor,
   courseId: string,
   input: RevisionInput
-): Promise<repository.CourseRevision> {
+): Promise<SaveRevisionResult> {
   const context = await resolveCourseContext(db, 'course', courseId, actor);
   assertPublished(context.status);
 
   const preparedTree = input.modules === undefined
     ? undefined
     : await prepareRevisionTree({ modules: input.modules });
+  const live = await authoringTree(courseId, actor);
 
   return withTx(async (tx) => {
     const lockedContext = await resolveCourseContext(tx, 'course', courseId, actor, { lock: true });
@@ -98,7 +109,18 @@ export async function saveCourseRevision(
       data.base ??= await captureRevisionBase(tx, courseId);
     }
 
-    return repository.savePendingRevision(tx, courseId, actor.id, data);
+    const changes = summarizeRevision({
+      courseTitle: course.title,
+      courseChanges: data.course,
+      live: live.modules as ModuleLike[],
+      proposed: data.modules as ModuleLike[] | undefined
+    });
+    if (changes.length === 0) {
+      if (pending) await repository.deletePendingRevision(tx, pending.id);
+      return { saved: false, unchanged: true, revision: null, changes: [] } as const;
+    }
+    const revision = await repository.savePendingRevision(tx, courseId, actor.id, data);
+    return { saved: true, unchanged: false, revision, changes } as const;
   });
 }
 
@@ -172,6 +194,12 @@ export async function getRevisionDiff(revisionId: string, actor: Actor) {
     submittedBy: revision.submittedBy,
     submittedAt: revision.submittedAt,
     lastDecision: decisionSummary(revision.status === 'pending' ? undefined : revision),
+    changes: summarizeRevision({
+      courseTitle: currentCourse.title,
+      courseChanges: revision.data.course,
+      live: tree.modules as ModuleLike[],
+      proposed: revision.data.modules as ModuleLike[] | undefined
+    }),
     diff: {
       course: { before: currentCourse, after: proposedCourse },
       modules: {

@@ -13,9 +13,9 @@ function itemId(req: Request): string {
 }
 
 export async function video(req: Request, res: Response): Promise<void> {
-  const youtubeVideoId = await service.videoForLearner(itemId(req), req.user);
+  const video = await service.videoForLearner(itemId(req), req.user);
   res.setHeader('Cache-Control', 'private, no-store');
-  res.json({ youtubeVideoId });
+  res.json(video);
 }
 
 export async function pdf(req: Request, res: Response): Promise<void> {

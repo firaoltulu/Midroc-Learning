@@ -8,6 +8,13 @@ import {
 } from '../src/modules/editing/editing.revisions.service.js';
 import { createPgliteDatabase } from './harness/pglite.js';
 
+/** Saves a revision that must change something; returns the stored revision. */
+async function saveRevision(...args: Parameters<typeof saveCourseRevision>) {
+  const result = await saveCourseRevision(...args);
+  if (!result.saved) throw new Error('Expected the revision to be saved');
+  return result.revision;
+}
+
 const mocks = vi.hoisted(() => ({
   verifyVideoLink: vi.fn(async () => ({
     youtubeVideoId: 'abcdefghijk',
@@ -131,20 +138,70 @@ describe('published course revisions', () => {
   it('merges course fields, removes reverted keys, and retains the proposed tree', async () => {
     const { owner } = await setup();
     const tree = { modules: [existingExamTree] };
-    const first = await saveCourseRevision(owner, courseId, { modules: tree.modules });
+    const first = await saveRevision(owner, courseId, { modules: tree.modules });
     const revisionId = first.id;
 
     await saveCourseRevision(owner, courseId, { course: { title: 'Proposed title' } });
-    const reverted = await saveCourseRevision(owner, courseId, { course: { title: 'Live title' } });
+    const reverted = await saveRevision(owner, courseId, { course: { title: 'Live title' } });
 
     expect(reverted.id).toBe(revisionId);
     expect(reverted.data.course).toEqual({});
     expect(reverted.data.modules?.[0]?.items[0]?.id).toBe(examId);
   });
 
+  const liveTree = [
+    existingExamTree,
+    { id: secondModuleId, title: 'Second module', description: '', items: [] }
+  ];
+
+  it('saving the live content unchanged saves nothing and withdraws a pending revision', async () => {
+    const { owner } = await setup();
+    await saveRevision(owner, courseId, { course: { title: 'Proposed title' } });
+
+    const result = await saveCourseRevision(owner, courseId, {
+      course: { title: 'Live title' },
+      modules: liveTree
+    });
+    expect(result).toEqual({ saved: false, unchanged: true, revision: null, changes: [] });
+    const { rows } = await db.query<{ count: number }>(
+      `SELECT count(*)::int AS count FROM course_revisions WHERE course_id = $1`,
+      [courseId]
+    );
+    expect(rows[0]?.count).toBe(0);
+  });
+
+  it('returns a summary of every change against the live course', async () => {
+    const { owner } = await setup();
+    const result = await saveCourseRevision(owner, courseId, {
+      course: { description: 'New description' },
+      modules: [
+        { id: secondModuleId, title: 'Second module', description: '', items: [
+          { ...existingExamTree.items[0]!, title: 'Moved exam' },
+          { type: 'video', title: 'Intro video', url: 'https://youtu.be/abcdefghijk' }
+        ] },
+        { id: firstModuleId, title: 'First module', description: '', items: [] }
+      ]
+    });
+    expect(result.saved).toBe(true);
+    expect(result.changes).toEqual([
+      { kind: 'edited', target: 'course', title: 'Live title', fields: ['description'] },
+      {
+        kind: 'moved',
+        target: 'item',
+        title: 'Moved exam',
+        itemType: 'exam',
+        fromModule: 'First module',
+        toModule: 'Second module'
+      },
+      { kind: 'edited', target: 'item', title: 'Moved exam', itemType: 'exam', fields: ['title'] },
+      { kind: 'added', target: 'item', title: 'Intro video', itemType: 'video' },
+      { kind: 'reordered', target: 'course', title: 'Live title' }
+    ]);
+  });
+
   it('verifies and normalizes full trees before saving', async () => {
     const { owner } = await setup();
-    const revision = await saveCourseRevision(owner, courseId, {
+    const revision = await saveRevision(owner, courseId, {
       modules: [{
         title: 'New module',
         description: '',
@@ -181,7 +238,7 @@ describe('published course revisions', () => {
         }]
       }]
     };
-    const revision = await saveCourseRevision(owner, courseId, {
+    const revision = await saveRevision(owner, courseId, {
       course: { title: 'Approved title' },
       modules: proposal.modules
     });
@@ -218,7 +275,7 @@ describe('published course revisions', () => {
 
   it('rejects stale tree references before changing any live data', async () => {
     const { owner, admin } = await setup();
-    const revision = await saveCourseRevision(owner, courseId, {
+    const revision = await saveRevision(owner, courseId, {
       course: { title: 'Must not apply' },
       modules: [existingExamTree]
     });

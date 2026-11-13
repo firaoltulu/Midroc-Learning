@@ -59,10 +59,26 @@ async function authorizedItem(itemId: string, actor: Actor) {
   return item;
 }
 
-export async function getVideoForPlayback(itemId: string, actor: Actor): Promise<string> {
+export type VideoPlayback = {
+  youtubeVideoId: string;
+  youtubeTitle: string | null;
+  /** False when YouTube reports the video private, deleted or not embeddable. */
+  isAvailable: boolean;
+  /** The viewer's saved position (resume from here). */
+  lastPositionSeconds: number;
+  completed: boolean;
+};
+
+export async function getVideoForPlayback(itemId: string, actor: Actor): Promise<VideoPlayback> {
   const item = await authorizedItem(itemId, actor);
   if (item.type !== 'video' || !item.youtubeVideoId) throw new NotFound('Video not found');
-  return item.youtubeVideoId;
+  return {
+    youtubeVideoId: item.youtubeVideoId,
+    youtubeTitle: item.youtubeTitle,
+    isAvailable: item.isAvailable !== false,
+    lastPositionSeconds: item.lastPositionSeconds ?? 0,
+    completed: item.completed
+  };
 }
 
 export async function getPdfKey(itemId: string, actor: Actor): Promise<string> {

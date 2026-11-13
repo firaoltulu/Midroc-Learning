@@ -87,6 +87,32 @@ export async function openAttempt(db: Queryable, userId: string, examId: string)
   return rows[0];
 }
 
+/** The viewer's standing on an exam, for the overview shown before starting. */
+export async function learnerStanding(
+  db: Queryable,
+  userId: string,
+  examId: string
+): Promise<{ questionCount: number; attemptsUsed: number; passed: boolean; openAttemptId: string | null }> {
+  const { rows } = await db.query<{
+    questionCount: number;
+    attemptsUsed: number;
+    passed: boolean;
+    openAttemptId: string | null;
+  }>(
+    `SELECT
+       (SELECT count(*)::int FROM exam_questions q WHERE q.exam_id = $2) AS "questionCount",
+       (SELECT count(*)::int FROM exam_attempts a WHERE a.user_id = $1 AND a.exam_id = $2)
+         AS "attemptsUsed",
+       EXISTS (SELECT 1 FROM exam_attempts a
+         WHERE a.user_id = $1 AND a.exam_id = $2 AND a.passed) AS passed,
+       (SELECT a.id FROM exam_attempts a
+         WHERE a.user_id = $1 AND a.exam_id = $2 AND a.submitted_at IS NULL
+         ORDER BY a.started_at DESC LIMIT 1) AS "openAttemptId"`,
+    [userId, examId]
+  );
+  return rows[0]!;
+}
+
 export async function attemptCount(db: Queryable, userId: string, examId: string): Promise<number> {
   const { rows } = await db.query<{ count: number }>(
     'SELECT count(*)::int AS count FROM exam_attempts WHERE user_id = $1 AND exam_id = $2',
