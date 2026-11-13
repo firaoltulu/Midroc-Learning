@@ -163,9 +163,87 @@ export async function apiBlob(
   return (await fetchApi(path, options)).blob();
 }
 
-async function readBody(response: Response): Promise<unknown> {
-  if (response.status === 204) return undefined;
-  const text = await response.text();
+export interface UploadOptions {
+  /** Fraction sent so far, 0–1. */
+  onProgress?: (fraction: number) => void;
+  signal?: AbortSignal;
+}
+
+/**
+ * A multipart upload with progress (fetch can't report upload progress, so this uses
+ * XMLHttpRequest). Same auth, 401 retry, suspension handling and typed errors as apiRequest.
+ */
+export async function apiUpload(
+  path: string,
+  body: FormData,
+  options: UploadOptions = {},
+): Promise<unknown> {
+  const url = apiUrl(path);
+  const token = (await auth?.getToken()) ?? null;
+  let result = await sendXhr(url, body, token, options);
+
+  if (result.status === 401 && token) {
+    let fresh: string | null = null;
+    try {
+      fresh = await refreshToken();
+    } catch {
+      // Treated as signed out below.
+    }
+    if (fresh) result = await sendXhr(url, body, fresh, options);
+    if (!fresh || result.status === 401) notify(auth?.onUnauthorized);
+  }
+
+  if (result.tokenRefresh) notify(auth?.onTokenRefresh);
+  const data = parseJson(result.text);
+  if (result.status < 200 || result.status >= 300) {
+    const error = new ApiError(result.status, data);
+    if (error.status === 403 && error.code === 'ACCOUNT_SUSPENDED') {
+      notify(auth?.onAccountSuspended);
+    }
+    throw error;
+  }
+  return data;
+}
+
+function sendXhr(
+  url: string,
+  body: FormData,
+  token: string | null,
+  { onProgress, signal }: UploadOptions,
+): Promise<{ status: number; text: string; tokenRefresh: boolean }> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException('Upload cancelled', 'AbortError'));
+      return;
+    }
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+    xhr.setRequestHeader('Accept', 'application/json');
+    if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable && event.total > 0) onProgress?.(event.loaded / event.total);
+    };
+    xhr.onload = () => {
+      resolve({
+        status: xhr.status,
+        text: xhr.responseText,
+        tokenRefresh: xhr.getResponseHeader('X-Token-Refresh') === 'true',
+      });
+    };
+    xhr.onerror = () => {
+      reject(new NetworkError());
+    };
+    xhr.onabort = () => {
+      reject(new DOMException('Upload cancelled', 'AbortError'));
+    };
+    signal?.addEventListener('abort', () => {
+      xhr.abort();
+    });
+    xhr.send(body);
+  });
+}
+
+function parseJson(text: string): unknown {
   if (!text) return undefined;
   try {
     return JSON.parse(text);
@@ -173,4 +251,8 @@ async function readBody(response: Response): Promise<unknown> {
     // Non-JSON bodies (e.g. a proxy's HTML error page) carry nothing we can use.
     return undefined;
   }
+}
+
+async function readBody(response: Response): Promise<unknown> {
+  return response.status === 204 ? undefined : parseJson(await response.text());
 }

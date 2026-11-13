@@ -19,6 +19,7 @@
   "nav": {
     "courses": "Courses",
     "learning": "My learning",
+    "myCourses": "My courses",
     "design": "Design system",
     "admin": "Administration"
   },

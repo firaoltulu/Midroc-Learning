@@ -1,0 +1,214 @@
+{
+  "backToList": "My courses",
+  "viewCourse": "View course page",
+  "notFound": {
+    "title": "This course can't be edited",
+    "body": "It may have been deleted, or it belongs to someone else."
+  },
+  "tabs": {
+    "label": "Editor sections",
+    "details": "Details",
+    "content": "Content",
+    "review": "Review"
+  },
+  "banner": {
+    "rejected": "A reviewer returned this course for changes. Edit it, then submit it again.",
+    "reason": "Reviewer's note: {{reason}}",
+    "pendingReview": "This course is waiting for review, so it can't be edited until the review is done.",
+    "published": "This course is published. Editing published courses isn't available yet, so this view is read-only.",
+    "archived": "This course is archived and can't be edited."
+  },
+  "save": {
+    "idle": "Changes save automatically",
+    "saving": "Saving…",
+    "saved": "All changes saved",
+    "error": "Couldn't save some changes",
+    "invalid": "Not saved yet: complete the highlighted fields"
+  },
+  "field": {
+    "counter": "{{count}} / {{max}}",
+    "tooLong": "This is too long. Shorten it to save.",
+    "titleRequired": "Enter a title."
+  },
+  "details": {
+    "title": "Course title",
+    "description": "Description",
+    "descriptionHint": "Plain text. Say what learners will be able to do afterwards.",
+    "category": "Category",
+    "categoryHint": "For example, Safety or Finance.",
+    "language": "Course language",
+    "languageHint": "The language the course is taught in.",
+    "duration": "Estimated duration (minutes)",
+    "durationHint": "Leave empty if you're not sure.",
+    "tags": "Tags",
+    "tagsHint": "Press Enter after each tag. Up to {{max}}.",
+    "thumbnail": "Thumbnail image link",
+    "thumbnailHint": "A link to an image, starting with https://.",
+    "errors": {
+      "titleRequired": "Enter a course title.",
+      "duration": "Enter the number of minutes as a whole number.",
+      "tooManyTags": "Use 30 tags or fewer.",
+      "tagTooLong": "Keep each tag to 40 characters or fewer."
+    }
+  },
+  "content": {
+    "treeLabel": "Course content",
+    "modules": "Modules",
+    "itemsOf": "Items in {{title}}",
+    "addModule": "Add module",
+    "addItem": "Add item",
+    "emptyModule": "No items yet",
+    "empty": {
+      "title": "Start with a module",
+      "body": "Modules group your videos, documents and exams into steps."
+    },
+    "startHint": "Add a module to start building the course.",
+    "selectHint": "Choose a module or an item to edit it.",
+    "warning": {
+      "noQuestions": "Add questions before submitting",
+      "videoUnavailable": "Video unavailable"
+    }
+  },
+  "dnd": {
+    "handle": "Reorder {{title}}",
+    "instructions": "To reorder, press Space or Enter to pick up. Use the arrow keys to move, then press Space or Enter to drop, or Escape to cancel.",
+    "pickedUp": "Picked up {{title}}. Position {{position}} of {{total}}.",
+    "movedTo": "{{title}} moved to position {{position}} of {{total}}.",
+    "dropped": "{{title}} dropped at position {{position}} of {{total}}.",
+    "cancelled": "Reordering cancelled. {{title}} is back where it was."
+  },
+  "module": {
+    "label": "Module {{number}}",
+    "title": "Module title",
+    "description": "Module description",
+    "descriptionHint": "Optional. A sentence about what this module covers.",
+    "moveUp": "Move module up",
+    "moveDown": "Move module down",
+    "delete": "Delete module",
+    "deleteTitle": "Delete {{title}}?",
+    "deleteBody_one": "Its {{count}} item is deleted too. This can't be undone.",
+    "deleteBody_other": "Its {{count}} items are deleted too. This can't be undone."
+  },
+  "addModule": {
+    "title": "Add a module",
+    "submit": "Add module"
+  },
+  "addItem": {
+    "title": "Add an item to {{module}}",
+    "type": "Item type",
+    "videoLink": "YouTube link",
+    "pdfRequired": "Upload a PDF first.",
+    "pdfReady_one": "{{name}} is uploaded ({{count}} page, {{size}} MB).",
+    "pdfReady_other": "{{name}} is uploaded ({{count}} pages, {{size}} MB).",
+    "examHint": "The exam starts empty. Add its settings and questions next.",
+    "submit": "Add item"
+  },
+  "item": {
+    "title": "Item title",
+    "moveUp": "Move item up",
+    "moveDown": "Move item down",
+    "delete": "Delete item",
+    "deleteTitle": "Delete {{title}}?",
+    "deleteBody": "Learners' progress on this item is lost. This can't be undone."
+  },
+  "video": {
+    "current": "Video",
+    "untitled": "Title not available",
+    "unavailable": "YouTube reports this video as private, deleted or not embeddable. Replace it with another video.",
+    "newLink": "New YouTube link",
+    "linkHint": "Copy the link from the video's Share button.",
+    "replace": "Replace video",
+    "replaced": "Video replaced."
+  },
+  "pdf": {
+    "current": "Document",
+    "summary_one": "{{count}} page · {{size}} MB",
+    "summary_other": "{{count}} pages · {{size}} MB",
+    "attached": "PDF attached",
+    "choose": "Choose a PDF",
+    "replace": "Replace file",
+    "replaced": "File replaced.",
+    "dropHint": "Or drag a PDF here. Up to {{max}} MB.",
+    "uploading": "Uploading… {{percent}}%",
+    "progressLabel": "Upload progress",
+    "cancel": "Cancel upload",
+    "errors": {
+      "type": "That isn't a PDF. Choose a PDF file.",
+      "size": "That file is larger than {{max}} MB. Choose a smaller file."
+    }
+  },
+  "exam": {
+    "settings": "Exam settings",
+    "instructions": "Instructions",
+    "passingScore": "Passing score (%)",
+    "passingScoreHint": "From 0 to 100.",
+    "maxAttempts": "Attempts allowed",
+    "maxAttemptsHint": "Leave empty for unlimited.",
+    "timeLimit": "Time limit (minutes)",
+    "timeLimitHint": "Leave empty for no limit.",
+    "errors": {
+      "percent": "Enter a whole number from 0 to 100.",
+      "positive": "Enter a whole number of 1 or more, or leave it empty."
+    }
+  },
+  "questions": {
+    "title": "Questions",
+    "count_one": "{{count}} question",
+    "count_other": "{{count}} questions",
+    "empty": "This exam has no questions yet. Add at least one before submitting the course.",
+    "number": "Question {{number}}",
+    "moveUp": "Move question {{number}} up",
+    "moveDown": "Move question {{number}} down",
+    "remove": "Delete question {{number}}",
+    "prompt": "Question",
+    "answerType": "Answer type",
+    "single": "One correct answer",
+    "multiple": "Several correct answers",
+    "points": "Points",
+    "answers": "Answers: mark the correct one",
+    "answersMultiple": "Answers: mark every correct one",
+    "answer": "Answer {{number}}",
+    "markCorrect": "Answer {{number}} is correct",
+    "removeAnswer": "Remove answer {{number}}",
+    "addAnswer": "Add answer",
+    "maxAnswers": "A question can have up to {{max}} answers.",
+    "add": "Add question",
+    "errors": {
+      "promptRequired": "Enter the question.",
+      "promptTooLong": "Shorten the question to 10,000 characters or fewer.",
+      "points": "Enter a whole number of 1 or more.",
+      "choiceRequired": "Enter the answer, or remove it.",
+      "choiceTooLong": "Shorten the answer to 2,000 characters or fewer.",
+      "minChoices": "Add at least 2 answers.",
+      "maxChoices": "Use no more than 10 answers.",
+      "noQuestions": "Add at least one question.",
+      "incomplete": "Complete the highlighted questions."
+    }
+  },
+  "review": {
+    "checklistTitle": "Ready for review?",
+    "checklistBody": "An administrator reviews your course before learners can see it. Check these first.",
+    "check": {
+      "DESCRIPTION_REQUIRED": "The course has a description",
+      "NO_MODULES": "The course has at least one module",
+      "EMPTY_MODULE": "Every module has at least one item",
+      "EMPTY_EXAM": "Every exam has at least one question"
+    },
+    "done": "Done",
+    "toDo": "To do",
+    "goToDetails": "Go to details",
+    "goToContent": "Go to content",
+    "incompleteTitle": "The course isn't ready for review yet:",
+    "problem": {
+      "DESCRIPTION_REQUIRED": "Add a description on the Details tab.",
+      "NO_MODULES": "Add at least one module.",
+      "EMPTY_MODULE": "Add an item to every module, or delete empty modules.",
+      "EMPTY_EXAM": "Add questions to every exam."
+    },
+    "unsaved": "Some changes aren't saved yet. Wait until they're saved, or fix the highlighted fields, then submit.",
+    "submit": "Submit for review",
+    "submitHint": "You can't edit the course while it's in review.",
+    "resubmitHint": "The reviewer sees your changes. You can't edit the course while it's in review.",
+    "submitted": "Submitted for review. You'll see the decision in My courses."
+  }
+}

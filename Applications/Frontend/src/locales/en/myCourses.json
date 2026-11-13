@@ -1,0 +1,26 @@
+{
+  "title": "My courses",
+  "description": "Courses you've created. Open one to edit it or follow its review.",
+  "create": "Create course",
+  "empty": {
+    "title": "You haven't created a course yet",
+    "body": "Share what you know: start with a title, then add videos, documents and exams."
+  },
+  "pendingRevision": "Changes in review",
+  "updated": "Updated {{date}}",
+  "rejectionReason": "Reviewer's note: {{reason}}",
+  "backToList": "My courses",
+  "new": {
+    "title": "Create a course",
+    "description": "Start with a title and the language you'll teach in. You can change both later.",
+    "courseTitle": "Course title",
+    "courseTitleHint": "Short and specific, for example “Working safely at height”.",
+    "language": "Course language",
+    "languageHint": "The language the course is taught in.",
+    "submit": "Create course",
+    "errors": {
+      "titleRequired": "Enter a course title.",
+      "titleTooLong": "Shorten the title to 200 characters or fewer."
+    }
+  }
+}

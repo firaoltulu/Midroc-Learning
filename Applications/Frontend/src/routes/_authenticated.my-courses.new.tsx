@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { UpcomingScreen } from '../shared/ui/upcoming-screen';
+import { NewCourseScreen } from '../features/my-courses';
 
-// Course creation arrives in phase 9.
 export const Route = createFileRoute('/_authenticated/my-courses/new')({
-  component: UpcomingScreen,
+  component: NewCourseScreen,
 });

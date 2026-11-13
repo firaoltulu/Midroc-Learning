@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import { api, apiError, server } from '../../test/msw';
-import { apiRequest, configureApiAuth, type ApiAuth } from './client';
+import { apiRequest, apiUpload, configureApiAuth, type ApiAuth } from './client';
 import { ApiError, NetworkError } from './errors';
 
 /** A token provider whose forced refresh returns a new token. */
@@ -290,5 +290,60 @@ describe('typed errors', () => {
     const error = await request.catch((thrown: unknown) => thrown);
     expect(error).not.toBeInstanceOf(NetworkError);
     expect(error).toMatchObject({ name: 'AbortError' });
+  });
+});
+
+describe('apiUpload (XMLHttpRequest, for upload progress)', () => {
+  const form = () => {
+    const body = new FormData();
+    body.append('file', new File(['%PDF-1.4'], 'a.pdf', { type: 'application/pdf' }));
+    return body;
+  };
+
+  it('sends the Bearer token and returns the JSON response', async () => {
+    fakeAuth();
+    const seen = recordAuthorization(
+      '/pdf-uploads',
+      () => HttpResponse.json({ fileKey: 'k.pdf' }, { status: 201 }),
+      'post',
+    );
+    await expect(apiUpload('/pdf-uploads', form())).resolves.toEqual({ fileKey: 'k.pdf' });
+    expect(seen).toEqual(['Bearer old-token']);
+  });
+
+  it('retries a 401 once with a refreshed token', async () => {
+    fakeAuth();
+    const seen = recordAuthorization(
+      '/pdf-uploads',
+      (authorization) =>
+        authorization === 'Bearer fresh-token'
+          ? HttpResponse.json({ fileKey: 'k.pdf' }, { status: 201 })
+          : apiError(401),
+      'post',
+    );
+    await expect(apiUpload('/pdf-uploads', form())).resolves.toEqual({ fileKey: 'k.pdf' });
+    expect(seen).toEqual(['Bearer old-token', 'Bearer fresh-token']);
+  });
+
+  it('throws the typed error from the error contract', async () => {
+    fakeAuth();
+    server.use(
+      http.post(api('/pdf-uploads'), () =>
+        apiError(413, { code: 'PDF_TOO_LARGE', params: { maxMegabytes: 50 } }),
+      ),
+    );
+    const error = await apiUpload('/pdf-uploads', form()).catch((caught: unknown) => caught);
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({
+      status: 413,
+      code: 'PDF_TOO_LARGE',
+      params: { maxMegabytes: 50 },
+    });
+  });
+
+  it('a failed connection is a NetworkError', async () => {
+    fakeAuth();
+    server.use(http.post(api('/pdf-uploads'), () => HttpResponse.error()));
+    await expect(apiUpload('/pdf-uploads', form())).rejects.toBeInstanceOf(NetworkError);
   });
 });

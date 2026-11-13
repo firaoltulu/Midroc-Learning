@@ -31,10 +31,12 @@ describe('check-bundle', () => {
     expect(() => catalogRootKeys({ 'index.html': { file: 'a.js' } })).toThrow(/catalog route/);
   });
 
-  it('recognizes pdf.js and YouTube player code', () => {
-    const [pdf, youtube] = LAZY_MARKERS;
+  it('recognizes pdf.js, YouTube player and editor (dnd-kit) code', () => {
+    const [pdf, youtube, editor] = LAZY_MARKERS;
     expect(pdf.pattern.test('pdfjs.GlobalWorkerOptions.workerSrc=')).toBe(true);
     expect(youtube.pattern.test('host:"https://www.youtube-nocookie.com"')).toBe(true);
+    expect(editor.pattern.test('id:`DndDescribedBy-${n}`')).toBe(true);
     expect(pdf.pattern.test('catalog code')).toBe(false);
+    expect(editor.pattern.test('catalog code')).toBe(false);
   });
 });

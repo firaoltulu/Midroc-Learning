@@ -81,3 +81,92 @@ export const courseDetailFixture = (overrides: Record<string, unknown> = {}) => 
   pendingRevision: null,
   ...overrides,
 });
+
+/** An authoring item with every type's fields null (reference/openapi.yaml: AuthoringItem). */
+const authoringItem = (overrides: Record<string, unknown>) => ({
+  youtubeVideoId: null,
+  youtubeTitle: null,
+  isAvailable: null,
+  fileKey: null,
+  sizeBytes: null,
+  pageCount: null,
+  instructions: null,
+  passingScorePercent: null,
+  maxAttempts: null,
+  timeLimitMinutes: null,
+  ...overrides,
+});
+
+/**
+ * The owner's authoring view of a draft course: two modules, a video, a PDF and an exam with
+ * one question (reference/openapi.yaml: AuthoringView).
+ */
+export const authoringFixture = (courseOverrides: Record<string, unknown> = {}) => ({
+  course: courseDetailFixture({
+    ownerId: 'user-1',
+    status: 'draft',
+    publishedAt: null,
+    description: '',
+    tags: ['safety'],
+    ...courseOverrides,
+  }),
+  modules: [
+    {
+      id: 'module-1',
+      title: 'Getting started',
+      description: 'Why safety matters.',
+      position: 0,
+      items: [
+        authoringItem({
+          id: 'item-1',
+          type: 'video',
+          title: 'Welcome',
+          position: 0,
+          youtubeVideoId: 'abcdefghijk',
+          youtubeTitle: 'Welcome to safety',
+          isAvailable: true,
+        }),
+        authoringItem({
+          id: 'item-2',
+          type: 'pdf',
+          title: 'Safety handbook',
+          position: 1,
+          fileKey: '3f6c1a2b-4d5e-4f60-8a1b-2c3d4e5f6a7b.pdf',
+          sizeBytes: 2_516_582,
+          pageCount: 12,
+        }),
+      ],
+    },
+    {
+      id: 'module-2',
+      title: 'Check your knowledge',
+      description: '',
+      position: 1,
+      items: [
+        authoringItem({
+          id: 'item-3',
+          type: 'exam',
+          title: 'Final quiz',
+          position: 0,
+          instructions: 'Answer every question.',
+          passingScorePercent: 70,
+          maxAttempts: 3,
+          timeLimitMinutes: null,
+          questions: [
+            {
+              id: 'q1',
+              prompt: 'What do you wear on a construction site?',
+              isMultiple: false,
+              points: 1,
+              position: 0,
+              choices: [
+                { id: 'c1', text: 'A hard hat', isCorrect: true },
+                { id: 'c2', text: 'Sandals', isCorrect: false },
+              ],
+            },
+          ],
+        }),
+      ],
+    },
+  ],
+});

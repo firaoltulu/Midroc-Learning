@@ -107,7 +107,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["Course"][];
+                        "application/json": components["schemas"]["OwnedCourse"][];
                     };
                 };
                 default: components["responses"]["Error"];
@@ -2386,6 +2386,19 @@ export interface components {
             enrolled: boolean;
             moduleCount: number;
             enrollmentCount: number;
+        };
+        /** @description A course in its owner's list (`GET /me/courses`). */
+        OwnedCourse: components["schemas"]["Course"] & {
+            /** Format: date-time */
+            updatedAt: string;
+            moduleCount: number;
+            enrollmentCount: number;
+            pendingRevision: {
+                /** Format: uuid */
+                id: string;
+                /** Format: date-time */
+                submittedAt: string;
+            } | null;
         };
         CatalogPage: components["schemas"]["PageInfo"] & {
             items: components["schemas"]["CatalogCourse"][];

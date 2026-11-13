@@ -9,10 +9,14 @@ export {
   catalogPageSchema,
   courseDetailSchema,
   courseLanguageSchema,
+  courseSchema,
+  itemTypeSchema,
   type CatalogCourse,
   type CatalogPage,
+  type Course,
   type CourseDetail,
   type CourseLanguage,
+  type CourseStatus,
   type ItemType,
 } from './api/schemas';
 export { courseDetailQueryOptions } from './api/course-detail';

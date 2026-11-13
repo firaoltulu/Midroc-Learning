@@ -1,0 +1,214 @@
+{
+  "backToList": "የእኔ ኮርሶች",
+  "viewCourse": "የኮርሱን ገጽ ይመልከቱ",
+  "notFound": {
+    "title": "ይህን ኮርስ ማስተካከል አይቻልም",
+    "body": "ተሰርዞ ሊሆን ይችላል፣ ወይም የሌላ ሰው ኮርስ ነው።"
+  },
+  "tabs": {
+    "label": "የአርታዒው ክፍሎች",
+    "details": "ዝርዝሮች",
+    "content": "ይዘት",
+    "review": "ግምገማ"
+  },
+  "banner": {
+    "rejected": "ገምጋሚው ይህን ኮርስ እንዲስተካከል መልሶታል። ያስተካክሉት፣ ከዚያ እንደገና ያስገቡት።",
+    "reason": "የገምጋሚው ማስታወሻ፦ {{reason}}",
+    "pendingReview": "ይህ ኮርስ ግምገማ እየጠበቀ ነው፤ ግምገማው እስኪያልቅ ድረስ ማስተካከል አይቻልም።",
+    "published": "ይህ ኮርስ ታትሟል። የታተሙ ኮርሶችን ማስተካከል ገና አልተቻለም፤ ስለዚህ ይህ ገጽ ለንባብ ብቻ ነው።",
+    "archived": "ይህ ኮርስ በማህደር ተቀምጧል፤ ማስተካከል አይቻልም።"
+  },
+  "save": {
+    "idle": "ለውጦች በራስ-ሰር ይቀመጣሉ",
+    "saving": "በማስቀመጥ ላይ…",
+    "saved": "ሁሉም ለውጦች ተቀምጠዋል",
+    "error": "አንዳንድ ለውጦችን ማስቀመጥ አልተቻለም",
+    "invalid": "ገና አልተቀመጠም፤ የተመለከቱትን መስኮች ያጠናቅቁ"
+  },
+  "field": {
+    "counter": "{{count}} / {{max}}",
+    "tooLong": "ይህ በጣም ረጅም ነው። ለማስቀመጥ ያሳጥሩት።",
+    "titleRequired": "ርዕስ ያስገቡ።"
+  },
+  "details": {
+    "title": "የኮርሱ ርዕስ",
+    "description": "መግለጫ",
+    "descriptionHint": "ተራ ጽሑፍ። ተማሪዎች ከኮርሱ በኋላ ምን ማድረግ እንደሚችሉ ይግለጹ።",
+    "category": "ምድብ",
+    "categoryHint": "ለምሳሌ፣ ደህንነት ወይም ፋይናንስ።",
+    "language": "የኮርሱ ቋንቋ",
+    "languageHint": "ኮርሱ የሚሰጥበት ቋንቋ።",
+    "duration": "የሚገመት ጊዜ (በደቂቃ)",
+    "durationHint": "እርግጠኛ ካልሆኑ ባዶ ይተዉት።",
+    "tags": "መለያዎች",
+    "tagsHint": "ከእያንዳንዱ መለያ በኋላ Enter ይጫኑ። እስከ {{max}}።",
+    "thumbnail": "የምስሉ ማገናኛ",
+    "thumbnailHint": "በ https:// የሚጀምር የምስል ማገናኛ።",
+    "errors": {
+      "titleRequired": "የኮርሱን ርዕስ ያስገቡ።",
+      "duration": "የደቂቃዎቹን ብዛት በሙሉ ቁጥር ያስገቡ።",
+      "tooManyTags": "ከ30 የማይበልጡ መለያዎችን ይጠቀሙ።",
+      "tagTooLong": "እያንዳንዱ መለያ ከ40 ቁምፊዎች መብለጥ የለበትም።"
+    }
+  },
+  "content": {
+    "treeLabel": "የኮርሱ ይዘት",
+    "modules": "ሞጁሎች",
+    "itemsOf": "በ{{title}} ውስጥ ያሉ ክፍሎች",
+    "addModule": "ሞጁል ያክሉ",
+    "addItem": "ክፍል ያክሉ",
+    "emptyModule": "ገና ምንም ክፍል የለም",
+    "empty": {
+      "title": "በሞጁል ይጀምሩ",
+      "body": "ሞጁሎች ቪዲዮዎችን፣ ሰነዶችንና ፈተናዎችን በደረጃ ያደራጃሉ።"
+    },
+    "startHint": "ኮርሱን መገንባት ለመጀመር ሞጁል ያክሉ።",
+    "selectHint": "ለማስተካከል ሞጁል ወይም ክፍል ይምረጡ።",
+    "warning": {
+      "noQuestions": "ከማስገባትዎ በፊት ጥያቄዎችን ያክሉ",
+      "videoUnavailable": "ቪዲዮው አይገኝም"
+    }
+  },
+  "dnd": {
+    "handle": "የ{{title}}ን ቦታ ይቀይሩ",
+    "instructions": "ቦታውን ለመቀየር Space ወይም Enter ተጭነው ያንሱ። በቀስት ቁልፎች ያንቀሳቅሱ፣ ከዚያ ለማስቀመጥ Space ወይም Enter፣ ለመሰረዝ Escape ይጫኑ።",
+    "pickedUp": "{{title}} ተነስቷል። ቦታ {{position}} ከ{{total}}።",
+    "movedTo": "{{title}} ወደ ቦታ {{position}} ከ{{total}} ተንቀሳቅሷል።",
+    "dropped": "{{title}} በቦታ {{position}} ከ{{total}} ተቀምጧል።",
+    "cancelled": "ቦታ መቀየሩ ተሰርዟል። {{title}} ወደ ነበረበት ተመልሷል።"
+  },
+  "module": {
+    "label": "ሞጁል {{number}}",
+    "title": "የሞጁሉ ርዕስ",
+    "description": "የሞጁሉ መግለጫ",
+    "descriptionHint": "አማራጭ። ሞጁሉ ስለሚሸፍነው ነገር አንድ ዓረፍተ ነገር።",
+    "moveUp": "ሞጁሉን ወደ ላይ ያንቀሳቅሱ",
+    "moveDown": "ሞጁሉን ወደ ታች ያንቀሳቅሱ",
+    "delete": "ሞጁሉን ይሰርዙ",
+    "deleteTitle": "{{title}} ይሰረዝ?",
+    "deleteBody_one": "በውስጡ ያለው {{count}} ክፍልም ይሰረዛል። ይህ ሊቀለበስ አይችልም።",
+    "deleteBody_other": "በውስጡ ያሉት {{count}} ክፍሎችም ይሰረዛሉ። ይህ ሊቀለበስ አይችልም።"
+  },
+  "addModule": {
+    "title": "ሞጁል ያክሉ",
+    "submit": "ሞጁል ያክሉ"
+  },
+  "addItem": {
+    "title": "በ{{module}} ላይ ክፍል ያክሉ",
+    "type": "የክፍሉ ዓይነት",
+    "videoLink": "የYouTube ማገናኛ",
+    "pdfRequired": "መጀመሪያ PDF ይስቀሉ።",
+    "pdfReady_one": "{{name}} ተሰቅሏል ({{count}} ገጽ፣ {{size}} MB)።",
+    "pdfReady_other": "{{name}} ተሰቅሏል ({{count}} ገጾች፣ {{size}} MB)።",
+    "examHint": "ፈተናው ባዶ ሆኖ ይጀምራል። ቀጥሎ ቅንብሮቹንና ጥያቄዎቹን ያክሉ።",
+    "submit": "ክፍል ያክሉ"
+  },
+  "item": {
+    "title": "የክፍሉ ርዕስ",
+    "moveUp": "ክፍሉን ወደ ላይ ያንቀሳቅሱ",
+    "moveDown": "ክፍሉን ወደ ታች ያንቀሳቅሱ",
+    "delete": "ክፍሉን ይሰርዙ",
+    "deleteTitle": "{{title}} ይሰረዝ?",
+    "deleteBody": "ተማሪዎች በዚህ ክፍል ያደረጉት እድገት ይጠፋል። ይህ ሊቀለበስ አይችልም።"
+  },
+  "video": {
+    "current": "ቪዲዮ",
+    "untitled": "ርዕሱ አይገኝም",
+    "unavailable": "YouTube ይህ ቪዲዮ የግል፣ የተሰረዘ ወይም ሊከተት የማይችል እንደሆነ ይገልጻል። በሌላ ቪዲዮ ይተኩት።",
+    "newLink": "አዲስ የYouTube ማገናኛ",
+    "linkHint": "ማገናኛውን ከቪዲዮው «Share» ቁልፍ ይቅዱ።",
+    "replace": "ቪዲዮውን ይተኩ",
+    "replaced": "ቪዲዮው ተተክቷል።"
+  },
+  "pdf": {
+    "current": "ሰነድ",
+    "summary_one": "{{count}} ገጽ · {{size}} MB",
+    "summary_other": "{{count}} ገጾች · {{size}} MB",
+    "attached": "PDF ተያይዟል",
+    "choose": "PDF ይምረጡ",
+    "replace": "ፋይሉን ይተኩ",
+    "replaced": "ፋይሉ ተተክቷል።",
+    "dropHint": "ወይም PDF እዚህ ይጎትቱ። እስከ {{max}} MB።",
+    "uploading": "በመስቀል ላይ… {{percent}}%",
+    "progressLabel": "የመስቀል ሂደት",
+    "cancel": "መስቀሉን ይሰርዙ",
+    "errors": {
+      "type": "ይህ PDF አይደለም። የPDF ፋይል ይምረጡ።",
+      "size": "ይህ ፋይል ከ{{max}} MB ይበልጣል። ትንሽ ፋይል ይምረጡ።"
+    }
+  },
+  "exam": {
+    "settings": "የፈተናው ቅንብሮች",
+    "instructions": "መመሪያዎች",
+    "passingScore": "የማለፊያ ውጤት (%)",
+    "passingScoreHint": "ከ0 እስከ 100።",
+    "maxAttempts": "የሚፈቀዱ ሙከራዎች",
+    "maxAttemptsHint": "ያልተገደበ ለማድረግ ባዶ ይተዉት።",
+    "timeLimit": "የጊዜ ገደብ (በደቂቃ)",
+    "timeLimitHint": "ያለ ገደብ ለማድረግ ባዶ ይተዉት።",
+    "errors": {
+      "percent": "ከ0 እስከ 100 ያለ ሙሉ ቁጥር ያስገቡ።",
+      "positive": "1 ወይም ከዚያ በላይ የሆነ ሙሉ ቁጥር ያስገቡ፣ ወይም ባዶ ይተዉት።"
+    }
+  },
+  "questions": {
+    "title": "ጥያቄዎች",
+    "count_one": "{{count}} ጥያቄ",
+    "count_other": "{{count}} ጥያቄዎች",
+    "empty": "ይህ ፈተና ገና ጥያቄ የለውም። ኮርሱን ከማስገባትዎ በፊት ቢያንስ አንድ ያክሉ።",
+    "number": "ጥያቄ {{number}}",
+    "moveUp": "ጥያቄ {{number}}ን ወደ ላይ ያንቀሳቅሱ",
+    "moveDown": "ጥያቄ {{number}}ን ወደ ታች ያንቀሳቅሱ",
+    "remove": "ጥያቄ {{number}}ን ይሰርዙ",
+    "prompt": "ጥያቄ",
+    "answerType": "የመልስ ዓይነት",
+    "single": "አንድ ትክክለኛ መልስ",
+    "multiple": "በርካታ ትክክለኛ መልሶች",
+    "points": "ነጥብ",
+    "answers": "መልሶች፦ ትክክለኛውን ምልክት ያድርጉ",
+    "answersMultiple": "መልሶች፦ ትክክለኛዎቹን ሁሉ ምልክት ያድርጉ",
+    "answer": "መልስ {{number}}",
+    "markCorrect": "መልስ {{number}} ትክክል ነው",
+    "removeAnswer": "መልስ {{number}}ን ያስወግዱ",
+    "addAnswer": "መልስ ያክሉ",
+    "maxAnswers": "አንድ ጥያቄ እስከ {{max}} መልሶች ሊኖሩት ይችላል።",
+    "add": "ጥያቄ ያክሉ",
+    "errors": {
+      "promptRequired": "ጥያቄውን ያስገቡ።",
+      "promptTooLong": "ጥያቄውን ወደ 10,000 ቁምፊዎች ወይም ከዚያ በታች ያሳጥሩ።",
+      "points": "1 ወይም ከዚያ በላይ የሆነ ሙሉ ቁጥር ያስገቡ።",
+      "choiceRequired": "መልሱን ያስገቡ፣ ወይም ያስወግዱት።",
+      "choiceTooLong": "መልሱን ወደ 2,000 ቁምፊዎች ወይም ከዚያ በታች ያሳጥሩ።",
+      "minChoices": "ቢያንስ 2 መልሶችን ያክሉ።",
+      "maxChoices": "ከ10 የማይበልጡ መልሶችን ይጠቀሙ።",
+      "noQuestions": "ቢያንስ አንድ ጥያቄ ያክሉ።",
+      "incomplete": "የተመለከቱትን ጥያቄዎች ያጠናቅቁ።"
+    }
+  },
+  "review": {
+    "checklistTitle": "ለግምገማ ዝግጁ ነው?",
+    "checklistBody": "ተማሪዎች ኮርስዎን ከማየታቸው በፊት አስተዳዳሪ ይገመግመዋል። መጀመሪያ እነዚህን ያረጋግጡ።",
+    "check": {
+      "DESCRIPTION_REQUIRED": "ኮርሱ መግለጫ አለው",
+      "NO_MODULES": "ኮርሱ ቢያንስ አንድ ሞጁል አለው",
+      "EMPTY_MODULE": "እያንዳንዱ ሞጁል ቢያንስ አንድ ክፍል አለው",
+      "EMPTY_EXAM": "እያንዳንዱ ፈተና ቢያንስ አንድ ጥያቄ አለው"
+    },
+    "done": "ተጠናቋል",
+    "toDo": "የሚቀር",
+    "goToDetails": "ወደ ዝርዝሮች ይሂዱ",
+    "goToContent": "ወደ ይዘት ይሂዱ",
+    "incompleteTitle": "ኮርሱ ገና ለግምገማ ዝግጁ አይደለም፦",
+    "problem": {
+      "DESCRIPTION_REQUIRED": "በዝርዝሮች ክፍል መግለጫ ያክሉ።",
+      "NO_MODULES": "ቢያንስ አንድ ሞጁል ያክሉ።",
+      "EMPTY_MODULE": "ለእያንዳንዱ ሞጁል ክፍል ያክሉ፣ ወይም ባዶ ሞጁሎችን ይሰርዙ።",
+      "EMPTY_EXAM": "ለእያንዳንዱ ፈተና ጥያቄዎችን ያክሉ።"
+    },
+    "unsaved": "አንዳንድ ለውጦች ገና አልተቀመጡም። እስኪቀመጡ ይጠብቁ ወይም የተመለከቱትን መስኮች ያስተካክሉ፣ ከዚያ ያስገቡ።",
+    "submit": "ለግምገማ ያስገቡ",
+    "submitHint": "ኮርሱ በግምገማ ላይ እያለ ማስተካከል አይችሉም።",
+    "resubmitHint": "ገምጋሚው ለውጦችዎን ያያል። ኮርሱ በግምገማ ላይ እያለ ማስተካከል አይችሉም።",
+    "submitted": "ለግምገማ ገብቷል። ውሳኔውን በ«የእኔ ኮርሶች» ያያሉ።"
+  }
+}

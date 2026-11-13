@@ -12,9 +12,11 @@ import catalog from '../../locales/en/catalog.json';
 import common from '../../locales/en/common.json';
 import courses from '../../locales/en/courses.json';
 import design from '../../locales/en/design.json';
+import editor from '../../locales/en/editor.json';
 import errors from '../../locales/en/errors.json';
 import exam from '../../locales/en/exam.json';
 import learning from '../../locales/en/learning.json';
+import myCourses from '../../locales/en/myCourses.json';
 import validation from '../../locales/en/validation.json';
 
 export const defaultNS = 'common';
@@ -29,6 +31,8 @@ export const resources = {
     courses,
     learning,
     exam,
+    myCourses,
+    editor,
     account,
     admin,
     design,

@@ -1,3 +1,4 @@
-// Public API of the editor feature: export only screens and the few hooks other features may use.
-// Internals live in api/, components/, screens/ and schemas/.
-export {};
+// Public API of the editor feature (editing a draft or rejected course). Routes and other
+// features import only from here.
+export { EditorScreen } from './screens/editor-screen';
+export type { EditorTab } from './schemas/editor-search';
