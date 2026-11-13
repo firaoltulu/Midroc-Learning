@@ -105,7 +105,8 @@ async function send(url: string, options: RequestOptions, token: string | null) 
   }
 }
 
-export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+/** Sends the request with auth, the 401 retry and response signals; throws on non-2xx. */
+async function fetchApi(path: string, options: RequestOptions): Promise<Response> {
   const url = apiUrl(path, options.query);
   const token = (await auth?.getToken()) ?? null;
   let response = await send(url, options, token);
@@ -123,15 +124,30 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 
   if (response.headers.get('X-Token-Refresh') === 'true') notify(auth?.onTokenRefresh);
 
-  const body = await readBody(response);
   if (!response.ok) {
-    const error = new ApiError(response.status, body);
+    const error = new ApiError(response.status, await readBody(response));
     if (error.status === 403 && error.code === 'ACCOUNT_SUSPENDED') {
       notify(auth?.onAccountSuspended);
     }
     throw error;
   }
-  return body as T;
+  return response;
+}
+
+/** A JSON request. */
+export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  return (await readBody(await fetchApi(path, options))) as T;
+}
+
+/**
+ * A binary download with the auth header (e.g. a PDF: a plain link can't carry the token).
+ * Not cached by the browser; the caller owns the Blob.
+ */
+export async function apiBlob(
+  path: string,
+  options: Pick<RequestOptions, 'signal'> = {},
+): Promise<Blob> {
+  return (await fetchApi(path, options)).blob();
 }
 
 async function readBody(response: Response): Promise<unknown> {

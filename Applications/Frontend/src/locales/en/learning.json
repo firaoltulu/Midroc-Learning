@@ -12,5 +12,62 @@
     "title": "You're not enrolled in any courses",
     "body": "Browse the catalog and enroll to start learning.",
     "action": "Browse courses"
+  },
+  "video": {
+    "frameTitle": "Video: {{title}}",
+    "loading": "Loading the video",
+    "unavailable": {
+      "title": "This video is unavailable",
+      "body": "It may have been removed or made private on YouTube. You can go on with the next item."
+    },
+    "failed": {
+      "title": "The video player couldn't load",
+      "body": "Check your connection, or allow content from YouTube, then reload the page."
+    }
+  },
+  "pdf": {
+    "loading": "Loading the document",
+    "download": "Download",
+    "open": "Open PDF",
+    "markComplete": "Mark as complete",
+    "renderFailed": {
+      "title": "This document can't be shown here",
+      "body": "Download it or open it in your device's PDF viewer."
+    },
+    "toolbar": "Document controls",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "pageOf": "Page {{page}} of {{total}}",
+    "zoomOut": "Zoom out",
+    "zoomIn": "Zoom in",
+    "zoomLevel": "{{percent}}%"
+  },
+  "player": {
+    "outline": "Course content",
+    "itemNavigation": "Previous and next item",
+    "position": "{{module}} · Item {{position}} of {{total}}",
+    "openOutline": "Course content ({{completed}}/{{total}})",
+    "progress": "{{completed}} of {{total}} items done",
+    "previous": "Previous",
+    "next": "Next",
+    "backToCourse": "Back to course",
+    "completed": {
+      "title": "Course completed",
+      "body": "You've finished every item. Well done."
+    },
+    "examSoon": {
+      "title": "Exams open soon",
+      "body": "You'll take this exam here in an upcoming update. Go on with the next item for now."
+    },
+    "notEnrolled": {
+      "title": "Enroll to start this course",
+      "body": "Items open once you're enrolled.",
+      "action": "Go to the course"
+    },
+    "notFound": {
+      "title": "This item isn't available",
+      "body": "It may have been moved or removed from the course.",
+      "action": "Go to My learning"
+    }
   }
 }

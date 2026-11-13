@@ -1,7 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { UpcomingScreen } from '../shared/ui/upcoming-screen';
+import { PlayerScreen } from '../features/learning';
 
-// The player arrives in phase 7.
 export const Route = createFileRoute('/_authenticated/learn/$courseId/$itemId')({
-  component: UpcomingScreen,
+  component: PlayerRoute,
 });
+
+function PlayerRoute() {
+  const { courseId, itemId } = Route.useParams();
+  // Keyed by item: each item starts with a fresh player and progress tracker.
+  return <PlayerScreen key={itemId} courseId={courseId} itemId={itemId} />;
+}

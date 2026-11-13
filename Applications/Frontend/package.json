@@ -16,6 +16,7 @@
     "format:check": "prettier --check .",
     "i18n:check": "node scripts/i18n-check.mjs",
     "check:deps": "depcruise src --config .dependency-cruiser.cjs",
+    "check:bundle": "node scripts/check-bundle.mjs",
     "gen:api": "openapi-typescript reference/openapi.yaml -o src/shared/api/generated/schema.d.ts",
     "test": "vitest run",
     "e2e": "playwright test",
@@ -39,6 +40,7 @@
     "react-dom": "^19.3.1",
     "react-hook-form": "^7.92.0",
     "react-i18next": "^18.0.1",
+    "react-pdf": "^11.0.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {

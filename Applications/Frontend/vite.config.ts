@@ -17,5 +17,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     preview: { port: 4173 },
+    // dist/.vite/manifest.json maps sources to chunks (used by `npm run check:bundle`).
+    build: { manifest: true },
   };
 });

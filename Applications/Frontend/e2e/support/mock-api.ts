@@ -87,11 +87,44 @@ const outline = [
 export interface MockApi {
   /** Request paths (with query strings) received so far. */
   requests: string[];
+  /** Bodies of PUT /items/:id/progress, in order. */
+  progress: { itemId: string; body: unknown }[];
+}
+
+/** A valid PDF with `pages` pages, each showing "Page N" (for the real pdf.js viewer). */
+export function makePdf(pages: number): Buffer {
+  const objects: string[] = [];
+  const pageIds = Array.from({ length: pages }, (_, index) => 4 + index * 2);
+  objects.push('<< /Type /Catalog /Pages 2 0 R >>');
+  objects.push(
+    `<< /Type /Pages /Kids [${pageIds.map((id) => `${String(id)} 0 R`).join(' ')}] /Count ${String(pages)} >>`,
+  );
+  objects.push('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');
+  for (let page = 1; page <= pages; page += 1) {
+    const content = `BT /F1 36 Tf 72 700 Td (Page ${String(page)}) Tj ET`;
+    objects.push(
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents ${String(5 + (page - 1) * 2)} 0 R >>`,
+    );
+    objects.push(`<< /Length ${String(content.length)} >>\nstream\n${content}\nendstream`);
+  }
+  let body = '%PDF-1.4\n';
+  const offsets: number[] = [];
+  objects.forEach((object, index) => {
+    offsets.push(body.length);
+    body += `${String(index + 1)} 0 obj\n${object}\nendobj\n`;
+  });
+  const xref = body.length;
+  body += `xref\n0 ${String(objects.length + 1)}\n0000000000 65535 f \n`;
+  for (const offset of offsets) body += `${String(offset).padStart(10, '0')} 00000 n \n`;
+  body += `trailer\n<< /Size ${String(objects.length + 1)} /Root 1 0 R >>\nstartxref\n${String(xref)}\n%%EOF\n`;
+  return Buffer.from(body, 'latin1');
 }
 
 export async function mockApi(page: Page, me: MockUser): Promise<MockApi> {
   const enrolled = new Set<string>();
   const requests: string[] = [];
+  const progress: MockApi['progress'] = [];
+  const completedItems = new Set<string>();
   const withState = (c: ReturnType<typeof course>) => ({ ...c, enrolled: enrolled.has(c.id) });
 
   const handle = async (route: Route) => {
@@ -128,9 +161,29 @@ export async function mockApi(page: Page, me: MockUser): Promise<MockApi> {
       return json({
         ...withState(found),
         modules: outline,
-        completedItemIds: [],
+        completedItemIds: [...completedItems],
         pendingRevision: null,
       });
+    }
+    if (path === '/items/item-1/video') {
+      // Unavailable: keeps the e2e run off the real YouTube network.
+      return json({
+        youtubeVideoId: 'abcdefghijk',
+        youtubeTitle: null,
+        isAvailable: false,
+        lastPositionSeconds: 0,
+        completed: false,
+      });
+    }
+    if (path === '/items/item-2/pdf') {
+      return route.fulfill({ status: 200, contentType: 'application/pdf', body: makePdf(3) });
+    }
+    const progressMatch = /^\/items\/([^/]+)\/progress$/.exec(path);
+    if (progressMatch?.[1] && method === 'PUT') {
+      const body: unknown = request.postDataJSON();
+      progress.push({ itemId: progressMatch[1], body });
+      if ((body as { completed?: boolean }).completed) completedItems.add(progressMatch[1]);
+      return route.fulfill({ status: 204 });
     }
     if (path === '/me/enrollments') {
       return json(
@@ -152,5 +205,5 @@ export async function mockApi(page: Page, me: MockUser): Promise<MockApi> {
   };
 
   await page.route('**/api/**', handle);
-  return { requests };
+  return { requests, progress };
 }

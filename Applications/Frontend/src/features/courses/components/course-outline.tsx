@@ -1,8 +1,5 @@
 import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined';
 import ExpandMoreOutlined from '@mui/icons-material/ExpandMoreOutlined';
-import PictureAsPdfOutlined from '@mui/icons-material/PictureAsPdfOutlined';
-import PlayCircleOutlined from '@mui/icons-material/PlayCircleOutlined';
-import QuizOutlined from '@mui/icons-material/QuizOutlined';
 import Accordion from '@mui/material/Accordion';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import AccordionSummary from '@mui/material/AccordionSummary';
@@ -14,17 +11,11 @@ import ListItemText from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { visuallyHidden } from '@mui/utils';
-import type { ComponentType } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useContentLang } from '../../../shared/i18n/content-lang';
 import { ListItemLink } from '../../../shared/ui/router-links';
-import type { CourseDetail, ItemType } from '../api/schemas';
-
-const ITEM_ICONS: Record<ItemType, ComponentType> = {
-  video: PlayCircleOutlined,
-  pdf: PictureAsPdfOutlined,
-  exam: QuizOutlined,
-};
+import type { CourseDetail } from '../api/schemas';
+import { ITEM_ICONS } from './item-icons';
 
 export interface CourseOutlineProps {
   course: CourseDetail;

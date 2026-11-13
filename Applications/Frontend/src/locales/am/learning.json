@@ -12,5 +12,62 @@
     "title": "በምንም ኮርስ አልተመዘገቡም",
     "body": "ኮርሶችን ያስሱና ለመማር ይመዝገቡ።",
     "action": "ኮርሶችን ያስሱ"
+  },
+  "video": {
+    "frameTitle": "ቪዲዮ፦ {{title}}",
+    "loading": "ቪዲዮው በመጫን ላይ",
+    "unavailable": {
+      "title": "ይህ ቪዲዮ አይገኝም",
+      "body": "ከYouTube ተወግዶ ወይም የግል ተደርጎ ሊሆን ይችላል። ወደ ቀጣዩ ንጥል መቀጠል ይችላሉ።"
+    },
+    "failed": {
+      "title": "የቪዲዮ ማጫወቻው ሊጫን አልቻለም",
+      "body": "ግንኙነትዎን ያረጋግጡ ወይም ከYouTube የሚመጣ ይዘትን ይፍቀዱ፣ ከዚያ ገጹን እንደገና ይጫኑ።"
+    }
+  },
+  "pdf": {
+    "loading": "ሰነዱ በመጫን ላይ",
+    "download": "ያውርዱ",
+    "open": "PDF ይክፈቱ",
+    "markComplete": "እንደተጠናቀቀ ምልክት ያድርጉ",
+    "renderFailed": {
+      "title": "ይህ ሰነድ እዚህ ሊታይ አይችልም",
+      "body": "ያውርዱት ወይም በመሣሪያዎ የPDF መመልከቻ ይክፈቱት።"
+    },
+    "toolbar": "የሰነድ መቆጣጠሪያዎች",
+    "previousPage": "ቀዳሚ ገጽ",
+    "nextPage": "ቀጣይ ገጽ",
+    "pageOf": "ገጽ {{page}} ከ{{total}}",
+    "zoomOut": "አሳንስ",
+    "zoomIn": "አስፋ",
+    "zoomLevel": "{{percent}}%"
+  },
+  "player": {
+    "outline": "የኮርሱ ይዘት",
+    "itemNavigation": "ቀዳሚና ቀጣይ ንጥል",
+    "position": "{{module}} · ንጥል {{position}} ከ{{total}}",
+    "openOutline": "የኮርሱ ይዘት ({{completed}}/{{total}})",
+    "progress": "ከ{{total}} ንጥሎች {{completed}} ተጠናቀዋል",
+    "previous": "ቀዳሚ",
+    "next": "ቀጣይ",
+    "backToCourse": "ወደ ኮርሱ ይመለሱ",
+    "completed": {
+      "title": "ኮርሱ ተጠናቋል",
+      "body": "ሁሉንም ንጥሎች አጠናቀዋል። በጣም ጥሩ ሥራ።"
+    },
+    "examSoon": {
+      "title": "ፈተናዎች በቅርቡ ይከፈታሉ",
+      "body": "ይህን ፈተና በሚቀጥለው ዝማኔ እዚህ ይወስዳሉ። ለአሁን ወደ ቀጣዩ ንጥል ይቀጥሉ።"
+    },
+    "notEnrolled": {
+      "title": "ይህን ኮርስ ለመጀመር ይመዝገቡ",
+      "body": "ንጥሎቹ የሚከፈቱት ከተመዘገቡ በኋላ ነው።",
+      "action": "ወደ ኮርሱ ይሂዱ"
+    },
+    "notFound": {
+      "title": "ይህ ንጥል አይገኝም",
+      "body": "ከኮርሱ ተዛውሮ ወይም ተወግዶ ሊሆን ይችላል።",
+      "action": "ወደ የእኔ ትምህርት ይሂዱ"
+    }
   }
 }

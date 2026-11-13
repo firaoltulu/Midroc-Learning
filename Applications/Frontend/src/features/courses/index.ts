@@ -7,9 +7,14 @@ export { CourseDetailScreen } from './screens/course-detail-screen';
 export {
   catalogCourseSchema,
   catalogPageSchema,
+  courseDetailSchema,
   courseLanguageSchema,
   type CatalogCourse,
   type CatalogPage,
+  type CourseDetail,
   type CourseLanguage,
+  type ItemType,
 } from './api/schemas';
+export { courseDetailQueryOptions } from './api/course-detail';
 export { CourseMeta } from './components/course-meta';
+export { ITEM_ICONS } from './components/item-icons';
