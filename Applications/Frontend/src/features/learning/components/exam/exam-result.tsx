@@ -10,8 +10,9 @@ import type { ExamQuestion, ExamResult } from '../../api/exams';
 import { AttemptHistory } from './attempt-history';
 
 /**
- * Score, passed / not passed (text and tone, never colour alone), attempts left, each
- * question right or wrong, and the correct choices only when the server sent them.
+ * Score, passed / not passed (text and tone, never colour alone), attempts left and "Try
+ * again" (only when not passed), each question right or wrong, and the correct choices only
+ * when the server sent them.
  */
 export function ExamResultView({
   examId,
@@ -54,20 +55,25 @@ export function ExamResultView({
         <Typography variant="h2" component="p" sx={{ fontVariantNumeric: 'tabular-nums' }}>
           {t('result.percent', { percent: Math.round(result.scorePercent) })}
         </Typography>
-        <Typography color="text.secondary">
-          {result.attemptsRemaining === null
-            ? t('result.attemptsUnlimited')
-            : t('result.attemptsLeft', { count: result.attemptsRemaining })}
-        </Typography>
-        {canRetry && !result.passed ? (
-          <Button variant="contained" onClick={onTryAgain} sx={{ alignSelf: 'flex-start', mt: 1 }}>
-            {t('result.tryAgain')}
-          </Button>
-        ) : canRetry ? (
-          <Button variant="outlined" onClick={onTryAgain} sx={{ alignSelf: 'flex-start', mt: 1 }}>
-            {t('result.tryAgain')}
-          </Button>
-        ) : null}
+        {/* A passed exam is done: no attempts count, no "Try again". */}
+        {result.passed ? null : (
+          <>
+            <Typography color="text.secondary">
+              {result.attemptsRemaining === null
+                ? t('result.attemptsUnlimited')
+                : t('result.attemptsLeft', { count: result.attemptsRemaining })}
+            </Typography>
+            {canRetry ? (
+              <Button
+                variant="contained"
+                onClick={onTryAgain}
+                sx={{ alignSelf: 'flex-start', mt: 1 }}
+              >
+                {t('result.tryAgain')}
+              </Button>
+            ) : null}
+          </>
+        )}
       </Stack>
 
       <Stack component="section" spacing={1.5} aria-labelledby="exam-answers-heading">

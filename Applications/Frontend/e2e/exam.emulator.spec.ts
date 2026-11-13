@@ -41,7 +41,7 @@ test('take the exam, pass, see the result and the history; the outline checks it
 
   await expect(page.getByRole('heading', { name: 'You passed' })).toBeFocused();
   await expect(page.getByText('100%', { exact: true }).first()).toBeVisible();
-  await expect(page.getByText('2 attempts left')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Try again' })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Your attempts' })).toBeVisible();
 
   const outline = page.getByRole('complementary', { name: 'Course content' });

@@ -45,7 +45,7 @@
     "attemptsLeft_one": "{{count}} left",
     "attemptsLeft_other": "{{count}} left",
     "instructions": "Instructions",
-    "alreadyPassed": "You've passed this exam. You can take it again to practice.",
+    "alreadyPassed": "You've passed this exam.",
     "timerNote_one": "You'll have {{count}} minute once you start. Whatever you've answered is submitted when time runs out.",
     "timerNote_other": "You'll have {{count}} minutes once you start. Whatever you've answered is submitted when time runs out.",
     "noAttemptsLeft": "You've used all your attempts for this exam.",

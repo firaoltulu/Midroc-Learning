@@ -141,6 +141,21 @@ describe('exam overview', () => {
     expect(screen.queryByRole('button', { name: /Start exam|Try again/ })).not.toBeInTheDocument();
   });
 
+  it('a passed exam is done: no Start or Try again, even with attempts left', async () => {
+    mockExam({ overview: { passed: true, attemptsUsed: 1, attemptsRemaining: 2 } });
+    await renderRoute('/learn/course-1/item-3');
+    expect(await screen.findByText("You've passed this exam.")).toBeVisible();
+    expect(
+      screen.queryByRole('button', { name: /Start exam|Try again|Resume exam/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('a passed exam with an attempt open elsewhere can still be resumed', async () => {
+    mockExam({ overview: { passed: true, attemptsUsed: 2, hasOpenAttempt: true } });
+    await renderRoute('/learn/course-1/item-3');
+    expect(await screen.findByRole('button', { name: 'Resume exam' })).toBeVisible();
+  });
+
   it('ATTEMPTS_EXHAUSTED on start explains it and refreshes the counts', async () => {
     mockExam();
     let overviewCalls = 0;
@@ -358,11 +373,21 @@ describe('results', () => {
     const { user } = await startExam();
     await submitAll(user);
     expect(await screen.findByRole('heading', { name: 'You passed' })).toBeVisible();
-    expect(screen.getByText('No attempts left')).toBeVisible();
     expect(screen.getByText('Correct answers')).toBeVisible();
     expect(screen.getByText('Blocked exits')).toBeVisible();
     expect(screen.getByText('Correct answer')).toBeVisible();
     expect(screen.getByText('Your supervisor')).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
+  });
+
+  it('passing with attempts left offers no "Try again"', async () => {
+    mockExam({
+      submit: () => HttpResponse.json(result({ scorePercent: 100, passed: true })),
+    });
+    const { user } = await startExam();
+    await submitAll(user);
+    expect(await screen.findByRole('heading', { name: 'You passed' })).toBeVisible();
+    expect(screen.queryByText('2 attempts left')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Try again' })).not.toBeInTheDocument();
   });
 

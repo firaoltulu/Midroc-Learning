@@ -13,7 +13,10 @@ import { LoadingRegion } from '../../../../shared/ui/skeletons';
 import { examOverviewQueryOptions } from '../../api/exams';
 import { AttemptHistory } from './attempt-history';
 
-/** Before starting: instructions, passing score, attempts, time limit; Start or Resume. */
+/**
+ * Before starting: instructions, passing score, attempts, time limit; Start, Resume or Try
+ * again. Once passed, the exam is done and can't be started again.
+ */
 export function ExamOverview({
   examId,
   contentLang,
@@ -51,7 +54,9 @@ export function ExamOverview({
   }
 
   const exam = overview.data;
-  const noAttemptsLeft = exam.attemptsRemaining === 0 && !exam.hasOpenAttempt;
+  // A passed exam can't be started again (an attempt opened elsewhere can still be resumed).
+  const done = exam.passed && !exam.hasOpenAttempt;
+  const noAttemptsLeft = !done && exam.attemptsRemaining === 0 && !exam.hasOpenAttempt;
   const facts: [string, string][] = [
     [t('overview.questions'), t('overview.questionCount', { count: exam.questionCount })],
     [t('overview.passingScore'), t('result.percent', { percent: exam.passingScorePercent })],
@@ -117,7 +122,7 @@ export function ExamOverview({
         </Stack>
       ) : null}
 
-      {exam.timeLimitMinutes !== null && !noAttemptsLeft ? (
+      {exam.timeLimitMinutes !== null && !noAttemptsLeft && !done ? (
         <Typography color="text.secondary" sx={{ maxWidth: 720 }}>
           {t('overview.timerNote', { count: exam.timeLimitMinutes })}
         </Typography>
@@ -129,7 +134,7 @@ export function ExamOverview({
         </Alert>
       ) : null}
 
-      {noAttemptsLeft ? (
+      {done ? null : noAttemptsLeft ? (
         <Alert severity="info" variant="outlined">
           {t('overview.noAttemptsLeft')}
         </Alert>

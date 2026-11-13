@@ -45,7 +45,7 @@
     "attemptsLeft_one": "{{count}} ቀርቷል",
     "attemptsLeft_other": "{{count}} ቀርተዋል",
     "instructions": "መመሪያዎች",
-    "alreadyPassed": "ይህን ፈተና አልፈዋል። ለልምምድ እንደገና መውሰድ ይችላሉ።",
+    "alreadyPassed": "ይህን ፈተና አልፈዋል።",
     "timerNote_one": "ሲጀምሩ {{count}} ደቂቃ ይኖርዎታል። ጊዜው ሲያልቅ የመለሱት ሁሉ ይገባል።",
     "timerNote_other": "ሲጀምሩ {{count}} ደቂቃዎች ይኖሩዎታል። ጊዜው ሲያልቅ የመለሱት ሁሉ ይገባል።",
     "noAttemptsLeft": "ለዚህ ፈተና የተፈቀዱልዎትን ሙከራዎች በሙሉ ተጠቅመዋል።",
