@@ -13,7 +13,9 @@ info:
     `UNAUTHENTICATED`, `INVALID_TOKEN` (401), `ACCOUNT_SUSPENDED`, `EMAIL_REQUIRED` (403),
     `RATE_LIMITED` (429), `INTERNAL_ERROR` (500); every endpoint with a JSON body can return
     `VALIDATION_FAILED` and `MALFORMED_JSON` (400); endpoints with an id in the path return
-    `INVALID_PARAMETER` (400) for a malformed id; `/admin/*` returns `ADMIN_REQUIRED` (403).
+    `INVALID_PARAMETER` (400) for a malformed id; endpoints that take a PDF `fileKey` return
+    `INVALID_FILE_KEY` (400) when it is malformed; `/admin/*` returns
+    `ADMIN_REQUIRED` (403).
 
     **Role changes.** When a response carries `X-Token-Refresh: true`, the user's role claim
     changed: refresh the ID token and refetch `/me`.
