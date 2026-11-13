@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "minutes": "{{count}} min",
+    "hours": "{{count}} h",
+    "hoursMinutes": "{{hours}} h {{minutes}} min",
+    "modules_one": "{{count}} module",
+    "modules_other": "{{count}} modules",
+    "learners_one": "{{count}} learner enrolled",
+    "learners_other": "{{count}} learners enrolled"
+  },
+  "itemType": {
+    "video": "Video",
+    "pdf": "PDF",
+    "exam": "Exam"
+  },
+  "outline": {
+    "title": "Course content",
+    "summary": "{{modules}} · {{items}}",
+    "items_one": "{{count}} item",
+    "items_other": "{{count}} items",
+    "completed": "Completed",
+    "typePrefix": "{{type}}: "
+  },
+  "detail": {
+    "byOwner": "By {{name}}",
+    "about": "About this course",
+    "actionsLabel": "Course actions",
+    "notFound": {
+      "title": "This course isn't available",
+      "body": "It may have been removed, or it isn't published yet.",
+      "action": "Browse courses"
+    }
+  },
+  "actions": {
+    "enroll": "Enroll",
+    "continue": "Continue",
+    "review": "Review course",
+    "edit": "Edit course",
+    "unenroll": "Unenroll"
+  },
+  "enroll": {
+    "pending": "Enrolling…",
+    "done": "You're enrolled. Start whenever you're ready."
+  },
+  "unenroll": {
+    "title": "Unenroll from this course?",
+    "body": "Your progress is kept, so you can pick up where you left off if you enroll again.",
+    "confirm": "Unenroll",
+    "done": "You've unenrolled. Your progress is kept."
+  },
+  "progress": {
+    "summary": "{{completed}} of {{total}} items done",
+    "completed": "Course completed",
+    "label": "Course progress",
+    "valueText": "{{percent}}% complete"
+  },
+  "banner": {
+    "draft": "This course is a draft. Only you and administrators can see it.",
+    "pending_review": "This course is waiting for review. It can't be edited until the review is done.",
+    "rejected": "This course was returned for changes. Edit it and submit it again.",
+    "reason": "Reviewer's note: {{reason}}",
+    "archived": "This course is archived and hidden from the catalog.",
+    "pendingRevision": "Changes to this course are waiting for review. Learners see the published version until they're approved."
+  }
+}

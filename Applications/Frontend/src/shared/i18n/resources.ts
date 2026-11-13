@@ -8,15 +8,18 @@
 import account from '../../locales/en/account.json';
 import admin from '../../locales/en/admin.json';
 import auth from '../../locales/en/auth.json';
+import catalog from '../../locales/en/catalog.json';
 import common from '../../locales/en/common.json';
+import courses from '../../locales/en/courses.json';
 import design from '../../locales/en/design.json';
 import errors from '../../locales/en/errors.json';
+import learning from '../../locales/en/learning.json';
 import validation from '../../locales/en/validation.json';
 
 export const defaultNS = 'common';
 
 export const resources = {
-  en: { common, errors, validation, auth, account, admin, design },
+  en: { common, errors, validation, auth, catalog, courses, learning, account, admin, design },
 } as const;
 
 export type Namespace = keyof (typeof resources)['en'];

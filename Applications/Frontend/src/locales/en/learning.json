@@ -1,0 +1,16 @@
+{
+  "title": "My learning",
+  "description": "Courses you're enrolled in.",
+  "enrolledOn": "Enrolled {{date}}",
+  "progress": {
+    "completed": "Completed",
+    "inProgress": "In progress",
+    "percent": "{{percent}}%",
+    "label": "Progress in {{title}}"
+  },
+  "empty": {
+    "title": "You're not enrolled in any courses",
+    "body": "Browse the catalog and enroll to start learning.",
+    "action": "Browse courses"
+  }
+}

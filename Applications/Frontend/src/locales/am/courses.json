@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "minutes": "{{count}} ደቂቃ",
+    "hours": "{{count}} ሰዓት",
+    "hoursMinutes": "{{hours}} ሰዓት {{minutes}} ደቂቃ",
+    "modules_one": "{{count}} ሞጁል",
+    "modules_other": "{{count}} ሞጁሎች",
+    "learners_one": "{{count}} ተማሪ ተመዝግቧል",
+    "learners_other": "{{count}} ተማሪዎች ተመዝግበዋል"
+  },
+  "itemType": {
+    "video": "ቪዲዮ",
+    "pdf": "PDF",
+    "exam": "ፈተና"
+  },
+  "outline": {
+    "title": "የኮርሱ ይዘት",
+    "summary": "{{modules}} · {{items}}",
+    "items_one": "{{count}} ንጥል",
+    "items_other": "{{count}} ንጥሎች",
+    "completed": "ተጠናቋል",
+    "typePrefix": "{{type}}፦ "
+  },
+  "detail": {
+    "byOwner": "አዘጋጅ፦ {{name}}",
+    "about": "ስለዚህ ኮርስ",
+    "actionsLabel": "የኮርስ ተግባራት",
+    "notFound": {
+      "title": "ይህ ኮርስ አይገኝም",
+      "body": "ተወግዶ ወይም ገና ያልታተመ ሊሆን ይችላል።",
+      "action": "ኮርሶችን ያስሱ"
+    }
+  },
+  "actions": {
+    "enroll": "ይመዝገቡ",
+    "continue": "ይቀጥሉ",
+    "review": "ኮርሱን ይከልሱ",
+    "edit": "ኮርሱን ያስተካክሉ",
+    "unenroll": "ምዝገባን ይሰርዙ"
+  },
+  "enroll": {
+    "pending": "በመመዝገብ ላይ…",
+    "done": "ተመዝግበዋል። ሲዘጋጁ ይጀምሩ።"
+  },
+  "unenroll": {
+    "title": "ከዚህ ኮርስ ምዝገባዎን ይሰርዛሉ?",
+    "body": "እድገትዎ ይቀመጣል፤ እንደገና ከተመዘገቡ ካቆሙበት መቀጠል ይችላሉ።",
+    "confirm": "ምዝገባን ይሰርዙ",
+    "done": "ምዝገባዎ ተሰርዟል። እድገትዎ ተቀምጧል።"
+  },
+  "progress": {
+    "summary": "ከ{{total}} ንጥሎች {{completed}} ተጠናቀዋል",
+    "completed": "ኮርሱ ተጠናቋል",
+    "label": "የኮርስ እድገት",
+    "valueText": "{{percent}}% ተጠናቋል"
+  },
+  "banner": {
+    "draft": "ይህ ኮርስ ረቂቅ ነው። ማየት የሚችሉት እርስዎና አስተዳዳሪዎች ብቻ ናቸው።",
+    "pending_review": "ይህ ኮርስ ግምገማ እየጠበቀ ነው። ግምገማው እስኪጠናቀቅ ድረስ ሊስተካከል አይችልም።",
+    "rejected": "ይህ ኮርስ ለማስተካከያ ተመልሷል። አስተካክለው እንደገና ያስገቡት።",
+    "reason": "የገምጋሚው ማስታወሻ፦ {{reason}}",
+    "archived": "ይህ ኮርስ ተደብቋል፤ በኮርሶች ዝርዝር ውስጥ አይታይም።",
+    "pendingRevision": "በዚህ ኮርስ ላይ የተደረጉ ለውጦች ግምገማ እየጠበቁ ነው። እስኪጸድቁ ድረስ ተማሪዎች የታተመውን ስሪት ያያሉ።"
+  }
+}

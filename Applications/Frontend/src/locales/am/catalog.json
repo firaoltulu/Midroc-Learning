@@ -1,0 +1,41 @@
+{
+  "title": "ኮርሶች",
+  "description": "ኮርስ ይፈልጉና መማር ይጀምሩ።",
+  "results_one": "{{count}} ኮርስ",
+  "results_other": "{{count}} ኮርሶች",
+  "filters": {
+    "label": "ኮርሶችን ያጣሩ",
+    "search": "ኮርሶችን ይፈልጉ",
+    "category": "ምድብ",
+    "allCategories": "ሁሉም ምድቦች",
+    "language": "ቋንቋ",
+    "allLanguages": "ሁሉም ቋንቋዎች",
+    "clear": "ማጣሪያዎችን ያጽዱ"
+  },
+  "empty": {
+    "filtered": {
+      "title": "የሚዛመድ ኮርስ የለም",
+      "body": "ሌላ ቃል ይሞክሩ ወይም ማጣሪያዎቹን ያጽዱ።"
+    },
+    "none": {
+      "title": "እስካሁን ኮርሶች የሉም",
+      "body": "የታተሙ ኮርሶች እዚህ ይታያሉ። የመጀመሪያውን እርስዎ መፍጠር ይችላሉ።",
+      "action": "ኮርስ ይፍጠሩ"
+    }
+  },
+  "card": {
+    "byOwner": "አዘጋጅ፦ {{name}}",
+    "enrolled": "ተመዝግበዋል",
+    "learners_one": "{{count}} ተማሪ",
+    "learners_other": "{{count}} ተማሪዎች"
+  },
+  "pagination": {
+    "label": "ገጾች",
+    "page": "ወደ ገጽ {{page}} ይሂዱ",
+    "current": "ገጽ {{page}}፣ የአሁኑ ገጽ",
+    "first": "የመጀመሪያ ገጽ",
+    "last": "የመጨረሻ ገጽ",
+    "next": "ቀጣይ ገጽ",
+    "previous": "ቀዳሚ ገጽ"
+  }
+}

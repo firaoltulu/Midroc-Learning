@@ -1,6 +1,7 @@
 import AdminPanelSettingsOutlined from '@mui/icons-material/AdminPanelSettingsOutlined';
-import HomeOutlined from '@mui/icons-material/HomeOutlined';
+import MenuBookOutlined from '@mui/icons-material/MenuBookOutlined';
 import PaletteOutlined from '@mui/icons-material/PaletteOutlined';
+import SchoolOutlined from '@mui/icons-material/SchoolOutlined';
 import type { ParseKeys } from 'i18next';
 import type { ComponentType } from 'react';
 
@@ -8,18 +9,19 @@ import type { ComponentType } from 'react';
 export type NavAccess = 'public' | 'signedIn' | 'admin';
 
 export interface NavItem {
-  to: '/' | '/design' | '/admin';
+  to: '/courses' | '/learn' | '/design' | '/admin';
   labelKey: ParseKeys;
   Icon: ComponentType;
   access: NavAccess;
 }
 
 /**
- * Primary navigation. Catalog, learning and my-courses entries are added with their routes
- * in later phases (typed `to` keeps links and routes in sync). /design is temporary.
+ * Primary navigation. My courses joins in phase 9 (typed `to` keeps links and routes in
+ * sync). /design is temporary.
  */
 export const navItems: NavItem[] = [
-  { to: '/', labelKey: 'nav.home', Icon: HomeOutlined, access: 'signedIn' },
+  { to: '/courses', labelKey: 'nav.courses', Icon: MenuBookOutlined, access: 'signedIn' },
+  { to: '/learn', labelKey: 'nav.learning', Icon: SchoolOutlined, access: 'signedIn' },
   { to: '/admin', labelKey: 'nav.admin', Icon: AdminPanelSettingsOutlined, access: 'admin' },
   { to: '/design', labelKey: 'nav.design', Icon: PaletteOutlined, access: 'public' },
 ];

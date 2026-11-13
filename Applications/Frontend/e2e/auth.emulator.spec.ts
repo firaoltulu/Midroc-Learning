@@ -1,13 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
+import { signUp, uniqueEmail, verifyEmailInEmulator } from './support/emulator';
 
 /**
  * Real sign-up / verification / sign-in against the Firebase Auth emulator.
  * Run with `npm run e2e:emulator` (starts the emulator, then Playwright). The backend is
  * mocked: GET /api/me answers from the bearer token's email.
  */
-const EMULATOR = `http://${process.env.FIREBASE_AUTH_EMULATOR_HOST ?? '127.0.0.1:9099'}`;
-const PROJECT = 'demo-midroc';
-
 interface MeMock {
   status?: number;
   body?: Record<string, unknown>;
@@ -33,40 +31,25 @@ async function mockMe(page: Page, email: string, override: MeMock = {}) {
   return authorizations;
 }
 
-/**
- * Applies the latest verification link the emulator "sent" to `email`. No polling: sign-up
- * moves on to /verify-email only once the email has been sent.
- */
-async function verifyEmailInEmulator(page: Page, email: string) {
-  const response = await page.request.get(`${EMULATOR}/emulator/v1/projects/${PROJECT}/oobCodes`);
-  const { oobCodes } = (await response.json()) as {
-    oobCodes: { email: string; requestType: string; oobLink: string }[];
-  };
-  const link = oobCodes
-    .filter((c) => c.email === email && c.requestType === 'VERIFY_EMAIL')
-    .at(-1)?.oobLink;
-  expect(link, 'the verification email was sent').toBeDefined();
-  await page.request.get(link ?? '');
+/** The catalog the user lands on after signing in: empty is enough here. */
+async function mockEmptyCatalog(page: Page) {
+  await page.route('**/api/courses**', (route) =>
+    route.fulfill({
+      json: route.request().url().includes('/categories')
+        ? { items: [] }
+        : { page: 1, pageSize: 12, total: 0, items: [] },
+    }),
+  );
 }
 
-async function signUp(page: Page, email: string, path = '/signup') {
-  await page.goto(path);
-  await page.getByLabel('Full name').fill('Abebe Kebede');
-  await page.getByLabel('Email').fill(email);
-  await page.getByLabel(/^Password/).fill('correct-horse-9');
-  await page.getByRole('button', { name: 'Create account' }).click();
-  // Signed up (and the verification email sent) once the guard moves us on.
-  await expect(page).toHaveURL(/\/verify-email/);
-}
-
-test.beforeEach(async ({ request }) => {
-  await request.delete(`${EMULATOR}/emulator/v1/projects/${PROJECT}/accounts`);
+test.beforeEach(async ({ page }) => {
+  await mockEmptyCatalog(page);
 });
 
 test('sign up, verify the email, return to the requested page, sign out and sign in again', async ({
   page,
 }) => {
-  const email = 'abebe@example.com';
+  const email = uniqueEmail('abebe');
   const authorizations = await mockMe(page, email);
 
   // A protected page sends a visitor to sign in, remembering where they were going.
@@ -104,24 +87,20 @@ test('sign up, verify the email, return to the requested page, sign out and sign
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.getByRole('alert')).toContainText("That email and password don't match");
 
-  // Right password: in, to the home page.
+  // Right password: in, to the home page (the catalog).
   await page.getByLabel(/^Password/).fill('correct-horse-9');
   await page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(page).toHaveURL(/\/$/);
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Welcome to Midroc Learning' }),
-  ).toBeVisible();
+  await expect(page).toHaveURL(/\/courses$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Courses' })).toBeVisible();
 
   // The session survives a reload (local persistence), with no flash of the login page.
   await page.reload();
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Welcome to Midroc Learning' }),
-  ).toBeVisible();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Courses' })).toBeVisible();
+  await expect(page).toHaveURL(/\/courses$/);
 });
 
 test('a suspended account is signed out and told why', async ({ page }) => {
-  const email = 'suspended@example.com';
+  const email = uniqueEmail('suspended');
   await mockMe(page, email, {
     status: 403,
     body: { error: 'Account is suspended', code: 'ACCOUNT_SUSPENDED' },
@@ -136,14 +115,12 @@ test('a suspended account is signed out and told why', async ({ page }) => {
 });
 
 test('a non-admin sees the "not allowed" screen in the admin area', async ({ page }) => {
-  const email = 'learner@example.com';
+  const email = uniqueEmail('learner');
   await mockMe(page, email);
   await signUp(page, email);
   await verifyEmailInEmulator(page, email);
   await page.getByRole('button', { name: "I've verified my email" }).click();
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Welcome to Midroc Learning' }),
-  ).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Courses' })).toBeVisible();
 
   await page.goto('/admin');
   await expect(
@@ -152,7 +129,7 @@ test('a non-admin sees the "not allowed" screen in the admin area', async ({ pag
 });
 
 test('an admin reaches the admin area', async ({ page }) => {
-  const email = 'admin@example.com';
+  const email = uniqueEmail('admin');
   await mockMe(page, email, {
     body: {
       id: 'admin-1',

@@ -1,0 +1,16 @@
+{
+  "title": "የእኔ ትምህርት",
+  "description": "የተመዘገቡባቸው ኮርሶች።",
+  "enrolledOn": "የተመዘገቡት፦ {{date}}",
+  "progress": {
+    "completed": "ተጠናቋል",
+    "inProgress": "በሂደት ላይ",
+    "percent": "{{percent}}%",
+    "label": "በ{{title}} ውስጥ ያለ እድገት"
+  },
+  "empty": {
+    "title": "በምንም ኮርስ አልተመዘገቡም",
+    "body": "ኮርሶችን ያስሱና ለመማር ይመዝገቡ።",
+    "action": "ኮርሶችን ያስሱ"
+  }
+}

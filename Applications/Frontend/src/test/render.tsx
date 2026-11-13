@@ -11,6 +11,7 @@ import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { AppProviders } from '../app/providers';
+import { createAppRouter } from '../app/router';
 import { connectAuth, type Me } from '../features/auth';
 import { createFakeAuthController, passwordUser } from '../features/auth/testing';
 import { adminFixture, meFixture } from './fixtures';
@@ -71,6 +72,50 @@ export async function renderWithProviders(ui: ReactNode, options: RenderOptions 
   const router: AnyRouter = createRouter({
     routeTree: rootRoute.addChildren([anyPath]),
     history: createMemoryHistory({ initialEntries: [path] }),
+  });
+  await router.load();
+
+  const user = userEvent.setup();
+  const view = render(
+    <AppProviders queryClient={queryClient} auth={auth.controller}>
+      <RouterProvider router={router} />
+    </AppProviders>,
+  );
+  return { ...view, user, auth, queryClient, router };
+}
+
+/**
+ * Renders the whole app (shell, guards, real routes and search-param validation) at `path`,
+ * signed in as `as`, against the MSW mock API.
+ *
+ *   const { router, user } = await renderRoute('/courses?q=safety');
+ */
+export async function renderRoute(path: string, options: Omit<RenderOptions, 'path'> = {}) {
+  const { as = 'user' } = options;
+  const queryClient = createTestQueryClient();
+  const auth = createFakeAuthController();
+  if (as === 'admin') {
+    setMe(adminFixture(options.me));
+    auth.signIn(passwordUser({ uid: 'admin-uid', email: 'admin@example.com' }));
+  } else if (as === 'user' || as === 'unverified') {
+    setMe(meFixture(options.me));
+    auth.signIn(passwordUser({ emailVerified: as === 'user' }));
+  } else if (as === 'signedOut') {
+    auth.signOutNow();
+  }
+
+  const router = createAppRouter(
+    { auth: auth.controller, queryClient },
+    { history: createMemoryHistory({ initialEntries: [path] }) },
+  );
+  const disconnect = connectAuth({
+    controller: auth.controller,
+    queryClient,
+    onChange: () => void router.invalidate(),
+  });
+  onTestFinished(() => {
+    disconnect();
+    queryClient.clear();
   });
   await router.load();
 

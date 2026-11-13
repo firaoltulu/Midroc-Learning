@@ -85,7 +85,6 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <li key={item.to}>
                     <ButtonLink
                       to={item.to}
-                      activeOptions={{ exact: item.to === '/' }}
                       color="inherit"
                       sx={{
                         color: 'text.secondary',
@@ -125,7 +124,6 @@ export function AppShell({ children }: { children: ReactNode }) {
               <li key={to}>
                 <ListItemLink
                   to={to}
-                  activeOptions={{ exact: to === '/' }}
                   onClick={closeDrawer}
                   sx={{
                     minHeight: 48,

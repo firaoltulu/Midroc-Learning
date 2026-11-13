@@ -1,0 +1,41 @@
+{
+  "title": "Courses",
+  "description": "Find a course and start learning.",
+  "results_one": "{{count}} course",
+  "results_other": "{{count}} courses",
+  "filters": {
+    "label": "Filter courses",
+    "search": "Search courses",
+    "category": "Category",
+    "allCategories": "All categories",
+    "language": "Language",
+    "allLanguages": "All languages",
+    "clear": "Clear filters"
+  },
+  "empty": {
+    "filtered": {
+      "title": "No courses match",
+      "body": "Try other words or clear the filters."
+    },
+    "none": {
+      "title": "No courses yet",
+      "body": "Published courses will appear here. You can create the first one.",
+      "action": "Create a course"
+    }
+  },
+  "card": {
+    "byOwner": "By {{name}}",
+    "enrolled": "Enrolled",
+    "learners_one": "{{count}} learner",
+    "learners_other": "{{count}} learners"
+  },
+  "pagination": {
+    "label": "Pages",
+    "page": "Go to page {{page}}",
+    "current": "Page {{page}}, current page",
+    "first": "First page",
+    "last": "Last page",
+    "next": "Next page",
+    "previous": "Previous page"
+  }
+}

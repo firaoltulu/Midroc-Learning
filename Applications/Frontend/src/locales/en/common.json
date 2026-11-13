@@ -17,7 +17,8 @@
     "primaryNavigation": "Main navigation"
   },
   "nav": {
-    "home": "Home",
+    "courses": "Courses",
+    "learning": "My learning",
     "design": "Design system",
     "admin": "Administration"
   },
@@ -56,12 +57,13 @@
     "title": "Page not found",
     "body": "The page you're looking for doesn't exist or has moved."
   },
-  "home": {
-    "title": "Welcome to Midroc Learning",
-    "body": "Courses, learning and exams are on their way."
-  },
   "password": {
     "show": "Show password",
     "hide": "Hide password"
+  },
+  "upcoming": {
+    "title": "This page is on its way",
+    "body": "It arrives in a later update. Until then, browse the courses.",
+    "action": "Browse courses"
   }
 }
