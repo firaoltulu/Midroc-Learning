@@ -8,6 +8,9 @@ const envSchema = z.object({
   GOOGLE_APPLICATION_CREDENTIALS: z.string().optional(),
   ADMIN_EMAILS: z.string().default(''),
   PDF_ROOT: z.string().default('/var/lib/lms/pdfs'),
+  // x-accel: nginx streams the file (X-Accel-Redirect); stream: the API sends it itself.
+  // Defaults to x-accel in production and stream elsewhere (local development has no nginx).
+  PDF_DELIVERY: z.enum(['x-accel', 'stream']).optional(),
   CORS_ORIGINS: z.string().default(''),
   YOUTUBE_CHECK_INTERVAL_HOURS: z.coerce.number().min(0).default(6),
   PDF_CLEANUP_DRY_RUN: z
@@ -25,6 +28,8 @@ if (!parsed.success) {
 
 export const config = {
   ...parsed.data,
+  PDF_DELIVERY:
+    parsed.data.PDF_DELIVERY ?? (parsed.data.NODE_ENV === 'production' ? 'x-accel' : 'stream'),
   ADMIN_EMAILS: parsed.data.ADMIN_EMAILS.split(',')
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean),

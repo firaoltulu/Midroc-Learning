@@ -26,6 +26,7 @@ Set `ADMIN_EMAILS` to one or more comma-separated email addresses before the fir
 | `GOOGLE_APPLICATION_CREDENTIALS` | No | — | Firebase service-account JSON path |
 | `ADMIN_EMAILS` | No | empty | Comma-separated first-admin email addresses |
 | `PDF_ROOT` | No | `/var/lib/lms/pdfs` | Private PDF directory |
+| `PDF_DELIVERY` | No | `x-accel` in production, `stream` otherwise | `x-accel`: nginx streams PDFs via `X-Accel-Redirect`; `stream`: the API sends them itself (local development without nginx) |
 | `CORS_ORIGINS` | No | empty | Comma-separated allowed browser origins |
 | `YOUTUBE_CHECK_INTERVAL_HOURS` | No | `6` | YouTube availability-check interval; `0` disables |
 | `PDF_CLEANUP_DRY_RUN` | No | `false` | Report, but do not delete, orphaned PDFs |

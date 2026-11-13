@@ -1,6 +1,8 @@
-import { readFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import type { Server } from 'node:http';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { config } from '../src/config.js';
 import { db, setDatabaseForTests } from '../src/core/db/pool.js';
 import { asUser, buildTestApp } from './harness/app.js';
 import { createPgliteDatabase } from './harness/pglite.js';
@@ -15,6 +17,9 @@ describe('learner views', () => {
   const videoId = '568ae546-461e-49ce-95f9-f0c9d91ee6b2';
   const brokenVideoId = 'f1279187-dba8-41b8-8ba0-9c2a61e37323';
   const revisionId = '06354d62-2e96-47a6-a2a5-2155a298a4e1';
+  const pdfId = 'b6f2e4a8-1c3d-4e5f-9a7b-2c4d6e8f0a1b';
+  const fileKey = '3f6c1a2b-4d5e-4f60-8a1b-2c3d4e5f6a7b.pdf';
+  const pdfBytes = '%PDF-1.4 test document';
   let server: Server;
   let base: string;
   let closeDatabase: () => Promise<void>;
@@ -58,6 +63,13 @@ describe('learner views', () => {
        ($2, 'zyxwvutsrqp', NULL, false)`,
       [videoId, brokenVideoId]
     );
+    await db.query(
+      `INSERT INTO module_items (id, module_id, type, title, position) VALUES ($1, $2, 'pdf', 'Handbook', 2)`,
+      [pdfId, moduleId]
+    );
+    await db.query(`INSERT INTO pdf_items (item_id, file_path) VALUES ($1, $2)`, [pdfId, fileKey]);
+    await mkdir(config.PDF_ROOT, { recursive: true });
+    await writeFile(path.join(config.PDF_ROOT, fileKey), pdfBytes);
     await db.query(`INSERT INTO enrollments (user_id, course_id) VALUES ($1, $2)`, [
       learnerId,
       courseId
@@ -148,5 +160,14 @@ describe('learner views', () => {
       status: 404,
       body: { code: 'NOT_FOUND' }
     });
+  });
+
+  it('streams the PDF itself when no nginx is in front (PDF_DELIVERY=stream)', async () => {
+    expect(config.PDF_DELIVERY).toBe('stream');
+    const response = await fetch(`${base}/items/${pdfId}/pdf`, { headers: asUser(learnerId).headers });
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toBe('application/pdf');
+    expect(response.headers.get('cache-control')).toBe('private, no-store');
+    expect(await response.text()).toBe(pdfBytes);
   });
 });
