@@ -21,6 +21,9 @@ import { useAutosave } from '../hooks/use-autosave';
 import { useKeyText } from '../lib/key-text';
 import { useSaveErrorText } from '../lib/save-error';
 import { COURSE_LIMITS, tooLong } from '../model/limits';
+import { useEffectHint } from '../lib/effect-hint';
+import { fieldEffect, type FieldEffect } from '../model/field-effects';
+import { useWorkingCopy } from '../model/working-copy-store';
 import { AutosaveTextField } from './autosave-text-field';
 
 const requiredWithin = (max: number) => (value: string) =>
@@ -38,17 +41,90 @@ const thumbnailProblem = (value: string) =>
 
 /**
  * Details: title, description (plain text, counter), category, language, tags, duration and
- * thumbnail URL. Each field saves itself (text debounced, choices at once).
+ * thumbnail URL. Draft and rejected courses: each field saves itself (text debounced, choices
+ * at once). Published courses (`published`): the major fields (title, description, category,
+ * language) edit the working copy and go to review; the others still apply right away. Each
+ * field says which.
  */
-export function DetailsTab({ view, readOnly }: { view: AuthoringView; readOnly: boolean }) {
+export function DetailsTab({
+  view,
+  readOnly,
+  published = false,
+}: {
+  view: AuthoringView;
+  readOnly: boolean;
+  published?: boolean;
+}) {
   const { t } = useTranslation('editor');
+  const effectHint = useEffectHint();
   const course = view.course;
   const update = useUpdateCourse(course.id);
   const save = (patch: CoursePatch) => update.mutateAsync(patch);
   const [thumbnail, setThumbnail] = useState(course.thumbnailUrl ?? '');
+  const minor = (hint?: string) =>
+    published ? effectHint(fieldEffect('course', 'tags'), hint) : hint;
 
   return (
     <Stack spacing={3} sx={{ maxWidth: 720 }}>
+      {published ? (
+        <WorkingMajorFields readOnly={readOnly} />
+      ) : (
+        <DraftMajorFields view={view} readOnly={readOnly} save={save} />
+      )}
+      <AutosaveTextField
+        slot="course.duration"
+        label={t('details.duration')}
+        hint={minor(t('details.durationHint'))}
+        savedValue={
+          course.estimatedDurationMinutes === null ? '' : String(course.estimatedDurationMinutes)
+        }
+        save={(value) =>
+          save({ estimatedDurationMinutes: value.trim() === '' ? null : Number(value.trim()) })
+        }
+        validate={durationProblem}
+        readOnly={readOnly}
+        slotProps={{ htmlInput: { inputMode: 'numeric' } }}
+        sx={{ maxWidth: { sm: 'calc(50% - 12px)' } }}
+      />
+      <TagsField
+        savedValue={course.tags}
+        save={(tags) => save({ tags })}
+        readOnly={readOnly}
+        effect={published ? fieldEffect('course', 'tags') : undefined}
+      />
+      <Stack spacing={1.5}>
+        <ThumbnailField
+          savedValue={course.thumbnailUrl ?? ''}
+          onValueChange={setThumbnail}
+          save={(value) => save({ thumbnailUrl: value.trim() || null })}
+          readOnly={readOnly}
+          hint={minor(t('details.thumbnailHint'))}
+        />
+        <Box sx={{ width: 240, maxWidth: '100%', borderRadius: '10px', overflow: 'hidden' }}>
+          <CourseThumbnail src={thumbnail.trim() || null} />
+        </Box>
+      </Stack>
+      {course.status === 'draft' ? (
+        <DeleteCourse courseId={course.id} title={course.title} />
+      ) : null}
+    </Stack>
+  );
+}
+
+/** Draft and rejected courses: the major fields save themselves. */
+function DraftMajorFields({
+  view,
+  readOnly,
+  save,
+}: {
+  view: AuthoringView;
+  readOnly: boolean;
+  save: (patch: CoursePatch) => Promise<unknown>;
+}) {
+  const { t } = useTranslation('editor');
+  const course = view.course;
+  return (
+    <>
       <AutosaveTextField
         slot="course.title"
         label={t('details.title')}
@@ -93,37 +169,84 @@ export function DetailsTab({ view, readOnly }: { view: AuthoringView; readOnly: 
           save={(language) => save({ language })}
           readOnly={readOnly}
         />
-        <AutosaveTextField
-          slot="course.duration"
-          label={t('details.duration')}
-          hint={t('details.durationHint')}
-          savedValue={
-            course.estimatedDurationMinutes === null ? '' : String(course.estimatedDurationMinutes)
-          }
-          save={(value) =>
-            save({ estimatedDurationMinutes: value.trim() === '' ? null : Number(value.trim()) })
-          }
-          validate={durationProblem}
-          readOnly={readOnly}
-          slotProps={{ htmlInput: { inputMode: 'numeric' } }}
-        />
       </Box>
-      <TagsField savedValue={course.tags} save={(tags) => save({ tags })} readOnly={readOnly} />
-      <Stack spacing={1.5}>
-        <ThumbnailField
-          savedValue={course.thumbnailUrl ?? ''}
-          onValueChange={setThumbnail}
-          save={(value) => save({ thumbnailUrl: value.trim() || null })}
-          readOnly={readOnly}
+    </>
+  );
+}
+
+/** Published courses: the major fields edit the working copy (sent for review). */
+function WorkingMajorFields({ readOnly }: { readOnly: boolean }) {
+  const { t } = useTranslation(['editor', 'common']);
+  const effectHint = useEffectHint();
+  const course = useWorkingCopy((state) => state.copy.course);
+  const setCourse = useWorkingCopy((state) => state.setCourse);
+  const review = fieldEffect('course', 'title');
+  const counter = (value: string, max: number) => t('field.counter', { count: value.length, max });
+
+  return (
+    <>
+      <FormTextField
+        label={t('details.title')}
+        value={course.title}
+        disabled={readOnly}
+        required
+        onChange={(event) => {
+          setCourse({ title: event.target.value });
+        }}
+        errorKey={requiredWithin(COURSE_LIMITS.title)(course.title) ?? undefined}
+        hint={effectHint(review, counter(course.title, COURSE_LIMITS.title))}
+      />
+      <FormTextField
+        label={t('details.description')}
+        value={course.description}
+        disabled={readOnly}
+        multiline
+        minRows={6}
+        onChange={(event) => {
+          setCourse({ description: event.target.value });
+        }}
+        errorKey={tooLong(COURSE_LIMITS.description)(course.description) ?? undefined}
+        hint={effectHint(
+          review,
+          `${t('details.descriptionHint')} · ${counter(course.description, COURSE_LIMITS.description)}`,
+        )}
+      />
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 3,
+          gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+          alignItems: 'start',
+        }}
+      >
+        <FormTextField
+          label={t('details.category')}
+          value={course.category ?? ''}
+          disabled={readOnly}
+          onChange={(event) => {
+            setCourse({ category: event.target.value || null });
+          }}
+          errorKey={tooLong(COURSE_LIMITS.category)(course.category ?? '') ?? undefined}
+          hint={effectHint(review, t('details.categoryHint'))}
         />
-        <Box sx={{ width: 240, maxWidth: '100%', borderRadius: '10px', overflow: 'hidden' }}>
-          <CourseThumbnail src={thumbnail.trim() || null} />
-        </Box>
-      </Stack>
-      {course.status === 'draft' ? (
-        <DeleteCourse courseId={course.id} title={course.title} />
-      ) : null}
-    </Stack>
+        <TextField
+          select
+          fullWidth
+          label={t('details.language')}
+          value={course.language}
+          disabled={readOnly}
+          onChange={(event) => {
+            setCourse({ language: event.target.value === 'am' ? 'am' : 'en' });
+          }}
+          helperText={effectHint(review, t('details.languageHint'))}
+        >
+          <MenuItem value="en">{t('common:languages.en')}</MenuItem>
+          <MenuItem value="am" lang="am">
+            {t('common:languages.am')}
+          </MenuItem>
+        </TextField>
+      </Box>
+    </>
   );
 }
 
@@ -184,11 +307,13 @@ function ThumbnailField({
   save,
   onValueChange,
   readOnly,
+  hint,
 }: {
   savedValue: string;
   save: (value: string) => Promise<unknown>;
   onValueChange: (value: string) => void;
   readOnly: boolean;
+  hint: string | undefined;
 }) {
   const { t } = useTranslation('editor');
   const saveErrorText = useSaveErrorText();
@@ -204,7 +329,7 @@ function ThumbnailField({
   return (
     <FormTextField
       label={t('details.thumbnail')}
-      hint={t('details.thumbnailHint')}
+      hint={hint}
       value={value}
       disabled={readOnly}
       type="url"
@@ -267,12 +392,15 @@ function TagsField({
   savedValue,
   save,
   readOnly,
+  effect,
 }: {
   savedValue: string[];
   save: (value: string[]) => Promise<unknown>;
   readOnly: boolean;
+  effect: FieldEffect | undefined;
 }) {
   const { t } = useTranslation('editor');
+  const effectHint = useEffectHint();
   const saveErrorText = useSaveErrorText();
   const keyText = useKeyText();
   const [tags, setTags] = useState(savedValue);
@@ -323,7 +451,9 @@ function TagsField({
           {...params}
           label={t('details.tags')}
           error={Boolean(error)}
-          helperText={error ?? t('details.tagsHint', { max: COURSE_LIMITS.tags })}
+          helperText={
+            error ?? effectHint(effect, t('details.tagsHint', { max: COURSE_LIMITS.tags }))
+          }
         />
       )}
     />

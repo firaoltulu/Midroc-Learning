@@ -1488,8 +1488,24 @@ export interface paths {
                         "application/json": components["schemas"]["Error"];
                     };
                 };
-                422: components["responses"]["MediaRejected"];
-                502: components["responses"]["YoutubeUnreachable"];
+                /** @description `VIDEO_INVALID_LINK`, `VIDEO_UNAVAILABLE` or `PDF_INVALID` for one item of the proposed tree; `params.moduleIndex` and `params.itemIndex` locate it. */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description `YOUTUBE_UNREACHABLE` while verifying a video; `params.moduleIndex` and `params.itemIndex` locate it. */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
                 default: components["responses"]["Error"];
             };
         };

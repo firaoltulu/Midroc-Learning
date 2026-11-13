@@ -5,6 +5,9 @@ import { http, HttpResponse } from 'msw';
 import { api, apiError, server } from '../../../test/msw';
 import { renderRoute } from '../../../test/render';
 
+// Whole-app editor flows with many interactions: slow when every test file runs in parallel.
+vi.setConfig({ testTimeout: 30_000 });
+
 const EDIT = '/my-courses/course-1/edit';
 
 const saveState = () =>

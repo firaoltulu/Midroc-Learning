@@ -28,6 +28,8 @@ export const authoringKeys = {
   all: ['authoring'] as const,
   /** GET /courses/:id/authoring (full tree, including correct answers). */
   course: (courseId: string) => [...authoringKeys.all, courseId] as const,
+  /** GET /courses/:id/revision (a published course's pending changes, with answers). */
+  revision: (courseId: string) => [...authoringKeys.course(courseId), 'revision'] as const,
 };
 
 export const myCourseKeys = {

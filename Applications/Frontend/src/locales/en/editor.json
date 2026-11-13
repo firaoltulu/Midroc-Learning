@@ -15,7 +15,6 @@
     "rejected": "A reviewer returned this course for changes. Edit it, then submit it again.",
     "reason": "Reviewer's note: {{reason}}",
     "pendingReview": "This course is waiting for review, so it can't be edited until the review is done.",
-    "published": "This course is published. Editing published courses isn't available yet, so this view is read-only.",
     "archived": "This course is archived and can't be edited."
   },
   "save": {
@@ -218,5 +217,107 @@
     "title": "Delete {{title}}?",
     "body": "The course, its modules, items and exam questions are deleted for good.",
     "done": "{{title}} was deleted."
+  },
+  "working": {
+    "intro": "This course is live. Edits that need review stay in your working copy, saved in this browser, until you submit them. Fields marked “Applies right away” change the live course at once.",
+    "pending": "You have changes waiting for review (sent {{date}}). Learners see the published version until they're approved.",
+    "lastRejected": "Your last changes weren't approved. Edit them and submit again.",
+    "withdraw": "Withdraw changes",
+    "withdrawTitle": "Withdraw the changes waiting for review?",
+    "withdrawBody": "The reviewer won't see them anymore, and your working copy goes back to the live course.",
+    "withdrawn": "Changes withdrawn.",
+    "discard": "Discard edits",
+    "discardTitle": "Discard your unsubmitted edits?",
+    "discardBody": "The working copy goes back to what was last sent for review, or to the live course.",
+    "discardedOnLoad": "This course changed since you last edited it in this browser, so those unsubmitted edits were discarded.",
+    "submit": "Submit changes for review",
+    "submitted": "Changes sent for review.",
+    "effect": {
+      "immediate": "Applies right away",
+      "review": "Needs admin review"
+    },
+    "untitled": "Untitled",
+    "new": "New",
+    "newModuleLabel": "New module {{number}}",
+    "newItemLabel": "New {{type}}",
+    "module": "Module",
+    "addHint": "It's added to your working copy and goes live once your changes are approved.",
+    "emptyTree": "Add a module to start. It goes live once your changes are approved.",
+    "structureHint": "Moving or removing needs admin review.",
+    "removeModule": "Remove module",
+    "removeItem": "Remove item",
+    "linkCheckedOnSubmit": "Checked with YouTube when you submit your changes.",
+    "videoPending": "New link, checked when you submit",
+    "bar": {
+      "label": "Your changes",
+      "none": "No changes yet",
+      "count_one": "{{count}} change",
+      "count_other": "{{count}} changes",
+      "waiting_one": "{{count}} change waiting for review",
+      "waiting_other": "{{count}} changes waiting for review"
+    },
+    "counts": {
+      "added": "{{count}} added",
+      "removed": "{{count}} removed",
+      "moved": "{{count}} moved",
+      "edited": "{{count}} edited",
+      "reordered": "{{count}} reordered"
+    },
+    "outcome": {
+      "problems": "Some things need fixing before you can submit.",
+      "showProblems": "Show what to fix",
+      "unchanged": "Nothing to review: your copy matches the live course.",
+      "showItem": "Show the item"
+    },
+    "problems": {
+      "noModules": "Add at least one module.",
+      "moduleTitle": "Give the module a title.",
+      "emptyModule": "Add an item, or remove the module.",
+      "itemTitle": "Give the item a title.",
+      "serverItem": "Fix this before submitting"
+    },
+    "stale": {
+      "body": "This course changed while you were editing. Your edits are still here; load the latest version when you're ready.",
+      "keep": "Keep my edits",
+      "reload": "Load the latest version",
+      "reloadTitle": "Load the latest version?",
+      "reloadBody": "Your unsubmitted edits are discarded and the editor shows the course as it is now."
+    },
+    "change": {
+      "courseEdited": "Edited the course details",
+      "modulesReordered": "Changed the order of the modules",
+      "movedTo": "Moved “{{title}}” to “{{module}}”",
+      "added": {
+        "module": "Added the module “{{title}}”",
+        "item": "Added “{{title}}”"
+      },
+      "removed": {
+        "module": "Removed the module “{{title}}”",
+        "item": "Removed “{{title}}”"
+      },
+      "moved": {
+        "module": "Moved the module “{{title}}”",
+        "item": "Moved “{{title}}”"
+      },
+      "edited": {
+        "module": "Edited the module “{{title}}”",
+        "item": "Edited “{{title}}”"
+      },
+      "reordered": {
+        "module": "Changed the order of items in “{{title}}”",
+        "item": "Reordered “{{title}}”"
+      }
+    },
+    "review": {
+      "changesTitle": "Changes compared with the live course",
+      "noChanges": "Nothing has changed yet.",
+      "problemsTitle": "Fix before submitting",
+      "problemsBody": "These would stop your changes from being accepted.",
+      "problemsAfterSubmit": "Your changes weren't sent. Fix these first.",
+      "problemOf": "{{title}}: {{problem}}",
+      "show": "Show",
+      "sentTitle": "Sent for review",
+      "sentBody": "The reviewer sees these changes. Learners see the published version until they're approved."
+    }
   }
 }

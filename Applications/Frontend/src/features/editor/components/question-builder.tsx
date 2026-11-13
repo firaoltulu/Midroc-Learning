@@ -14,7 +14,7 @@ import Radio from '@mui/material/Radio';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FormTextField } from '../../../shared/ui/form-text-field';
 import { useReplaceQuestions } from '../api/authoring';
@@ -62,19 +62,14 @@ export function QuestionBuilder({
   item: AuthoringItem;
   readOnly: boolean;
 }) {
-  const { t } = useTranslation('editor');
-  const keyText = useKeyText();
   const saveErrorText = useSaveErrorText();
   const replace = useReplaceQuestions(courseId);
   const initial = useMemo(() => fromAuthoring(item.questions ?? []), [item.questions]);
   const [drafts, setDrafts] = useState(initial);
-  // Questions the author has left at least once: only these show their problems.
-  const [touched, setTouched] = useState<ReadonlySet<string>>(new Set());
   // Ids the server assigned to new entries, by client key: read synchronously when sending,
   // so a save that follows another one never sends a saved question again as new.
   const knownIds = useRef(new Map<string, string>());
 
-  const problems = useMemo(() => validateQuestions(drafts), [drafts]);
   const { serverError } = useAutosave({
     slot: `item:${item.id}.questions`,
     value: drafts,
@@ -108,6 +103,52 @@ export function QuestionBuilder({
     disabled: readOnly,
   });
 
+  return (
+    <QuestionList
+      id={item.id}
+      drafts={drafts}
+      onChange={setDrafts}
+      readOnly={readOnly}
+      notice={
+        serverError ? (
+          <Alert severity="error" variant="outlined">
+            {saveErrorText(serverError)}
+          </Alert>
+        ) : null
+      }
+    />
+  );
+}
+
+/**
+ * The question list itself (no saving): add, remove and reorder questions; 2–10 answers
+ * each, single answer (radio) or multiple answers (checkboxes) with "mark correct"; points.
+ * A question shows its problems once the author has left it, or all at once with
+ * `showAllProblems` (e.g. after trying to submit).
+ */
+export function QuestionList({
+  id,
+  drafts,
+  onChange,
+  readOnly,
+  notice,
+  showAllProblems = false,
+}: {
+  /** Unique per exam (heading ids). */
+  id: string;
+  drafts: QuestionDraft[];
+  onChange: (update: (drafts: QuestionDraft[]) => QuestionDraft[]) => void;
+  readOnly: boolean;
+  notice?: ReactNode;
+  showAllProblems?: boolean;
+}) {
+  const { t } = useTranslation('editor');
+  const keyText = useKeyText();
+  const setDrafts = onChange;
+  // Questions the author has left at least once: only these show their problems.
+  const [touched, setTouched] = useState<ReadonlySet<string>>(new Set());
+  const problems = useMemo(() => validateQuestions(drafts), [drafts]);
+
   const update = (key: string, change: (question: QuestionDraft) => QuestionDraft) => {
     setDrafts((current) =>
       current.map((question) => (question.key === key ? change(question) : question)),
@@ -119,9 +160,9 @@ export function QuestionBuilder({
   };
 
   return (
-    <Stack spacing={2} component="section" aria-labelledby={`questions-${item.id}`}>
+    <Stack spacing={2} component="section" aria-labelledby={`questions-${id}`}>
       <Stack direction="row" sx={{ alignItems: 'baseline', justifyContent: 'space-between' }}>
-        <Typography id={`questions-${item.id}`} variant="h4" component="h3">
+        <Typography id={`questions-${id}`} variant="h4" component="h3">
           {t('questions.title')}
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -134,15 +175,12 @@ export function QuestionBuilder({
           {t('questions.empty')}
         </Alert>
       ) : null}
-      {serverError ? (
-        <Alert severity="error" variant="outlined">
-          {saveErrorText(serverError)}
-        </Alert>
-      ) : null}
+      {notice}
 
       <Stack component="ol" spacing={2} sx={{ listStyle: 'none', p: 0, m: 0 }}>
         {drafts.map((question, index) => {
-          const shown = touched.has(question.key) ? problems.get(question.key) : undefined;
+          const shown =
+            showAllProblems || touched.has(question.key) ? problems.get(question.key) : undefined;
           const number = index + 1;
           const choicesProblemId = `${question.key}-choices-problem`;
           const Control = question.isMultiple ? Checkbox : Radio;

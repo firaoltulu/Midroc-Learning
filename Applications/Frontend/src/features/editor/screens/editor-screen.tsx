@@ -20,14 +20,17 @@ import type { AuthoringView } from '../api/schemas';
 import { ContentTab, type Selection } from '../components/content-tab';
 import { DetailsTab } from '../components/details-tab';
 import { ReviewTab } from '../components/review-tab';
+import { PublishedEditor } from '../components/published/published-editor';
+import { WorkingContentTab } from '../components/published/working-content-tab';
+import { WorkingReviewTab } from '../components/published/working-review-tab';
 import { SaveIndicator } from '../components/save-indicator';
 import { createSaveTracker, SaveTrackerContext } from '../model/save-tracker';
 import { EDITOR_TABS, type EditorTab } from '../schemas/editor-search';
 
 /**
- * /my-courses/$courseId/edit for draft and rejected courses: Details, Content and Review,
- * saving as the author goes. In review, published (editing arrives with the working copy) or
- * archived, the same screens are read-only with a banner saying why.
+ * /my-courses/$courseId/edit: Details, Content and Review. Draft and rejected courses save as
+ * the author goes; published courses are edited in a working copy and submitted for review
+ * (PublishedEditor). In review or archived, the screens are read-only with a banner saying why.
  */
 export function EditorScreen({
   courseId,
@@ -89,7 +92,56 @@ export function EditorScreen({
 
   const view = authoring.data;
   const status = view.course.status;
-  const readOnly = status !== 'draft' && status !== 'rejected';
+  const published = status === 'published';
+  const readOnly = status !== 'draft' && status !== 'rejected' && !published;
+
+  const tabs = (
+    <>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs
+          value={tab}
+          onChange={(_event, next: EditorTab) => {
+            onTabChange(next);
+          }}
+          aria-label={t('tabs.label')}
+          variant="scrollable"
+          allowScrollButtonsMobile
+        >
+          {EDITOR_TABS.map((value) => (
+            <Tab
+              key={value}
+              value={value}
+              label={t(`tabs.${value}`)}
+              id={`editor-tab-${value}`}
+              aria-controls={`editor-panel-${value}`}
+            />
+          ))}
+        </Tabs>
+      </Box>
+      <Box role="tabpanel" id={`editor-panel-${tab}`} aria-labelledby={`editor-tab-${tab}`}>
+        {published ? (
+          tab === 'details' ? (
+            <DetailsTab view={view} readOnly={false} published />
+          ) : tab === 'content' ? (
+            <WorkingContentTab courseId={courseId} readOnly={false} />
+          ) : (
+            <WorkingReviewTab />
+          )
+        ) : tab === 'details' ? (
+          <DetailsTab view={view} readOnly={readOnly} />
+        ) : tab === 'content' ? (
+          <ContentTab
+            view={view}
+            readOnly={readOnly}
+            selection={selection}
+            onSelect={setSelection}
+          />
+        ) : (
+          <ReviewTab view={view} readOnly={readOnly} onGoToTab={onTabChange} />
+        )}
+      </Box>
+    </>
+  );
 
   return (
     <SaveTrackerContext value={tracker}>
@@ -117,44 +169,14 @@ export function EditorScreen({
         />
       </Stack>
 
-      <Stack spacing={3}>
-        <StatusBanner view={view} />
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs
-            value={tab}
-            onChange={(_event, next: EditorTab) => {
-              onTabChange(next);
-            }}
-            aria-label={t('tabs.label')}
-            variant="scrollable"
-            allowScrollButtonsMobile
-          >
-            {EDITOR_TABS.map((value) => (
-              <Tab
-                key={value}
-                value={value}
-                label={t(`tabs.${value}`)}
-                id={`editor-tab-${value}`}
-                aria-controls={`editor-panel-${value}`}
-              />
-            ))}
-          </Tabs>
-        </Box>
-        <Box role="tabpanel" id={`editor-panel-${tab}`} aria-labelledby={`editor-tab-${tab}`}>
-          {tab === 'details' ? (
-            <DetailsTab view={view} readOnly={readOnly} />
-          ) : tab === 'content' ? (
-            <ContentTab
-              view={view}
-              readOnly={readOnly}
-              selection={selection}
-              onSelect={setSelection}
-            />
-          ) : (
-            <ReviewTab view={view} readOnly={readOnly} onGoToTab={onTabChange} />
-          )}
-        </Box>
-      </Stack>
+      {published ? (
+        <PublishedEditor view={view} renderTabs={() => tabs} onTabChange={onTabChange} />
+      ) : (
+        <Stack spacing={3}>
+          <StatusBanner view={view} />
+          {tabs}
+        </Stack>
+      )}
     </SaveTrackerContext>
   );
 }
@@ -188,11 +210,8 @@ function StatusBanner({ view }: { view: AuthoringView }) {
         </Alert>
       );
     case 'published':
-      return (
-        <Alert severity="info" variant="outlined">
-          {t('banner.published')}
-        </Alert>
-      );
+      // The published editor shows its own banners.
+      return null;
     case 'archived':
       return (
         <Alert severity="info" variant="outlined">

@@ -28,13 +28,35 @@ export interface RecordedRequest {
   body: unknown;
 }
 
+/** The revision state of course-1 (GET /courses/course-1/revision). */
+export interface MockRevisionState {
+  revision: {
+    id: string;
+    courseId: string;
+    status: 'pending';
+    submittedAt: string;
+    data: { course: Record<string, unknown>; modules?: unknown[] };
+  } | null;
+  lastDecision: {
+    id: string;
+    status: 'approved' | 'rejected';
+    reason: string | null;
+    reviewedAt: string | null;
+  } | null;
+}
+
 /**
  * A stateful mock of the authoring endpoints for course-1 (the editor's granular saves):
  * changes are applied to `state`, so refetches show them, and every write is recorded.
  * `failNext(method, pathPattern, response)` makes the next matching write fail.
  */
-export function mockAuthoringApi(initial: object = authoringFixture()) {
+export function mockAuthoringApi(
+  initial: object = authoringFixture(),
+  revisionState: MockRevisionState = { revision: null, lastDecision: null },
+) {
   const state = structuredClone(initial) as View;
+  const revision: MockRevisionState = structuredClone(revisionState);
+  let revisionCount = 0;
   const requests: RecordedRequest[] = [];
   const failures: { method: string; pattern: RegExp; response: () => Response }[] = [];
   let counter = 0;
@@ -69,6 +91,37 @@ export function mockAuthoringApi(initial: object = authoringFixture()) {
       if (failed) return failed;
       Object.assign(state.course, await request.json());
       return HttpResponse.json(state.course);
+    }),
+    http.get(api('/courses/course-1/revision'), () => HttpResponse.json(revision)),
+    http.put(api('/courses/course-1/revision'), async ({ request }) => {
+      const failed = await record(request);
+      if (failed) return failed;
+      const body = (await request.json()) as {
+        course: Record<string, unknown>;
+        modules: unknown[];
+      };
+      revisionCount += 1;
+      revision.revision = {
+        id: `revision-${String(revisionCount)}`,
+        courseId: 'course-1',
+        status: 'pending',
+        submittedAt: '2026-11-14T09:00:00.000Z',
+        data: { course: { title: body.course.title }, modules: body.modules },
+      };
+      return HttpResponse.json({
+        saved: true,
+        unchanged: false,
+        revision: revision.revision,
+        changes: [
+          { kind: 'edited', target: 'course', title: String(body.course.title), fields: ['title'] },
+        ],
+      });
+    }),
+    http.delete(api('/courses/course-1/revision'), async ({ request }) => {
+      const failed = await record(request);
+      if (failed) return failed;
+      revision.revision = null;
+      return new HttpResponse(null, { status: 204 });
     }),
     http.delete(api('/courses/course-1'), async ({ request }) => {
       const failed = await record(request);
@@ -196,6 +249,7 @@ export function mockAuthoringApi(initial: object = authoringFixture()) {
 
   return {
     state,
+    revision,
     requests,
     /** Writes matching method + path (after /api), in order. */
     writes: (method: string, pattern: RegExp) =>
