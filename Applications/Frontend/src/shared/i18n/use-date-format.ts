@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useSyncExternalStore } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   formatDate,
   formatDateTime,
@@ -55,7 +56,12 @@ export function useCalendarPreference() {
 export function useDateFormat() {
   const language = useLanguage();
   const [calendar] = useCalendarPreference();
-  const context = useMemo(() => ({ language, calendar }), [language, calendar]);
+  const { t } = useTranslation('common');
+  const ethiopicEra = t('dates.ethiopicEra');
+  const context = useMemo(
+    () => ({ language, calendar, ethiopicEra }),
+    [language, calendar, ethiopicEra],
+  );
 
   return {
     formatDate: useCallback((input: DateInput) => formatDate(input, context), [context]),

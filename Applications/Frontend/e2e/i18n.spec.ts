@@ -78,7 +78,7 @@ test.describe('long Amharic strings', () => {
       expect(await noHorizontalOverflow(page)).toBe(true);
 
       // Ethiopian calendar dates on the design page, with Latin digits.
-      await expect(page.getByText('4 ኅዳር 2019', { exact: true })).toBeVisible();
+      await expect(page.getByText('4 ኅዳር 2019 ዓ.ም.', { exact: true })).toBeVisible();
 
       // The long button label wraps inside its panel instead of being clipped.
       const button = page.getByRole('button', { name: 'ሁሉንም ለውጦች ለአስተዳዳሪ ግምገማ አስገባ' }).first();

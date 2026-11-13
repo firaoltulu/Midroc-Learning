@@ -26,6 +26,9 @@
     "light": "ብሩህ",
     "dark": "ጨለማ"
   },
+  "dates": {
+    "ethiopicEra": "ዓ.ም."
+  },
   "language": {
     "menuLabel": "ቋንቋ፦ {{language}}"
   },

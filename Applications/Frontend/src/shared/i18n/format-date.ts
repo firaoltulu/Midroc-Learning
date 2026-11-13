@@ -10,6 +10,11 @@ export interface DateFormatContext {
   calendar?: CalendarPreference;
   /** IANA zone; defaults to the browser's. Tests pin it for stable output. */
   timeZone?: string;
+  /**
+   * Translated era marker shown after Ethiopian-calendar years (common:dates.ethiopicEra,
+   * "ዓ.ም." / "E.C."). useDateFormat supplies it; omit it for no marker.
+   */
+  ethiopicEra?: string;
 }
 
 export type DateInput = Date | string | number;
@@ -57,19 +62,20 @@ function toDate(input: DateInput): Date | null {
 }
 
 /**
- * Some ICU versions print a placeholder era ("ERA1") for the Ethiopian calendar; the era is
- * implied in everyday use, so drop it together with the separator before it.
+ * Ethiopian dates carry an era marker after the year ("4 ኅዳር 2019 ዓ.ም."). ICU is not
+ * reliable here: some versions print a placeholder ("ERA1"), others omit the era. So any
+ * era ICU produces is dropped (with the separator before it) and the translated marker is
+ * placed right after the year.
  */
-function withoutEra(parts: Intl.DateTimeFormatPart[]): string {
-  const kept = parts.filter((part, index) => {
-    if (part.type === 'era') return false;
-    return !(part.type === 'literal' && parts[index + 1]?.type === 'era');
+function withEthiopicEra(parts: Intl.DateTimeFormatPart[], era: string | undefined): string {
+  const text: string[] = [];
+  parts.forEach((part, index) => {
+    if (part.type === 'era') return;
+    if (part.type === 'literal' && parts[index + 1]?.type === 'era') return;
+    text.push(part.value);
+    if (part.type === 'year' && era) text.push(` ${era}`);
   });
-  return kept
-    .map((part) => part.value)
-    .join('')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return text.join('').replace(/\s+/g, ' ').trim();
 }
 
 function format(input: DateInput, context: DateFormatContext, options: Intl.DateTimeFormatOptions) {
@@ -82,7 +88,7 @@ function format(input: DateInput, context: DateFormatContext, options: Intl.Date
       ...(context.timeZone ? { timeZone: context.timeZone } : {}),
     });
     return calendar === 'ethiopic'
-      ? withoutEra(formatter.formatToParts(date))
+      ? withEthiopicEra(formatter.formatToParts(date), context.ethiopicEra)
       : formatter.format(date);
   } catch {
     // Last resort: an unambiguous ISO date rather than nothing.
@@ -93,12 +99,12 @@ function format(input: DateInput, context: DateFormatContext, options: Intl.Date
   }
 }
 
-/** e.g. "Nov 13, 2026" / "4 ኅዳር 2019". Invalid input returns an empty string. */
+/** e.g. "Nov 13, 2026" / "4 ኅዳር 2019 ዓ.ም.". Invalid input returns an empty string. */
 export function formatDate(input: DateInput, context: DateFormatContext): string {
   return format(input, context, DATE);
 }
 
-/** e.g. "Nov 13, 2026, 9:30 AM" / "4 ኅዳር 2019 9:30 ጥዋት". */
+/** e.g. "Nov 13, 2026, 9:30 AM" / "4 ኅዳር 2019 ዓ.ም. 9:30 ጥዋት". */
 export function formatDateTime(input: DateInput, context: DateFormatContext): string {
   return format(input, context, DATE_TIME);
 }

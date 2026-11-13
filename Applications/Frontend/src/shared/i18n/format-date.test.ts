@@ -46,18 +46,35 @@ describe('Ethiopian (Amharic)', () => {
     expect(supportsEthiopicCalendar()).toBe(true);
   });
 
-  it('formats 13 Nov 2026 as 4 Hedar 2019 with Latin digits and no era placeholder', () => {
+  const amEra = { ...utc, ethiopicEra: 'ዓ.ም.' };
+
+  it('formats 13 Nov 2026 as 4 Hedar 2019 ዓ.ም. with Latin digits', () => {
+    expect(formatDate(sample, { language: 'am', ...amEra })).toBe('4 ኅዳር 2019 ዓ.ም.');
+    expect(formatDateTime(sample, { language: 'am', ...amEra })).toBe('4 ኅዳር 2019 ዓ.ም. 9:30 ጥዋት');
+  });
+
+  it('never shows ICU placeholder eras, and omits the marker when none is given', () => {
     expect(formatDate(sample, { language: 'am', ...utc })).toBe('4 ኅዳር 2019');
-    expect(formatDateTime(sample, { language: 'am', ...utc })).toBe('4 ኅዳር 2019 9:30 ጥዋት');
+    expect(formatDate(sample, { language: 'en', calendar: 'ethiopian', ...utc })).not.toMatch(
+      /ERA/,
+    );
   });
 
   it('can show Gregorian dates in Amharic and Ethiopian dates in English', () => {
-    expect(formatDate(sample, { language: 'am', calendar: 'gregorian', ...utc })).toBe(
+    expect(formatDate(sample, { language: 'am', calendar: 'gregorian', ...amEra })).toBe(
       '13 ኖቬም 2026',
     );
-    expect(formatDate(sample, { language: 'en', calendar: 'ethiopian', ...utc })).toBe(
-      'Hedar 4, 2019',
-    );
+    expect(
+      formatDate(sample, { language: 'en', calendar: 'ethiopian', ...utc, ethiopicEra: 'E.C.' }),
+    ).toBe('Hedar 4, 2019 E.C.');
+    expect(
+      formatDateTime(sample, {
+        language: 'en',
+        calendar: 'ethiopian',
+        ...utc,
+        ethiopicEra: 'E.C.',
+      }),
+    ).toBe('Hedar 4, 2019 E.C., 9:30 AM');
   });
 });
 

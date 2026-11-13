@@ -26,6 +26,9 @@
     "light": "Light",
     "dark": "Dark"
   },
+  "dates": {
+    "ethiopicEra": "E.C."
+  },
   "language": {
     "menuLabel": "Language: {{language}}"
   },
