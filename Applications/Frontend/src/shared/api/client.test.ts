@@ -200,22 +200,22 @@ describe('typed errors', () => {
     expect(error).toMatchObject({ status: 409, code: 'LOCKED', params: { status: 'x' } });
   });
 
-  it("normalizes the backend's zod issues (values inline, English message dropped)", async () => {
+  it('reads validation issues (VALIDATION_FAILED), dropping the English message', async () => {
     fakeAuth();
     server.use(
       http.post(api('/courses'), () =>
         HttpResponse.json(
           {
             error: 'Validation failed',
+            code: 'VALIDATION_FAILED',
             issues: [
               {
-                origin: 'string',
-                code: 'too_small',
-                minimum: 3,
-                inclusive: true,
                 path: ['title'],
+                code: 'too_small',
                 message: 'Too small: expected string to have >=3 characters',
+                params: { origin: 'string', minimum: 3, inclusive: true },
               },
+              { path: [0, 'choices'], code: 'CORRECT_CHOICE_REQUIRED', message: 'x', params: {} },
             ],
           },
           { status: 400 },
@@ -225,30 +225,24 @@ describe('typed errors', () => {
     const error = (await apiRequest('/courses', { method: 'POST', body: {} }).catch(
       (thrown: unknown) => thrown,
     )) as ApiError;
-    expect(error.code).toBeUndefined();
+    expect(error.code).toBe('VALIDATION_FAILED');
     expect(error.issues).toEqual([
       {
         path: ['title'],
         code: 'too_small',
         params: { origin: 'string', minimum: 3, inclusive: true },
       },
+      { path: [0, 'choices'], code: 'CORRECT_CHOICE_REQUIRED', params: {} },
     ]);
   });
 
-  it('keeps non-field issues (e.g. a problems list) apart', () => {
+  it('reads params, e.g. the problems of COURSE_INCOMPLETE', () => {
     const error = new ApiError(422, {
       error: 'Course is incomplete',
-      issues: ['Course must contain at least one module'],
+      code: 'COURSE_INCOMPLETE',
+      params: { problems: ['DESCRIPTION_REQUIRED', 'NO_MODULES'] },
     });
-    expect(error.issues).toEqual([]);
-    expect(error.details).toEqual(['Course must contain at least one module']);
-  });
-
-  it.each([
-    ['TIME_EXCEEDED', 'EXAM_TIME_EXCEEDED'],
-    ['STALE', 'STALE_REVISION'],
-  ])('reads the backend code %s as the spec code %s', (sent, expected) => {
-    expect(new ApiError(409, { error: 'x', code: sent }).code).toBe(expected);
+    expect(error.params).toEqual({ problems: ['DESCRIPTION_REQUIRED', 'NO_MODULES'] });
   });
 
   it('a 429 with a plain-text body is RATE_LIMITED', async () => {

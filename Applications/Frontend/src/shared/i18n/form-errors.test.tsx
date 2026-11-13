@@ -52,17 +52,18 @@ function CourseForm({
   );
 }
 
-const issue = (path: ApiIssue['path'], code: string, extra: object = {}) => ({
+const issue = (path: ApiIssue['path'], code: string, params: object = {}) => ({
   path,
   code,
   message: 'English text from the server',
-  ...extra,
+  params,
 });
 
 describe('useApplyApiIssues', () => {
   it('puts translated messages on the matching fields and focuses the first', async () => {
     const error = new ApiError(400, {
       error: 'Validation failed',
+      code: 'VALIDATION_FAILED',
       issues: [
         issue(['title'], 'too_small', { origin: 'string', minimum: 3 }),
         issue(['summary'], 'too_big', { origin: 'string', maximum: 500 }),

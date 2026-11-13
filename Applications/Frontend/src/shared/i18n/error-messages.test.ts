@@ -1,4 +1,6 @@
+import openapi from '../../../reference/openapi.yaml?raw';
 import enErrors from '../../locales/en/errors.json';
+import enValidation from '../../locales/en/validation.json';
 import { ApiError, NetworkError, type ApiIssue } from '../api/errors';
 import { translateError, translateIssue } from './error-messages';
 import { i18n, setLanguage } from './setup';
@@ -29,32 +31,53 @@ describe('translateError', () => {
     );
   });
 
-  it('has a message for every code the spec lists', () => {
-    const specCodes = [
-      'LOCKED',
-      'REVISION_REQUIRED',
-      'STALE_REVISION',
-      'NOT_PUBLISHED',
-      'ATTEMPTS_EXHAUSTED',
-      'EXAM_TIME_EXCEEDED',
-      'COURSE_INCOMPLETE',
-      'VIDEO_INVALID_LINK',
-      'VIDEO_UNAVAILABLE',
-      'YOUTUBE_UNREACHABLE',
-      'PDF_INVALID',
-      'SELF_CHANGE_FORBIDDEN',
-      'LAST_ADMIN',
-      'ACCOUNT_SUSPENDED',
-      'RATE_LIMITED',
-      'ALREADY_DECIDED',
-    ];
-    expect(Object.keys(enErrors.codes).sort()).toEqual([...specCodes].sort());
-  });
-
-  it("translates the backend's own names for spec codes", () => {
-    expect(translateError(i18n, err(410, { code: 'TIME_EXCEEDED' }))).toBe(
-      enErrors.codes.EXAM_TIME_EXCEEDED,
+  describe('covers the contract (reference/openapi.yaml)', () => {
+    // Codes whose HTTP-status message is the right one (no dedicated text).
+    const statusFallback = new Set([
+      'BAD_REQUEST',
+      'MALFORMED_JSON',
+      'VALIDATION_FAILED', // "Some fields need attention" + the field messages
+      'UNAUTHENTICATED',
+      'INVALID_TOKEN',
+      'FORBIDDEN',
+      'NOT_FOUND',
+      'CONFLICT',
+      'GONE',
+      'UNPROCESSABLE',
+      'PAYLOAD_TOO_LARGE',
+      'INTERNAL_ERROR',
+      'UPSTREAM_UNAVAILABLE',
+    ]);
+    // COURSE_INCOMPLETE problem codes: translated by the editor's readiness checklist.
+    const readinessProblems = new Set([
+      'DESCRIPTION_REQUIRED',
+      'NO_MODULES',
+      'EMPTY_MODULE',
+      'EMPTY_EXAM',
+    ]);
+    const contractCodes = new Set(
+      [...openapi.matchAll(/`([A-Z][A-Z_]{2,})`/g)].map((match) => match[1] ?? ''),
     );
+    const errorCodes = Object.keys(enErrors.codes);
+    const validationCodes = Object.keys(enValidation).filter((key) => /^[A-Z_]+$/.test(key));
+
+    it('every documented code has a message or a deliberate fallback', () => {
+      const missing = [...contractCodes].filter(
+        (code) =>
+          !errorCodes.includes(code) &&
+          !validationCodes.includes(code) &&
+          !statusFallback.has(code) &&
+          !readinessProblems.has(code),
+      );
+      expect(missing).toEqual([]);
+    });
+
+    it('every message belongs to a documented code', () => {
+      const unknown = [...errorCodes, ...validationCodes].filter(
+        (code) => !contractCodes.has(code),
+      );
+      expect(unknown).toEqual([]);
+    });
   });
 
   describe('unknown or missing codes fall back', () => {
@@ -80,7 +103,10 @@ describe('translateError', () => {
     });
 
     it('a 400 with validation issues → "some fields need attention"', () => {
-      const error = err(400, { issues: [{ code: 'too_small', path: ['title'], minimum: 3 }] });
+      const error = err(400, {
+        code: 'VALIDATION_FAILED',
+        issues: [{ code: 'too_small', path: ['title'], params: { minimum: 3 } }],
+      });
       expect(translateError(i18n, error)).toBe(enErrors.invalidInput);
     });
 

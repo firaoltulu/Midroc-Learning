@@ -11,6 +11,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Liveness and database check */
         get: {
             parameters: {
                 query?: never;
@@ -25,8 +26,14 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": {
+                            /** @constant */
+                            status: "ok";
+                        };
+                    };
                 };
+                default: components["responses"]["Error"];
             };
         };
         put?: never;
@@ -44,6 +51,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * The signed-in user's profile (created on first call)
+         * @description `role` and `status` come from the database and are authoritative. A suspended account is refused here (and on every other endpoint) with 403 `ACCOUNT_SUSPENDED`.
+         */
         get: {
             parameters: {
                 query?: never;
@@ -53,27 +64,90 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Current database-backed user profile. */
+                /** @description Current user. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["User"];
+                    };
                 };
-                /** @description Missing or invalid Firebase token. */
-                401: {
+                default: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/courses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Courses I own (any status), most recently updated first */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Owned courses. */
+                200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["Course"][];
+                    };
                 };
-                /** @description The account is suspended (`code: ACCOUNT_SUSPENDED`; returned by every authenticated endpoint), or the token has no email address (no code). */
-                403: {
+                default: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/enrollments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My enrollments with progress, most recent first */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Enrollments. */
+                200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["Enrollment"][];
+                    };
                 };
+                default: components["responses"]["Error"];
             };
         };
         put?: never;
@@ -91,14 +165,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Published course catalog */
         get: {
             parameters: {
                 query?: {
                     page?: components["parameters"]["Page"];
                     pageSize?: components["parameters"]["PageSize"];
+                    /** @description Title search (case-insensitive substring). */
                     q?: string;
                     category?: string;
-                    language?: "en" | "am";
+                    language?: components["schemas"]["CourseLanguage"];
                 };
                 header?: never;
                 path?: never;
@@ -106,16 +182,20 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Published course catalog. */
+                /** @description A page of published courses. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["CatalogPage"];
+                    };
                 };
+                default: components["responses"]["Error"];
             };
         };
         put?: never;
+        /** Create a draft course */
         post: {
             parameters: {
                 query?: never;
@@ -134,15 +214,11 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
-                };
-                /** @description Invalid or unknown input fields. */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
+                    content: {
+                        "application/json": components["schemas"]["Course"];
                     };
-                    content?: never;
                 };
+                default: components["responses"]["Error"];
             };
         };
         delete?: never;
@@ -158,6 +234,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Categories used by published courses */
         get: {
             parameters: {
                 query?: never;
@@ -167,7 +244,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Categories used by published courses. */
+                /** @description Category names, sorted. */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -178,6 +255,7 @@ export interface paths {
                         };
                     };
                 };
+                default: components["responses"]["Error"];
             };
         };
         put?: never;
@@ -193,45 +271,47 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                id: components["parameters"]["Uuid"];
+                id: components["parameters"]["Id"];
             };
             cookie?: never;
         };
+        /**
+         * Course detail with its outline (no video ids, file keys or answers)
+         * @description Published courses for everyone; other statuses only for the owner and administrators (otherwise `NOT_FOUND`).
+         */
         get: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    id: components["parameters"]["Uuid"];
+                    id: components["parameters"]["Id"];
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Course detail and safe item metadata. */
+                /** @description Course detail. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
-                };
-                /** @description Course not found or not permitted. */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
+                    content: {
+                        "application/json": components["schemas"]["CourseDetail"];
                     };
-                    content?: never;
                 };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
             };
         };
         put?: never;
         post?: never;
+        /** Delete a course (archived instead when it has enrollments) */
         delete: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    id: components["parameters"]["Uuid"];
+                    id: components["parameters"]["Id"];
                 };
                 cookie?: never;
             };
@@ -244,49 +324,51 @@ export interface paths {
                     };
                     content?: never;
                 };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
             };
         };
         options?: never;
         head?: never;
+        /**
+         * Edit course fields
+         * @description Draft and rejected courses: any field. Published courses: only minor fields (`thumbnailUrl`, `tags`, `estimatedDurationMinutes`) for the owner; major fields need a revision (`REVISION_REQUIRED`). Administrators may edit any field.
+         */
         patch: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    id: components["parameters"]["Uuid"];
+                    id: components["parameters"]["Id"];
                 };
                 cookie?: never;
             };
             requestBody: {
                 content: {
-                    "application/json": {
-                        title?: string;
-                        description?: string;
-                        category?: string | null;
-                        /** @enum {string} */
-                        language?: "en" | "am";
-                        /** Format: uri */
-                        thumbnailUrl?: string | null;
-                        tags?: string[];
-                        estimatedDurationMinutes?: number | null;
-                    };
+                    "application/json": components["schemas"]["CoursePatch"];
                 };
             };
             responses: {
-                /** @description Course fields updated according to minor/major policy. */
+                /** @description The updated course. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["Course"];
+                    };
                 };
-                /** @description Course locked or a major edit requires a revision. */
+                404: components["responses"]["NotFound"];
+                /** @description `LOCKED` (in review or archived) or `REVISION_REQUIRED`. */
                 409: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
                 };
+                default: components["responses"]["Error"];
             };
         };
         trace?: never;
@@ -296,40 +378,135 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                id: components["parameters"]["Uuid"];
+                id: components["parameters"]["Id"];
             };
             cookie?: never;
         };
         get?: never;
         put?: never;
+        /** Submit a draft or rejected course for review */
         post: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    id: components["parameters"]["Uuid"];
+                    id: components["parameters"]["Id"];
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Course submitted for review. */
+                /** @description Course is now pending review. */
                 204: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content?: never;
                 };
-                /** @description Course completeness validation failed. */
+                404: components["responses"]["NotFound"];
+                /** @description `LOCKED`: the course is already in review or not a draft/rejected course. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description `COURSE_INCOMPLETE` with `params.problems`, a list of `DESCRIPTION_REQUIRED`, `NO_MODULES`, `EMPTY_MODULE`, `EMPTY_EXAM`. */
                 422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                default: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/courses/{id}/enroll": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enroll in a published course (idempotent) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["Id"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Already enrolled. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EnrollResult"];
+                    };
+                };
+                /** @description New enrollment. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EnrollResult"];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                /** @description `NOT_PUBLISHED`, `LOCKED` or `OWNER_CANNOT_ENROLL`. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                default: components["responses"]["Error"];
+            };
+        };
+        /** Unenroll (progress and exam history are kept) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["Id"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Enrollment removed. */
+                204: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content?: never;
                 };
+                default: components["responses"]["Error"];
             };
         };
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -340,35 +517,33 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                courseId: string;
+                courseId: components["parameters"]["CourseId"];
             };
             cookie?: never;
         };
+        /** Full content tree for the owner or an administrator (includes correct answers) */
         get: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    courseId: string;
+                    courseId: components["parameters"]["CourseId"];
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Owner/admin content tree; the only endpoint returning correct answers. */
+                /** @description Authoring view. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
-                };
-                /** @description Course not found or not permitted. */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
+                    content: {
+                        "application/json": components["schemas"]["AuthoringView"];
                     };
-                    content?: never;
                 };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
             };
         };
         put?: never;
@@ -384,44 +559,40 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                courseId: string;
+                courseId: components["parameters"]["CourseId"];
             };
             cookie?: never;
         };
         get?: never;
         put?: never;
+        /** Add a module (draft and rejected courses) */
         post: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    courseId: string;
+                    courseId: components["parameters"]["CourseId"];
                 };
                 cookie?: never;
             };
             requestBody: {
                 content: {
-                    "application/json": {
-                        title: string;
-                        description?: string;
-                    };
+                    "application/json": components["schemas"]["ModuleCreate"];
                 };
             };
             responses: {
-                /** @description Module created. */
+                /** @description Module created at the end. */
                 201: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
-                };
-                /** @description Published course requires a structural revision. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
+                    content: {
+                        "application/json": components["schemas"]["ModuleSummary"];
                     };
-                    content?: never;
                 };
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["StructureLocked"];
+                default: components["responses"]["Error"];
             };
         };
         delete?: never;
@@ -435,35 +606,48 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                courseId: string;
+                courseId: components["parameters"]["CourseId"];
             };
             cookie?: never;
         };
         get?: never;
+        /** Reorder modules (the complete list of module ids) */
         put: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    courseId: string;
+                    courseId: components["parameters"]["CourseId"];
                 };
                 cookie?: never;
             };
             requestBody: {
                 content: {
                     "application/json": {
-                        moduleIds: string[];
+                        moduleIds: components["schemas"]["UniqueIds"];
                     };
                 };
             };
             responses: {
-                /** @description Module ordering updated. */
+                /** @description Order saved. */
                 204: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content?: never;
                 };
+                /** @description `INVALID_ORDER`: the list must contain every module exactly once. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["StructureLocked"];
+                default: components["responses"]["Error"];
             };
         };
         post?: never;
@@ -478,60 +662,65 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                moduleId: string;
+                moduleId: components["parameters"]["ModuleId"];
             };
             cookie?: never;
         };
         get?: never;
         put?: never;
         post?: never;
+        /** Delete a module and its items */
         delete: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    moduleId: string;
+                    moduleId: components["parameters"]["ModuleId"];
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Module removed. */
+                /** @description Module deleted. */
                 204: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content?: never;
                 };
-                /** @description Published course requires a structural revision. */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["StructureLocked"];
+                default: components["responses"]["Error"];
             };
         };
         options?: never;
         head?: never;
+        /** Edit a module's title or description */
         patch: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    moduleId: string;
+                    moduleId: components["parameters"]["ModuleId"];
                 };
                 cookie?: never;
             };
-            requestBody?: never;
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ModulePatch"];
+                };
+            };
             responses: {
-                /** @description Module title/description updated. */
+                /** @description Module updated. */
                 204: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content?: never;
                 };
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["StructureLocked"];
+                default: components["responses"]["Error"];
             };
         };
         trace?: never;
@@ -541,48 +730,45 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                moduleId: string;
+                moduleId: components["parameters"]["ModuleId"];
             };
             cookie?: never;
         };
         get?: never;
         put?: never;
+        /**
+         * Add a video, PDF or exam item
+         * @description Video links are verified with YouTube; PDFs must have been uploaded first.
+         */
         post: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    moduleId: string;
+                    moduleId: components["parameters"]["ModuleId"];
                 };
                 cookie?: never;
             };
             requestBody: {
                 content: {
-                    "application/json": {
-                        /** @enum {string} */
-                        type: "video" | "pdf" | "exam";
-                        title: string;
-                        url?: string;
-                        fileKey?: string;
-                        questions?: unknown[];
-                    };
+                    "application/json": components["schemas"]["ItemCreate"];
                 };
             };
             responses: {
-                /** @description Module item created. */
+                /** @description Item created at the end of the module. */
                 201: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
-                };
-                /** @description Media link or PDF failed verification. */
-                422: {
-                    headers: {
-                        [name: string]: unknown;
+                    content: {
+                        "application/json": components["schemas"]["ItemSummary"];
                     };
-                    content?: never;
                 };
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["StructureLocked"];
+                422: components["responses"]["MediaRejected"];
+                502: components["responses"]["YoutubeUnreachable"];
+                default: components["responses"]["Error"];
             };
         };
         delete?: never;
@@ -596,35 +782,48 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                moduleId: string;
+                moduleId: components["parameters"]["ModuleId"];
             };
             cookie?: never;
         };
         get?: never;
+        /** Reorder a module's items (the complete list of item ids) */
         put: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    moduleId: string;
+                    moduleId: components["parameters"]["ModuleId"];
                 };
                 cookie?: never;
             };
             requestBody: {
                 content: {
                     "application/json": {
-                        itemIds: string[];
+                        itemIds: components["schemas"]["UniqueIds"];
                     };
                 };
             };
             responses: {
-                /** @description Item ordering updated. */
+                /** @description Order saved. */
                 204: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content?: never;
                 };
+                /** @description `INVALID_ORDER`: the list must contain every item exactly once. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["StructureLocked"];
+                default: components["responses"]["Error"];
             };
         };
         post?: never;
@@ -639,60 +838,76 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                itemId: components["parameters"]["ItemUuid"];
+                itemId: components["parameters"]["ItemId"];
             };
             cookie?: never;
         };
         get?: never;
         put?: never;
         post?: never;
+        /** Delete an item */
         delete: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    itemId: components["parameters"]["ItemUuid"];
+                    itemId: components["parameters"]["ItemId"];
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Item and its cascading progress removed. */
+                /** @description Item deleted. */
                 204: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content?: never;
                 };
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["StructureLocked"];
+                default: components["responses"]["Error"];
             };
         };
         options?: never;
         head?: never;
+        /** Edit an item (title, or its type's fields) */
         patch: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    itemId: components["parameters"]["ItemUuid"];
+                    itemId: components["parameters"]["ItemId"];
                 };
                 cookie?: never;
             };
-            requestBody?: never;
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ItemPatch"];
+                };
+            };
             responses: {
-                /** @description Item title or type-specific details updated. */
+                /** @description Item updated. */
                 204: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content?: never;
                 };
-                /** @description Published structural edit requires a revision. */
-                409: {
+                /** @description `ITEM_TYPE_MISMATCH`: fields that don't belong to the item's type. */
+                400: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
                 };
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["StructureLocked"];
+                422: components["responses"]["MediaRejected"];
+                502: components["responses"]["YoutubeUnreachable"];
+                default: components["responses"]["Error"];
             };
         };
         trace?: never;
@@ -702,176 +917,60 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                itemId: components["parameters"]["ItemUuid"];
+                itemId: components["parameters"]["ItemId"];
             };
             cookie?: never;
         };
         get?: never;
+        /** Replace an exam's questions (existing ones matched by id) */
         put: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    itemId: components["parameters"]["ItemUuid"];
+                    itemId: components["parameters"]["ItemId"];
                 };
                 cookie?: never;
             };
-            requestBody?: never;
+            requestBody: {
+                content: {
+                    "application/json": {
+                        questions: components["schemas"]["QuestionInput"][];
+                    };
+                };
+            };
             responses: {
-                /** @description Exam questions reconciled by id. */
+                /** @description Questions saved. */
                 204: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content?: never;
                 };
-                /** @description Published course requires a revision or references are stale. */
+                /** @description `VALIDATION_FAILED` (issue codes include `CORRECT_CHOICE_REQUIRED`, `SINGLE_CORRECT_CHOICE_REQUIRED`, `DUPLICATE_ID`) or `INVALID_CONTENT_REFERENCE`. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                /** @description `LOCKED`, `REVISION_REQUIRED` or `STALE_REVISION` (ids changed meanwhile). */
                 409: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
                 };
+                default: components["responses"]["Error"];
             };
         };
         post?: never;
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/me/courses": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Courses owned by the current user. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/me/enrollments": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Enrollments and course progress. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/courses/{id}/enroll": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: components["parameters"]["Uuid"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: components["parameters"]["Uuid"];
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Existing enrollment returned idempotently. */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description New enrollment. */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Course is locked */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: components["parameters"]["Uuid"];
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Enrollment removed; progress and exam history remain. */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
         options?: never;
         head?: never;
         patch?: never;
@@ -886,6 +985,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Upload a PDF (not yet attached to any item) */
         post: {
             parameters: {
                 query?: never;
@@ -902,27 +1002,43 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description PDF validated and saved without attaching it to course content. */
+                /** @description Validated and stored; attach it with its `fileKey`. */
                 201: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["PdfUpload"];
+                    };
                 };
-                /** @description File exceeds 50 MB. */
+                /** @description `PDF_REQUIRED` or `INVALID_UPLOAD`. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description `PDF_TOO_LARGE` (`params.maxMegabytes`). */
                 413: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
                 };
-                /** @description Invalid */
+                /** @description `PDF_INVALID`: not a PDF, corrupt, encrypted or without pages. */
                 422: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
                 };
+                default: components["responses"]["Error"];
             };
         };
         delete?: never;
@@ -936,35 +1052,35 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                itemId: components["parameters"]["ItemUuid"];
+                itemId: components["parameters"]["ItemId"];
             };
             cookie?: never;
         };
+        /** The YouTube video id of a video item (enrolled learners, owner, admins) */
         get: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    itemId: components["parameters"]["ItemUuid"];
+                    itemId: components["parameters"]["ItemId"];
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Authorized YouTube video identifier. */
+                /** @description Video id (not cached). */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
-                };
-                /** @description Item not found or not permitted. */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
+                    content: {
+                        "application/json": {
+                            youtubeVideoId: string;
+                        };
                     };
-                    content?: never;
                 };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
             };
         };
         put?: never;
@@ -980,35 +1096,33 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                itemId: components["parameters"]["ItemUuid"];
+                itemId: components["parameters"]["ItemId"];
             };
             cookie?: never;
         };
+        /** The PDF of a PDF item (streamed by the web server) */
         get: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    itemId: components["parameters"]["ItemUuid"];
+                    itemId: components["parameters"]["ItemId"];
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Nginx internal redirect streams the authorized PDF. */
+                /** @description The PDF file. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
-                };
-                /** @description Item not found or not permitted. */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
+                    content: {
+                        "application/pdf": string;
                     };
-                    content?: never;
                 };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
             };
         };
         put?: never;
@@ -1024,17 +1138,18 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                itemId: components["parameters"]["ItemUuid"];
+                itemId: components["parameters"]["ItemId"];
             };
             cookie?: never;
         };
         get?: never;
+        /** Save progress on a video or PDF item */
         put: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    itemId: components["parameters"]["ItemUuid"];
+                    itemId: components["parameters"]["ItemId"];
                 };
                 cookie?: never;
             };
@@ -1047,20 +1162,24 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description Progress updated. */
+                /** @description Progress saved. */
                 204: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content?: never;
                 };
-                /** @description Item not found or not enrolled. */
-                404: {
+                404: components["responses"]["NotFound"];
+                /** @description `EXAM_PROGRESS_BY_ATTEMPT`: exams are completed by passing an attempt. */
+                409: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
                 };
+                default: components["responses"]["Error"];
             };
         };
         post?: never;
@@ -1075,35 +1194,35 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                examId: string;
+                /** @description The exam's item id. */
+                examId: components["parameters"]["ExamId"];
             };
             cookie?: never;
         };
+        /** Exam overview and questions (no correct answers) */
         get: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    examId: string;
+                    /** @description The exam's item id. */
+                    examId: components["parameters"]["ExamId"];
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Exam questions without correct-answer flags. */
+                /** @description Exam settings and questions. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
-                };
-                /** @description Exam not found or not permitted. */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
+                    content: {
+                        "application/json": components["schemas"]["ExamOverview"];
                     };
-                    content?: never;
                 };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
             };
         };
         put?: never;
@@ -1119,37 +1238,46 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                examId: string;
+                /** @description The exam's item id. */
+                examId: components["parameters"]["ExamId"];
             };
             cookie?: never;
         };
         get?: never;
         put?: never;
+        /** Start an attempt, or resume the open one */
         post: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    examId: string;
+                    /** @description The exam's item id. */
+                    examId: components["parameters"]["ExamId"];
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Existing open attempt resumed or a new attempt started. */
+                /** @description The attempt and its questions. */
                 201: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["ExamStart"];
+                    };
                 };
-                /** @description Attempt limit reached. */
+                404: components["responses"]["NotFound"];
+                /** @description `ATTEMPTS_EXHAUSTED`. */
                 409: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
                 };
+                default: components["responses"]["Error"];
             };
         };
         delete?: never;
@@ -1163,28 +1291,35 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                examId: string;
+                /** @description The exam's item id. */
+                examId: components["parameters"]["ExamId"];
             };
             cookie?: never;
         };
+        /** My attempt history for an exam */
         get: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    examId: string;
+                    /** @description The exam's item id. */
+                    examId: components["parameters"]["ExamId"];
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Current user's attempt history. */
+                /** @description Attempts, newest first. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["Attempt"][];
+                    };
                 };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
             };
         };
         put?: never;
@@ -1206,6 +1341,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Submit answers and get the graded result */
         post: {
             parameters: {
                 query?: never;
@@ -1218,35 +1354,180 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        answers: unknown[];
+                        answers: {
+                            /** Format: uuid */
+                            questionId: string;
+                            choiceIds: string[];
+                        }[];
                     };
                 };
             };
             responses: {
-                /** @description Graded attempt and conditional answer reveal. */
+                /** @description Graded attempt. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["ExamResult"];
+                    };
                 };
-                /** @description Attempt already submitted. */
+                /** @description `INVALID_CHOICE` or `SINGLE_ANSWER_ONLY`. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                /** @description `ATTEMPT_ALREADY_SUBMITTED`. */
                 409: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
                 };
-                /** @description Late submit recorded as a zero-score failure. */
+                /** @description `EXAM_TIME_EXCEEDED`: submitted after the time limit (plus a 30 s grace period); recorded as a failed attempt with score 0. */
                 410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                default: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/courses/{courseId}/revision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                courseId: components["parameters"]["CourseId"];
+            };
+            cookie?: never;
+        };
+        /** The pending revision of a published course, and the last decision */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    courseId: components["parameters"]["CourseId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Revision state. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RevisionState"];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
+            };
+        };
+        /**
+         * Save proposed changes to a published course for review
+         * @description Merges into the pending revision (creating one if needed). `course` holds major field changes; `modules` is the complete proposed tree. Existing modules, items, questions and choices keep their `id`; new ones have none.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    courseId: components["parameters"]["CourseId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["RevisionInput"];
+                };
+            };
+            responses: {
+                /** @description The saved pending revision. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CourseRevision"];
+                    };
+                };
+                /** @description `VALIDATION_FAILED` or `INVALID_CONTENT_REFERENCE` (an id not in this course). */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                /** @description `LOCKED`: only published courses have revisions. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                422: components["responses"]["MediaRejected"];
+                502: components["responses"]["YoutubeUnreachable"];
+                default: components["responses"]["Error"];
+            };
+        };
+        post?: never;
+        /** Withdraw the pending revision */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    courseId: components["parameters"]["CourseId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Revision withdrawn. */
+                204: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content?: never;
                 };
+                404: components["responses"]["NotFound"];
+                /** @description `LOCKED`: only published courses have revisions. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                default: components["responses"]["Error"];
             };
         };
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1259,14 +1540,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Users (administrators only) */
         get: {
             parameters: {
                 query?: {
                     page?: components["parameters"]["Page"];
                     pageSize?: components["parameters"]["PageSize"];
+                    /** @description Email search. */
                     q?: string;
-                    role?: "user" | "admin";
-                    status?: "active" | "suspended";
+                    role?: components["schemas"]["Role"];
+                    status?: components["schemas"]["AccountStatus"];
                 };
                 header?: never;
                 path?: never;
@@ -1274,20 +1557,58 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Paginated users; administrator only. */
+                /** @description A page of users. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["UserPage"];
+                    };
                 };
-                /** @description Administrator access required. */
-                403: {
+                default: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        /** One user */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["Id"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The user. */
+                200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["User"];
+                    };
                 };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
             };
         };
         put?: never;
@@ -1303,7 +1624,7 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                id: components["parameters"]["Uuid"];
+                id: components["parameters"]["Id"];
             };
             cookie?: never;
         };
@@ -1313,31 +1634,40 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
+        /** Change a user's role */
         patch: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    id: components["parameters"]["Uuid"];
+                    id: components["parameters"]["Id"];
                 };
                 cookie?: never;
             };
             requestBody: {
                 content: {
                     "application/json": {
-                        /** @enum {string} */
-                        role: "user" | "admin";
+                        role: components["schemas"]["Role"];
                     };
                 };
             };
             responses: {
-                /** @description Role change and Firebase claim synchronization status. */
+                /** @description The updated user. `claimSynced: false` means the Firebase role claim could not be updated yet (the database role still applies). */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": {
+                            user: components["schemas"]["User"];
+                            claimSynced: boolean;
+                        };
+                    };
                 };
+                403: components["responses"]["SelfChangeForbidden"];
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["LastAdmin"];
+                default: components["responses"]["Error"];
             };
         };
         trace?: never;
@@ -1347,7 +1677,7 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                id: components["parameters"]["Uuid"];
+                id: components["parameters"]["Id"];
             };
             cookie?: never;
         };
@@ -1357,31 +1687,40 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
+        /** Suspend or reactivate a user */
         patch: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    id: components["parameters"]["Uuid"];
+                    id: components["parameters"]["Id"];
                 };
                 cookie?: never;
             };
             requestBody: {
                 content: {
                     "application/json": {
-                        /** @enum {string} */
-                        status: "active" | "suspended";
+                        status: components["schemas"]["AccountStatus"];
                     };
                 };
             };
             responses: {
-                /** @description Account status and session revocation status. */
+                /** @description The updated user. `sessionsRevoked: false` means existing Firebase sessions could not be revoked (the API still refuses the account). */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": {
+                            user: components["schemas"]["User"];
+                            sessionsRevoked: boolean;
+                        };
+                    };
                 };
+                403: components["responses"]["SelfChangeForbidden"];
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["LastAdmin"];
+                default: components["responses"]["Error"];
             };
         };
         trace?: never;
@@ -1393,11 +1732,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** All courses */
         get: {
             parameters: {
                 query?: {
                     page?: components["parameters"]["Page"];
                     pageSize?: components["parameters"]["PageSize"];
+                    status?: components["schemas"]["CourseStatus"];
+                    /** @description Title search. */
+                    q?: string;
                 };
                 header?: never;
                 path?: never;
@@ -1405,13 +1748,16 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description All courses */
+                /** @description A page of courses. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["CoursePage"];
+                    };
                 };
+                default: components["responses"]["Error"];
             };
         };
         put?: never;
@@ -1429,6 +1775,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Review queues, oldest first */
         get: {
             parameters: {
                 query?: never;
@@ -1438,13 +1785,16 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Pending course review queue. */
+                /** @description Courses awaiting review and pending revisions. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["ModerationQueue"];
+                    };
                 };
+                default: components["responses"]["Error"];
             };
         };
         put?: never;
@@ -1460,18 +1810,19 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                id: components["parameters"]["Uuid"];
+                id: components["parameters"]["Id"];
             };
             cookie?: never;
         };
         get?: never;
         put?: never;
+        /** Publish a course awaiting review */
         post: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    id: components["parameters"]["Uuid"];
+                    id: components["parameters"]["Id"];
                 };
                 cookie?: never;
             };
@@ -1484,6 +1835,17 @@ export interface paths {
                     };
                     content?: never;
                 };
+                404: components["responses"]["NotFound"];
+                /** @description `LOCKED`: the course is not pending review. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                default: components["responses"]["Error"];
             };
         };
         delete?: never;
@@ -1497,36 +1859,175 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                id: components["parameters"]["Uuid"];
+                id: components["parameters"]["Id"];
             };
             cookie?: never;
         };
         get?: never;
         put?: never;
+        /** Return a course to its owner with a reason */
         post: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    id: components["parameters"]["Uuid"];
+                    id: components["parameters"]["Id"];
                 };
                 cookie?: never;
             };
             requestBody: {
                 content: {
-                    "application/json": {
-                        reason: string;
-                    };
+                    "application/json": components["schemas"]["Rejection"];
                 };
             };
             responses: {
-                /** @description Course returned to editable rejected status. */
+                /** @description Course rejected (editable again). */
                 204: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content?: never;
                 };
+                404: components["responses"]["NotFound"];
+                /** @description `LOCKED`: the course is not pending review. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                default: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/revisions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        /** A revision with its proposed changes (before and after) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["Id"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Revision and diff. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RevisionReview"];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/revisions/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Apply a pending revision to the live course */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["Id"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Revision applied. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["RevisionConflict"];
+                422: components["responses"]["MediaRejected"];
+                default: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/revisions/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject a pending revision with a reason */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["Id"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["Rejection"];
+                };
+            };
+            responses: {
+                /** @description Revision rejected. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["RevisionConflict"];
+                default: components["responses"]["Error"];
             };
         };
         delete?: never;
@@ -1542,6 +2043,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Platform totals */
         get: {
             parameters: {
                 query?: never;
@@ -1551,13 +2053,16 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Aggregate user */
+                /** @description Totals. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["AnalyticsOverview"];
+                    };
                 };
+                default: components["responses"]["Error"];
             };
         };
         put?: never;
@@ -1575,6 +2080,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Enrollments over time (UTC buckets, zero-filled) */
         get: {
             parameters: {
                 query: {
@@ -1589,20 +2095,32 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description UTC zero-filled enrollment time series. */
+                /** @description One point per bucket. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": {
+                            /**
+                             * Format: date-time
+                             * @description Bucket start (UTC).
+                             */
+                            date: string;
+                            count: number;
+                        }[];
+                    };
                 };
-                /** @description Invalid or greater-than-400-day time window. */
+                /** @description `INVALID_DATE_RANGE` (from after to) or `DATE_RANGE_TOO_LONG` (`params.maxDays`). */
                 422: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
                 };
+                default: components["responses"]["Error"];
             };
         };
         put?: never;
@@ -1620,6 +2138,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Courses with the most enrollments */
         get: {
             parameters: {
                 query?: never;
@@ -1629,13 +2148,22 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Top courses by enrollment count. */
+                /** @description Top courses. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            title: string;
+                            status: components["schemas"]["CourseStatus"];
+                            enrollmentCount: number;
+                        }[];
+                    };
                 };
+                default: components["responses"]["Error"];
             };
         };
         put?: never;
@@ -1651,28 +2179,33 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
-                courseId: string;
+                courseId: components["parameters"]["CourseId"];
             };
             cookie?: never;
         };
+        /** One course's enrollment, completion and exam figures */
         get: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    courseId: string;
+                    courseId: components["parameters"]["CourseId"];
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Course enrollment */
+                /** @description Course figures. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["CourseAnalytics"];
+                    };
                 };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
             };
         };
         put?: never;
@@ -1690,6 +2223,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Videos YouTube reports as unavailable, in published or in-review courses */
         get: {
             parameters: {
                 query?: never;
@@ -1699,13 +2233,16 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Unavailable videos requiring administrator attention. */
+                /** @description Unavailable videos, most recently checked first. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["UnavailableVideo"][];
+                    };
                 };
+                default: components["responses"]["Error"];
             };
         };
         put?: never;
@@ -1725,6 +2262,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Check videos with YouTube now */
         post: {
             parameters: {
                 query?: never;
@@ -1734,13 +2272,25 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description YouTube check counters. */
+                /** @description Summary of the check. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["YoutubeCheckResult"];
+                    };
                 };
+                /** @description `JOB_ALREADY_RUNNING`. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                default: components["responses"]["Error"];
             };
         };
         delete?: never;
@@ -1753,26 +2303,600 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        Error: {
+            /** @description English message for developers. Never shown to users. */
+            error: string;
+            /**
+             * @description Stable error code; clients translate by it.
+             * @example NOT_FOUND
+             * @example LOCKED
+             * @example VALIDATION_FAILED
+             */
+            code: string;
+            /** @description Values for the client's message (e.g. `problems`, `maxMegabytes`). */
+            params?: {
+                [key: string]: unknown;
+            };
+            /** @description Present with `VALIDATION_FAILED`. */
+            issues?: components["schemas"]["ValidationIssue"][];
+            /** @description Development only (500). */
+            detail?: string;
+        };
+        ValidationIssue: {
+            /** @description Field path, e.g. `["questions", 0, "choices"]`. */
+            path: (string | number)[];
+            /** @description A zod issue code (`too_small`, `too_big`, `invalid_type`, `invalid_format`, `invalid_value`, `unrecognized_keys`, ...) or a rule of our own: `CORRECT_CHOICE_REQUIRED`, `SINGLE_CORRECT_CHOICE_REQUIRED`, `DUPLICATE_ID`, `HTTP_URL_REQUIRED`, `VIDEO_LINK_REQUIRED`, `INVALID_DATE`. */
+            code: string;
+            /** @description English */
+            message: string;
+            /** @description Issue values, e.g. `{ "origin": "string", "minimum": 3 }`. */
+            params: {
+                [key: string]: unknown;
+            };
+        };
+        /** @enum {string} */
+        Role: "user" | "admin";
+        /** @enum {string} */
+        AccountStatus: "active" | "suspended";
+        /** @enum {string} */
+        CourseStatus: "draft" | "pending_review" | "published" | "rejected" | "archived";
+        /** @enum {string} */
+        CourseLanguage: "en" | "am";
+        /** @enum {string} */
+        ItemType: "video" | "pdf" | "exam";
+        UniqueIds: string[];
+        User: {
+            /** Format: uuid */
+            id: string;
+            email: string;
+            name: string | null;
+            role: components["schemas"]["Role"];
+            status: components["schemas"]["AccountStatus"];
+            /** Format: date-time */
+            createdAt: string;
+        };
+        UserPage: components["schemas"]["PageInfo"] & {
+            items: components["schemas"]["User"][];
+        };
+        PageInfo: {
+            page: number;
+            pageSize: number;
+            total: number;
+        };
+        Course: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            ownerId: string;
+            title: string;
+            description: string;
+            category: string | null;
+            language: components["schemas"]["CourseLanguage"];
+            thumbnailUrl: string | null;
+            tags: string[];
+            estimatedDurationMinutes: number | null;
+            status: components["schemas"]["CourseStatus"];
+            rejectionReason: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            publishedAt: string | null;
+        };
+        CatalogCourse: components["schemas"]["Course"] & {
+            /** @description The current user is enrolled. */
+            enrolled: boolean;
+            moduleCount: number;
+        };
+        CatalogPage: components["schemas"]["PageInfo"] & {
+            items: components["schemas"]["CatalogCourse"][];
+        };
+        CoursePage: components["schemas"]["PageInfo"] & {
+            items: components["schemas"]["Course"][];
+        };
+        CourseDetail: components["schemas"]["Course"] & {
+            modules: {
+                /** Format: uuid */
+                id: string;
+                title: string;
+                description: string;
+                position: number;
+                items: {
+                    /** Format: uuid */
+                    id: string;
+                    type: components["schemas"]["ItemType"];
+                    title: string;
+                }[];
+            }[];
+        };
         CourseCreate: {
             title: string;
             /** @default  */
             description: string;
             category?: string | null;
+            language?: components["schemas"]["CourseLanguage"];
             /**
-             * @default en
-             * @enum {string}
+             * Format: uri
+             * @description http or https only (`HTTP_URL_REQUIRED`).
              */
-            language: "en" | "am";
+            thumbnailUrl?: string | null;
+            tags?: string[];
+            estimatedDurationMinutes?: number | null;
+        };
+        CoursePatch: {
+            title?: string;
+            description?: string;
+            category?: string | null;
+            language?: components["schemas"]["CourseLanguage"];
             /** Format: uri */
             thumbnailUrl?: string | null;
             tags?: string[];
             estimatedDurationMinutes?: number | null;
         };
+        Enrollment: {
+            /**
+             * Format: uuid
+             * @description The course id.
+             */
+            id: string;
+            title: string;
+            description: string;
+            category: string | null;
+            language: components["schemas"]["CourseLanguage"];
+            thumbnailUrl: string | null;
+            /** Format: date-time */
+            enrolledAt: string;
+            progressPercent: number;
+        };
+        EnrollResult: {
+            /** @constant */
+            enrolled: true;
+        };
+        ModuleCreate: {
+            title: string;
+            /** @default  */
+            description: string;
+        };
+        ModulePatch: {
+            title?: string;
+            description?: string;
+        };
+        ModuleSummary: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            description: string;
+            position: number;
+        };
+        ExamSettings: {
+            /** @default  */
+            instructions: string;
+            /** @default 60 */
+            passingScorePercent: number;
+            /** @default null */
+            maxAttempts: number | null;
+            /** @default null */
+            timeLimitMinutes: number | null;
+        };
+        PdfFileKey: string;
+        ItemCreate: {
+            /** @constant */
+            type: "video";
+            title: string;
+            /** @description A YouTube link. */
+            url: string;
+        } | {
+            /** @constant */
+            type: "pdf";
+            title: string;
+            fileKey: components["schemas"]["PdfFileKey"];
+        } | (components["schemas"]["ExamSettings"] & {
+            /** @constant */
+            type: "exam";
+            title: string;
+            questions?: components["schemas"]["QuestionInput"][];
+        });
+        /** @description `url` for videos, `fileKey` for PDFs, exam settings for exams. */
+        ItemPatch: {
+            title?: string;
+            url?: string;
+            fileKey?: components["schemas"]["PdfFileKey"];
+            instructions?: string;
+            passingScorePercent?: number;
+            maxAttempts?: number | null;
+            timeLimitMinutes?: number | null;
+        };
+        ItemSummary: {
+            /** Format: uuid */
+            id: string;
+            type: components["schemas"]["ItemType"];
+            title: string;
+            position: number;
+        };
+        /** @description At least one correct choice (`CORRECT_CHOICE_REQUIRED`); exactly one when `isMultiple` is false (`SINGLE_CORRECT_CHOICE_REQUIRED`). Omit `id` for new questions. */
+        QuestionInput: {
+            /** Format: uuid */
+            id?: string;
+            prompt: string;
+            /** @default false */
+            isMultiple: boolean;
+            /** @default 1 */
+            points: number;
+            choices: {
+                /** Format: uuid */
+                id?: string;
+                text: string;
+                isCorrect: boolean;
+            }[];
+        };
+        AuthoringQuestion: {
+            /** Format: uuid */
+            id: string;
+            prompt: string;
+            isMultiple: boolean;
+            points: number;
+            position: number;
+            choices: {
+                /** Format: uuid */
+                id: string;
+                text: string;
+                isCorrect: boolean;
+            }[];
+        };
+        /** @description Fields of other item types are null. Exams also carry `questions`. */
+        AuthoringItem: {
+            /** Format: uuid */
+            id: string;
+            type: components["schemas"]["ItemType"];
+            title: string;
+            position: number;
+            youtubeVideoId: string | null;
+            youtubeTitle: string | null;
+            isAvailable: boolean | null;
+            fileKey: string | null;
+            sizeBytes: number | null;
+            pageCount: number | null;
+            instructions: string | null;
+            passingScorePercent: number | null;
+            maxAttempts: number | null;
+            timeLimitMinutes: number | null;
+            questions?: components["schemas"]["AuthoringQuestion"][];
+        };
+        AuthoringView: {
+            course: components["schemas"]["CourseDetail"];
+            modules: (components["schemas"]["ModuleSummary"] & {
+                items: components["schemas"]["AuthoringItem"][];
+            })[];
+        };
+        PdfUpload: {
+            fileKey: components["schemas"]["PdfFileKey"];
+            sizeBytes: number;
+            pageCount: number;
+        };
+        LearnerQuestion: {
+            /** Format: uuid */
+            id: string;
+            prompt: string;
+            isMultiple: boolean;
+            points: number;
+            position: number;
+            choices: {
+                /** Format: uuid */
+                id: string;
+                text: string;
+                position: number;
+            }[];
+        };
+        ExamOverview: {
+            instructions: string;
+            passingScorePercent: number;
+            maxAttempts: number | null;
+            timeLimitMinutes: number | null;
+            questions: components["schemas"]["LearnerQuestion"][];
+        };
+        ExamStart: {
+            attempt: {
+                /** Format: uuid */
+                id: string;
+                /** Format: date-time */
+                startedAt: string;
+            };
+            questions: components["schemas"]["LearnerQuestion"][];
+            /**
+             * Format: date-time
+             * @description Null without a time limit. Submits are accepted up to 30 s after it.
+             */
+            expiresAt: string | null;
+        };
+        ExamResult: {
+            scorePercent: number;
+            passed: boolean;
+            /** @description True when passed or when no attempts remain; then results carry correctChoiceIds. */
+            revealAnswers: boolean;
+            results: {
+                /** Format: uuid */
+                questionId: string;
+                correct: boolean;
+                selectedChoiceIds: string[];
+                correctChoiceIds?: string[];
+            }[];
+        };
+        Attempt: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            submittedAt: string | null;
+            scorePercent: number | null;
+            passed: boolean | null;
+        };
+        RevisionTreeItem: {
+            /** Format: uuid */
+            id?: string;
+            /** @constant */
+            type: "video";
+            title: string;
+            url?: string;
+            youtubeVideoId?: string;
+        } | {
+            /** Format: uuid */
+            id?: string;
+            /** @constant */
+            type: "pdf";
+            title: string;
+            fileKey: components["schemas"]["PdfFileKey"];
+        } | (components["schemas"]["ExamSettings"] & {
+            /** Format: uuid */
+            id?: string;
+            /** @constant */
+            type: "exam";
+            title: string;
+            questions: components["schemas"]["QuestionInput"][];
+        });
+        RevisionTreeModule: {
+            /** Format: uuid */
+            id?: string;
+            title: string;
+            /** @default  */
+            description: string;
+            items: components["schemas"]["RevisionTreeItem"][];
+        };
+        RevisionInput: {
+            /** @description Major course fields. */
+            course?: {
+                title?: string;
+                description?: string;
+                category?: string | null;
+                language?: components["schemas"]["CourseLanguage"];
+            };
+            modules?: components["schemas"]["RevisionTreeModule"][];
+        };
+        CourseRevision: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            courseId: string;
+            data: {
+                /** @description Changed major fields only. */
+                course: {
+                    [key: string]: unknown;
+                };
+                /** @description The proposed tree (video items carry the verified youtubeVideoId). */
+                modules?: {
+                    [key: string]: unknown;
+                }[];
+                /** @description Ids of the live content when the revision was started. */
+                base?: {
+                    modules?: string[];
+                    items?: string[];
+                    questions?: string[];
+                    choices?: string[];
+                };
+            };
+            /** @enum {string} */
+            status: "pending" | "approved" | "rejected";
+            rejectionReason: string | null;
+            /** Format: uuid */
+            submittedBy: string;
+            /** Format: date-time */
+            submittedAt: string;
+            /** Format: uuid */
+            reviewedBy: string | null;
+            /** Format: date-time */
+            reviewedAt: string | null;
+        };
+        RevisionDecision: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            status: "approved" | "rejected";
+            reason: string | null;
+            /** Format: uuid */
+            reviewedBy: string | null;
+            /** Format: date-time */
+            reviewedAt: string | null;
+        };
+        RevisionState: {
+            revision: components["schemas"]["CourseRevision"] | null;
+            lastDecision: components["schemas"]["RevisionDecision"] | null;
+        };
+        RevisionReview: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            courseId: string;
+            /** @enum {string} */
+            status: "pending" | "approved" | "rejected";
+            rejectionReason: string | null;
+            /** Format: uuid */
+            submittedBy: string;
+            /** Format: date-time */
+            submittedAt: string;
+            lastDecision: components["schemas"]["RevisionDecision"] | null;
+            diff: {
+                /** @description Major fields (title, description, category, language). */
+                course: {
+                    before: {
+                        [key: string]: unknown;
+                    };
+                    after: {
+                        [key: string]: unknown;
+                    };
+                };
+                /** @description The live tree (authoring shape) and the proposed tree. */
+                modules: {
+                    before: {
+                        [key: string]: unknown;
+                    }[];
+                    after: {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+        };
+        Rejection: {
+            reason: string;
+        };
+        ModerationQueue: {
+            courses: components["schemas"]["Course"][];
+            revisions: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                courseId: string;
+                courseTitle: string;
+                /** Format: uuid */
+                ownerId: string;
+                /** Format: uuid */
+                submittedBy: string;
+                /** Format: date-time */
+                submittedAt: string;
+            }[];
+        };
+        AnalyticsOverview: {
+            userCount: number;
+            courseCount: number;
+            publishedCourseCount: number;
+            enrollmentCount: number;
+            submittedAttemptCount: number;
+            averageExamScore: number | null;
+        };
+        CourseAnalytics: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            status: components["schemas"]["CourseStatus"];
+            enrollmentCount: number;
+            itemCount: number;
+            completedItemCount: number;
+            submittedAttemptCount: number;
+            averageExamScore: number | null;
+        };
+        UnavailableVideo: {
+            /** Format: uuid */
+            itemId: string;
+            itemTitle: string;
+            youtubeTitle: string | null;
+            /** Format: date-time */
+            lastCheckedAt: string | null;
+            /** Format: uuid */
+            courseId: string;
+            courseTitle: string;
+        };
+        YoutubeCheckResult: {
+            checked: number;
+            available: number;
+            newlyUnavailable: number;
+            recovered: number;
+            stillUnavailable: number;
+            unreachable: number;
+            /** @description Stopped early after repeated YouTube failures. */
+            aborted: boolean;
+            /** @constant */
+            skipped: false;
+        };
     };
-    responses: never;
+    responses: {
+        /** @description Any error. Common codes: `UNAUTHENTICATED`, `INVALID_TOKEN` (401), `ACCOUNT_SUSPENDED`, `EMAIL_REQUIRED`, `ADMIN_REQUIRED`, `FORBIDDEN` (403), `VALIDATION_FAILED`, `MALFORMED_JSON`, `INVALID_PARAMETER`, `BAD_REQUEST` (400), `PAYLOAD_TOO_LARGE` (413), `RATE_LIMITED` (429), `INTERNAL_ERROR` (500). */
+        Error: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description `NOT_FOUND`: missing, or not visible to this user. */
+        NotFound: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description `LOCKED` (in review or archived) or `REVISION_REQUIRED` (a published course's structure changes through a revision); `STALE_REVISION` when the item changed meanwhile. */
+        StructureLocked: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description `VIDEO_INVALID_LINK`, `VIDEO_UNAVAILABLE` (private, deleted or not embeddable) or `PDF_INVALID`. */
+        MediaRejected: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description `YOUTUBE_UNREACHABLE`: YouTube could not be reached to verify the video. */
+        YoutubeUnreachable: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description `SELF_CHANGE_FORBIDDEN`: administrators can't change their own role or status. */
+        SelfChangeForbidden: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description `LAST_ADMIN`: the platform must keep at least one active administrator. */
+        LastAdmin: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description `ALREADY_DECIDED` (the revision was already approved or rejected), `STALE_REVISION` (the live course changed since it was proposed: reject it) or `LOCKED`. */
+        RevisionConflict: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+    };
     parameters: {
-        Uuid: string;
-        ItemUuid: string;
+        Id: string;
+        CourseId: string;
+        ModuleId: string;
+        ItemId: string;
+        /** @description The exam's item id. */
+        ExamId: string;
         Page: number;
         PageSize: number;
     };

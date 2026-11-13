@@ -47,5 +47,23 @@
   },
   "custom": {
     "default": "ይህን እሴት ያረጋግጡ።"
+  },
+  "CORRECT_CHOICE_REQUIRED": {
+    "default": "ቢያንስ አንድ መልስ ትክክል ብለው ምልክት ያድርጉ።"
+  },
+  "SINGLE_CORRECT_CHOICE_REQUIRED": {
+    "default": "ትክክል ብለው ምልክት የሚያደርጉት አንድ መልስ ብቻ ነው።"
+  },
+  "DUPLICATE_ID": {
+    "default": "እያንዳንዱ ግቤት የተለየ መሆን አለበት።"
+  },
+  "HTTP_URL_REQUIRED": {
+    "default": "በhttp:// ወይም https:// የሚጀምር ሊንክ ይጠቀሙ።"
+  },
+  "VIDEO_LINK_REQUIRED": {
+    "default": "የYouTube ሊንክ ይለጥፉ።"
+  },
+  "INVALID_DATE": {
+    "default": "ትክክለኛ ቀን ያስገቡ።"
   }
 }

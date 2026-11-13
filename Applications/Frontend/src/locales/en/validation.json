@@ -47,5 +47,23 @@
   },
   "custom": {
     "default": "Check this value."
+  },
+  "CORRECT_CHOICE_REQUIRED": {
+    "default": "Mark at least one answer as correct."
+  },
+  "SINGLE_CORRECT_CHOICE_REQUIRED": {
+    "default": "Mark exactly one answer as correct."
+  },
+  "DUPLICATE_ID": {
+    "default": "Each entry must be unique."
+  },
+  "HTTP_URL_REQUIRED": {
+    "default": "Use a link that starts with http:// or https://."
+  },
+  "VIDEO_LINK_REQUIRED": {
+    "default": "Paste a YouTube link."
+  },
+  "INVALID_DATE": {
+    "default": "Enter a valid date."
   }
 }
