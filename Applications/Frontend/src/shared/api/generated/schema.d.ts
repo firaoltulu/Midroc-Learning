@@ -1068,15 +1068,13 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Video id (not cached). */
+                /** @description The video and where the viewer left off (not cached). */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            youtubeVideoId: string;
-                        };
+                        "application/json": components["schemas"]["VideoPlayback"];
                     };
                 };
                 404: components["responses"]["NotFound"];
@@ -1199,7 +1197,7 @@ export interface paths {
             };
             cookie?: never;
         };
-        /** Exam overview and questions (no correct answers) */
+        /** Exam overview and the viewer's standing (questions come with an attempt) */
         get: {
             parameters: {
                 query?: never;
@@ -1212,7 +1210,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Exam settings and questions. */
+                /** @description Exam settings, attempts and whether an attempt is open. */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -1462,13 +1460,13 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description The saved pending revision. */
+                /** @description The saved revision and a summary of all its changes against the live course. When the proposal changes nothing, nothing is saved, any pending revision is withdrawn and the response is `{ saved: false, unchanged: true, revision: null, changes: [] }`. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["CourseRevision"];
+                        "application/json": components["schemas"]["RevisionSaveResult"];
                     };
                 };
                 /** @description `VALIDATION_FAILED` or `INVALID_CONTENT_REFERENCE` (an id not in this course). */
@@ -2383,9 +2381,11 @@ export interface components {
             publishedAt: string | null;
         };
         CatalogCourse: components["schemas"]["Course"] & {
+            ownerName: string | null;
             /** @description The current user is enrolled. */
             enrolled: boolean;
             moduleCount: number;
+            enrollmentCount: number;
         };
         CatalogPage: components["schemas"]["PageInfo"] & {
             items: components["schemas"]["CatalogCourse"][];
@@ -2393,7 +2393,16 @@ export interface components {
         CoursePage: components["schemas"]["PageInfo"] & {
             items: components["schemas"]["Course"][];
         };
-        CourseDetail: components["schemas"]["Course"] & {
+        /** @description `rejectionReason` and `pendingRevision` are null unless the viewer is the owner or an administrator. */
+        CourseDetail: components["schemas"]["CatalogCourse"] & {
+            /** @description Items of this course the viewer has completed. */
+            completedItemIds: string[];
+            pendingRevision: {
+                /** Format: uuid */
+                id: string;
+                /** Format: date-time */
+                submittedAt: string;
+            } | null;
             modules: {
                 /** Format: uuid */
                 id: string;
@@ -2567,6 +2576,15 @@ export interface components {
                 items: components["schemas"]["AuthoringItem"][];
             })[];
         };
+        VideoPlayback: {
+            youtubeVideoId: string;
+            youtubeTitle: string | null;
+            /** @description False when YouTube reports the video private, deleted or not embeddable. */
+            isAvailable: boolean;
+            /** @description Resume from here. */
+            lastPositionSeconds: number;
+            completed: boolean;
+        };
         PdfUpload: {
             fileKey: components["schemas"]["PdfFileKey"];
             sizeBytes: number;
@@ -2589,17 +2607,25 @@ export interface components {
         ExamOverview: {
             instructions: string;
             passingScorePercent: number;
+            /** @description Null when unlimited. */
             maxAttempts: number | null;
             timeLimitMinutes: number | null;
-            questions: components["schemas"]["LearnerQuestion"][];
+            questionCount: number;
+            attemptsUsed: number;
+            /** @description Null when unlimited. */
+            attemptsRemaining: number | null;
+            /** @description The viewer has passed this exam before. */
+            passed: boolean;
+            /** @description Starting will resume it. */
+            hasOpenAttempt: boolean;
         };
         ExamStart: {
-            attempt: {
-                /** Format: uuid */
-                id: string;
-                /** Format: date-time */
-                startedAt: string;
-            };
+            /** Format: uuid */
+            attemptId: string;
+            /** @description An open attempt was resumed. */
+            resumed: boolean;
+            /** Format: date-time */
+            startedAt: string;
             questions: components["schemas"]["LearnerQuestion"][];
             /**
              * Format: date-time
@@ -2610,12 +2636,15 @@ export interface components {
         ExamResult: {
             scorePercent: number;
             passed: boolean;
+            attemptsUsed: number;
+            /** @description Null when unlimited. */
+            attemptsRemaining: number | null;
             /** @description True when passed or when no attempts remain; then results carry correctChoiceIds. */
             revealAnswers: boolean;
             results: {
                 /** Format: uuid */
                 questionId: string;
-                correct: boolean;
+                isCorrect: boolean;
                 selectedChoiceIds: string[];
                 correctChoiceIds?: string[];
             }[];
@@ -2705,6 +2734,27 @@ export interface components {
             /** Format: date-time */
             reviewedAt: string | null;
         };
+        RevisionChange: {
+            /** @enum {string} */
+            kind: "added" | "removed" | "moved" | "edited" | "reordered";
+            /**
+             * @description `reordered` on the course means its modules were reordered.
+             * @enum {string}
+             */
+            target: "course" | "module" | "item";
+            title: string;
+            itemType?: components["schemas"]["ItemType"];
+            /** @description For edited: course fields; module `title`, `description`; item `title`, `type`, `video`, `file`, exam settings or `questions`. */
+            fields?: string[];
+            fromModule?: string;
+            toModule?: string;
+        };
+        RevisionSaveResult: {
+            saved: boolean;
+            unchanged: boolean;
+            revision: components["schemas"]["CourseRevision"] | null;
+            changes: components["schemas"]["RevisionChange"][];
+        };
         RevisionDecision: {
             /** Format: uuid */
             id: string;
@@ -2733,6 +2783,7 @@ export interface components {
             /** Format: date-time */
             submittedAt: string;
             lastDecision: components["schemas"]["RevisionDecision"] | null;
+            changes: components["schemas"]["RevisionChange"][];
             diff: {
                 /** @description Major fields (title, description, category, language). */
                 course: {
