@@ -66,17 +66,41 @@
     "modules": "Modules",
     "itemsOf": "Items in {{title}}",
     "addModule": "Add module",
-    "addItem": "Add item",
     "emptyModule": "No items yet",
     "empty": {
       "title": "Start with a module",
       "body": "Modules group your videos, documents and exams into steps."
     },
-    "startHint": "Add a module to start building the course.",
     "selectHint": "Choose a module or an item to edit it.",
     "warning": {
       "noQuestions": "Add questions before submitting",
       "videoUnavailable": "Video unavailable"
+    },
+    "moduleLabel": "Module {{number}} · {{title}}",
+    "itemCount_one": "{{count}} item",
+    "itemCount_other": "{{count}} items",
+    "view": "View",
+    "rename": "Rename",
+    "edit": "Edit",
+    "moduleSuffix": "module {{title}}",
+    "collapse": "Collapse {{title}}",
+    "expand": "Expand {{title}}",
+    "addTypeSuffix": "(add to {{title}})",
+    "closePanel": "Close",
+    "editItemTitle": "{{type}}: {{title}}",
+    "meta": {
+      "verified": "Verified",
+      "videoUnavailable": "Unavailable",
+      "videoPending": "Link checked when you submit",
+      "noVideo": "No video yet",
+      "noFile": "No file yet",
+      "fileAttached": "File attached",
+      "pages_one": "{{count}} page",
+      "pages_other": "{{count}} pages",
+      "megabytes": "{{size}} MB",
+      "questions_one": "{{count}} question",
+      "questions_other": "{{count}} questions",
+      "pass": "pass {{percent}}%"
     }
   },
   "dnd": {
@@ -330,5 +354,24 @@
       "sentTitle": "Sent for review",
       "sentBody": "The reviewer sees these changes. Learners see the published version until they're approved."
     }
+  },
+  "readiness": {
+    "title": "Ready to submit?",
+    "note": "An admin reviews your course before it is published.",
+    "done": {
+      "DESCRIPTION_REQUIRED": "Description added",
+      "NO_MODULES": "At least one module",
+      "EMPTY_MODULE": "No empty modules",
+      "EMPTY_EXAM": "Every exam has questions"
+    },
+    "open": {
+      "DESCRIPTION_REQUIRED": "Add a description",
+      "NO_MODULES": "Add a module",
+      "EMPTY_MODULE": "A module has no items",
+      "EMPTY_EXAM": "An exam has no questions"
+    }
+  },
+  "topBar": {
+    "breadcrumb": "Breadcrumb"
   }
 }

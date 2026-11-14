@@ -84,11 +84,14 @@ export function WorkingAddModuleDialog({ open, onClose }: { open: boolean; onClo
 export function WorkingAddItemDialog({
   moduleKey,
   moduleTitle,
+  initialType = 'video',
   open,
   onClose,
 }: {
   moduleKey: string;
   moduleTitle: string;
+  /** The type chosen when the dialog opens ("+ Video", "+ PDF", "+ Exam"). */
+  initialType?: ItemType;
   open: boolean;
   onClose: () => void;
 }) {
@@ -96,14 +99,14 @@ export function WorkingAddItemDialog({
   const addItem = useWorkingCopy((state) => state.addItem);
   const select = useWorkingCopy((state) => state.select);
   const titleId = useId();
-  const [type, setType] = useState<ItemType>('video');
+  const [type, setType] = useState<ItemType>(initialType);
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
   const [pdf, setPdf] = useState<{ upload: PdfUpload; name: string } | null>(null);
   const [problems, setProblems] = useState<{ title?: string; url?: string; pdf?: string }>({});
 
   const close = () => {
-    setType('video');
+    setType(initialType);
     setTitle('');
     setUrl('');
     setPdf(null);

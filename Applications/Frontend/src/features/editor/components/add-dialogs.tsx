@@ -120,6 +120,7 @@ export function AddItemDialog({
   courseId,
   moduleId,
   moduleTitle,
+  initialType = 'video',
   open,
   onClose,
   onAdded,
@@ -127,6 +128,8 @@ export function AddItemDialog({
   courseId: string;
   moduleId: string;
   moduleTitle: string;
+  /** The type chosen when the dialog opens ("+ Video", "+ PDF", "+ Exam"). */
+  initialType?: ItemType;
   open: boolean;
   onClose: () => void;
   onAdded: (itemId: string) => void;
@@ -136,7 +139,7 @@ export function AddItemDialog({
   const tracker = useSaveTracker();
   const saveErrorText = useSaveErrorText();
   const titleId = useId();
-  const [type, setType] = useState<ItemType>('video');
+  const [type, setType] = useState<ItemType>(initialType);
   const [title, setTitle] = useState('');
   const [url, setUrl] = useState('');
   const [pdf, setPdf] = useState<{ upload: PdfUpload; name: string } | null>(null);
@@ -144,7 +147,7 @@ export function AddItemDialog({
   const [error, setError] = useState<unknown>(null);
 
   const close = () => {
-    setType('video');
+    setType(initialType);
     setTitle('');
     setUrl('');
     setPdf(null);

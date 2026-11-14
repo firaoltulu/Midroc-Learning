@@ -1,31 +1,30 @@
 import AddOutlined from '@mui/icons-material/AddOutlined';
-import ErrorOutlineOutlined from '@mui/icons-material/ErrorOutlineOutlined';
 import ViewModuleOutlined from '@mui/icons-material/ViewModuleOutlined';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import ListItemButton from '@mui/material/ListItemButton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { visuallyHidden } from '@mui/utils';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useErrorMessage } from '../../../shared/i18n/error-messages';
 import { EmptyState } from '../../../shared/ui/empty-state';
 import { useToast } from '../../../shared/ui/toast/toast-context';
-import { ITEM_ICONS } from '../../courses';
+import type { ItemType } from '../../courses';
 import { useReorderItems, useReorderModules } from '../api/authoring';
 import type { AuthoringItem, AuthoringModule, AuthoringView } from '../api/schemas';
+import { fromAuthoringItem, useItemMeta } from '../lib/item-meta';
 import { move } from '../model/questions';
 import { useSaveTracker } from '../model/save-tracker';
 import { AddItemDialog, AddModuleDialog } from './add-dialogs';
+import { AddItemButtons, EditPanel, ItemRow, ModuleCard } from './content-layout';
 import { ItemPanel } from './item-panel';
 import { ModulePanel } from './module-panel';
+import { ReadinessCard } from './readiness-card';
 import { SortableList } from './sortable-list';
 
 export type Selection = { kind: 'module'; id: string } | { kind: 'item'; id: string } | null;
 
-/** Needs attention before submitting: an empty module, an exam without questions, a broken video. */
+/** Needs attention before submitting: an exam without questions, a broken video. */
 function itemWarning(item: AuthoringItem): 'noQuestions' | 'videoUnavailable' | null {
   if (item.type === 'exam' && (item.questions ?? []).length === 0) return 'noQuestions';
   if (item.type === 'video' && item.isAvailable === false) return 'videoUnavailable';
@@ -33,8 +32,10 @@ function itemWarning(item: AuthoringItem): 'noQuestions' | 'videoUnavailable' | 
 }
 
 /**
- * Content: the module/item tree (drag handles with keyboard support; reordering sends the
- * complete id list) next to the selected module's or item's editor.
+ * Content of a draft or rejected course: a card per module with its items (drag handles with
+ * keyboard support; reordering sends the complete id list), "+ Video + PDF + Exam" and
+ * "Add module", and "Ready to submit?" beside them. Rename / Edit open the module's or item's
+ * editor in a side panel.
  */
 export function ContentTab({
   view,
@@ -52,10 +53,13 @@ export function ContentTab({
   const tracker = useSaveTracker();
   const toast = useToast();
   const errorMessage = useErrorMessage();
+  const itemMeta = useItemMeta();
   const reorderModules = useReorderModules(courseId);
   const reorderItems = useReorderItems(courseId);
   const [addingModule, setAddingModule] = useState(false);
-  const [addingItemTo, setAddingItemTo] = useState<AuthoringModule | null>(null);
+  const [addingItem, setAddingItem] = useState<{ module: AuthoringModule; type: ItemType } | null>(
+    null,
+  );
 
   const reportFailure = (error: unknown) => {
     toast.show({ message: errorMessage(error), severity: 'error' });
@@ -85,8 +89,11 @@ export function ContentTab({
   const selectedItemIndex =
     itemParent && selection ? itemParent.items.findIndex(({ id }) => id === selection.id) : -1;
   const selectedItem = itemParent?.items[selectedItemIndex];
+  const close = () => {
+    onSelect(null);
+  };
 
-  const tree =
+  const content =
     modules.length === 0 ? (
       <EmptyState
         icon={<ViewModuleOutlined />}
@@ -114,106 +121,58 @@ export function ContentTab({
           disabled={readOnly}
           onReorder={saveModuleOrder}
           renderEntry={(module, handle) => (
-            <Box sx={{ py: 0.5 }}>
-              <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-                {handle}
-                <ListItemButton
-                  selected={selection?.kind === 'module' && selection.id === module.id}
-                  aria-current={
-                    selection?.kind === 'module' && selection.id === module.id ? 'true' : undefined
-                  }
-                  onClick={() => {
-                    onSelect({ kind: 'module', id: module.id });
-                  }}
-                  sx={{ borderRadius: '10px', minHeight: 44 }}
-                >
-                  <Typography sx={{ fontWeight: 600, overflowWrap: 'anywhere' }}>
-                    {module.title}
-                  </Typography>
-                </ListItemButton>
-              </Stack>
-              <Box sx={{ pl: readOnly ? 2 : 5.5 }}>
-                {module.items.length === 0 ? (
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1 }}
-                  >
-                    <ErrorOutlineOutlined aria-hidden fontSize="small" />
-                    {t('content.emptyModule')}
-                  </Typography>
-                ) : (
-                  <SortableList
-                    label={t('content.itemsOf', { title: module.title })}
-                    entries={module.items}
-                    disabled={readOnly}
-                    onReorder={(itemIds) => {
-                      saveItemOrder(module.id, itemIds);
-                    }}
-                    renderEntry={(item, itemHandle) => {
-                      const Icon = ITEM_ICONS[item.type];
-                      const warning = itemWarning(item);
-                      const selected = selection?.kind === 'item' && selection.id === item.id;
-                      return (
-                        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-                          {itemHandle}
-                          <ListItemButton
-                            selected={selected}
-                            aria-current={selected ? 'true' : undefined}
-                            onClick={() => {
-                              onSelect({ kind: 'item', id: item.id });
-                            }}
-                            sx={{ borderRadius: '10px', minHeight: 44, gap: 1.5 }}
-                          >
-                            <Box
-                              component="span"
-                              sx={{ display: 'flex', color: 'text.secondary' }}
-                              aria-hidden
-                            >
-                              <Icon />
-                            </Box>
-                            <Box sx={{ minWidth: 0, flex: 1 }}>
-                              <Typography
-                                component="span"
-                                sx={{ display: 'block', overflowWrap: 'anywhere' }}
-                              >
-                                <Box component="span" sx={visuallyHidden}>
-                                  {t('courses:outline.typePrefix', {
-                                    type: t(`courses:itemType.${item.type}`),
-                                  })}
-                                </Box>{' '}
-                                {item.title}
-                              </Typography>
-                              {warning ? (
-                                <Typography
-                                  component="span"
-                                  variant="body2"
-                                  sx={{ display: 'block', color: 'warning.main' }}
-                                >
-                                  {t(`content.warning.${warning}`)}
-                                </Typography>
-                              ) : null}
-                            </Box>
-                          </ListItemButton>
-                        </Stack>
-                      );
+            <ModuleCard
+              number={modules.indexOf(module) + 1}
+              title={module.title}
+              handle={handle}
+              itemCount={module.items.length}
+              readOnly={readOnly}
+              onRename={() => {
+                onSelect({ kind: 'module', id: module.id });
+              }}
+              problem={module.items.length === 0 ? t('content.emptyModule') : null}
+              footer={
+                readOnly ? null : (
+                  <AddItemButtons
+                    moduleTitle={module.title}
+                    onAdd={(type) => {
+                      setAddingItem({ module, type });
                     }}
                   />
-                )}
-                {readOnly ? null : (
-                  <Button
-                    size="small"
-                    startIcon={<AddOutlined />}
-                    onClick={() => {
-                      setAddingItemTo(module);
-                    }}
-                    sx={{ ml: 1, mt: 0.5 }}
-                  >
-                    {t('content.addItem')}
-                  </Button>
-                )}
-              </Box>
-            </Box>
+                )
+              }
+            >
+              {module.items.length > 0 ? (
+                <SortableList
+                  label={t('content.itemsOf', { title: module.title })}
+                  entries={module.items}
+                  disabled={readOnly}
+                  onReorder={(itemIds) => {
+                    saveItemOrder(module.id, itemIds);
+                  }}
+                  renderEntry={(item, itemHandle) => {
+                    const warning = itemWarning(item);
+                    return (
+                      <ItemRow
+                        handle={itemHandle}
+                        type={item.type}
+                        title={item.title}
+                        meta={itemMeta(fromAuthoringItem(item))}
+                        notes={
+                          warning
+                            ? [{ text: t(`content.warning.${warning}`), tone: 'warning' }]
+                            : []
+                        }
+                        readOnly={readOnly}
+                        onEdit={() => {
+                          onSelect({ kind: 'item', id: item.id });
+                        }}
+                      />
+                    );
+                  }}
+                />
+              ) : null}
+            </ModuleCard>
           )}
         />
         {readOnly ? null : (
@@ -236,16 +195,33 @@ export function ContentTab({
       sx={{
         display: 'grid',
         gap: 3,
-        gridTemplateColumns: { xs: '1fr', md: 'minmax(280px, 380px) minmax(0, 1fr)' },
+        gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) 300px' },
         alignItems: 'start',
       }}
     >
-      <Card component="nav" aria-label={t('content.treeLabel')} sx={{ p: 1.5 }}>
-        {tree}
-      </Card>
+      <Box component="section" aria-label={t('content.treeLabel')} sx={{ minWidth: 0 }}>
+        {content}
+      </Box>
+      <ReadinessCard view={view} />
 
-      <Card sx={{ p: { xs: 2, sm: 3 } }}>
-        {selectedItem ? (
+      <EditPanel
+        open={Boolean(selectedItem ?? selectedModule)}
+        title={
+          selectedItem
+            ? t('content.editItemTitle', {
+                type: t(`courses:itemType.${selectedItem.type}`),
+                title: selectedItem.title,
+              })
+            : selectedModule
+              ? t('content.moduleLabel', {
+                  number: selectedModuleIndex + 1,
+                  title: selectedModule.title,
+                })
+              : ''
+        }
+        onClose={close}
+      >
+        {itemParent && selectedItem ? (
           <ItemPanel
             key={selectedItem.id}
             courseId={courseId}
@@ -263,9 +239,7 @@ export function ContentTab({
                 ),
               );
             }}
-            onDeleted={() => {
-              onSelect({ kind: 'module', id: itemParent.id });
-            }}
+            onDeleted={close}
           />
         ) : selectedModule ? (
           <ModulePanel
@@ -284,16 +258,12 @@ export function ContentTab({
                 ),
               );
             }}
-            onDeleted={() => {
-              onSelect(null);
-            }}
+            onDeleted={close}
           />
         ) : (
-          <Typography color="text.secondary">
-            {modules.length === 0 ? t('content.startHint') : t('content.selectHint')}
-          </Typography>
+          <Typography color="text.secondary">{t('content.selectHint')}</Typography>
         )}
-      </Card>
+      </EditPanel>
 
       <AddModuleDialog
         courseId={courseId}
@@ -301,18 +271,19 @@ export function ContentTab({
         onClose={() => {
           setAddingModule(false);
         }}
-        onAdded={(moduleId) => {
-          onSelect({ kind: 'module', id: moduleId });
+        onAdded={() => {
+          // The new module shows as a card; adding its first item is the next step.
         }}
       />
-      {addingItemTo ? (
+      {addingItem ? (
         <AddItemDialog
           courseId={courseId}
-          moduleId={addingItemTo.id}
-          moduleTitle={addingItemTo.title}
+          moduleId={addingItem.module.id}
+          moduleTitle={addingItem.module.title}
+          initialType={addingItem.type}
           open
           onClose={() => {
-            setAddingItemTo(null);
+            setAddingItem(null);
           }}
           onAdded={(itemId) => {
             onSelect({ kind: 'item', id: itemId });

@@ -17,7 +17,7 @@ const saveState = () =>
 
 async function openContent(path = `${EDIT}?tab=content`) {
   const view = await renderRoute(path);
-  await screen.findByRole('navigation', { name: 'Course content' });
+  await screen.findByRole('region', { name: 'Course content' });
   return view;
 }
 
@@ -98,7 +98,7 @@ describe('content: tree and reordering', () => {
   it('moving a module sends the complete module id list in the new order', async () => {
     const mock = mockAuthoringApi();
     const { user } = await openContent();
-    await user.click(screen.getByRole('button', { name: 'Getting started' }));
+    await user.click(screen.getByRole('button', { name: 'Rename module Getting started' }));
     await user.click(await screen.findByRole('button', { name: 'Move module down' }));
 
     await waitFor(() => {
@@ -108,15 +108,15 @@ describe('content: tree and reordering', () => {
     });
     const modules = within(screen.getByRole('list', { name: 'Modules' }));
     const titles = modules
-      .getAllByRole('button', { name: /^(Getting started|Check your knowledge)$/ })
-      .map((button) => button.textContent);
-    expect(titles).toEqual(['Check your knowledge', 'Getting started']);
+      .getAllByRole('heading', { level: 2, name: /^Module / })
+      .map((heading) => heading.textContent);
+    expect(titles).toEqual(['Module 1 · Check your knowledge', 'Module 2 · Getting started']);
   });
 
   it('moving an item sends the complete item id list of its module', async () => {
     const mock = mockAuthoringApi();
     const { user } = await openContent();
-    await user.click(screen.getByRole('button', { name: 'Video: Welcome' }));
+    await user.click(screen.getByRole('button', { name: 'Edit Video: Welcome' }));
     await user.click(await screen.findByRole('button', { name: 'Move item down' }));
     await waitFor(() => {
       expect(mock.writes('PUT', /items\/order$/)).toEqual([
@@ -133,7 +133,7 @@ describe('content: tree and reordering', () => {
     const mock = mockAuthoringApi();
     mock.failNext('PUT', /modules\/order$/, () => apiError(400, { code: 'INVALID_ORDER' }));
     const { user } = await openContent();
-    await user.click(screen.getByRole('button', { name: 'Getting started' }));
+    await user.click(screen.getByRole('button', { name: 'Rename module Getting started' }));
     await user.click(await screen.findByRole('button', { name: 'Move module down' }));
 
     expect(
@@ -147,9 +147,9 @@ describe('content: tree and reordering', () => {
     await waitFor(() => {
       expect(
         modules
-          .getAllByRole('button', { name: /^(Getting started|Check your knowledge)$/ })
-          .map((button) => button.textContent),
-      ).toEqual(['Getting started', 'Check your knowledge']);
+          .getAllByRole('heading', { level: 2, name: /^Module / })
+          .map((heading) => heading.textContent),
+      ).toEqual(['Module 1 · Getting started', 'Module 2 · Check your knowledge']);
     });
   });
 
@@ -164,7 +164,7 @@ describe('content: tree and reordering', () => {
     expect(screen.getByRole('button', { name: 'Reorder Welcome' })).toBeVisible();
   });
 
-  it('adds a module and opens it', async () => {
+  it('adds a module, shown as a new card', async () => {
     const mock = mockAuthoringApi();
     const { user } = await openContent();
     await user.click(screen.getByRole('button', { name: 'Add module' }));
@@ -174,7 +174,9 @@ describe('content: tree and reordering', () => {
 
     await user.type(within(dialog).getByRole('textbox', { name: 'Module title' }), 'Wrap-up');
     await user.click(within(dialog).getByRole('button', { name: 'Add module' }));
-    expect(await screen.findByRole('heading', { level: 2, name: 'Wrap-up' })).toBeVisible();
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Module 3 · Wrap-up' }),
+    ).toBeVisible();
     expect(mock.writes('POST', /\/modules$/).map((entry) => entry.body)).toEqual([
       { title: 'Wrap-up' },
     ]);
@@ -186,7 +188,7 @@ describe('content: tree and reordering', () => {
       apiError(422, { code: 'VIDEO_UNAVAILABLE' }),
     );
     const { user } = await openContent();
-    await user.click(screen.getAllByRole('button', { name: 'Add item' })[0] as HTMLElement);
+    await user.click(screen.getByRole('button', { name: 'Video (add to Getting started)' }));
     const dialog = await screen.findByRole('dialog', { name: 'Add an item to Getting started' });
     await user.type(within(dialog).getByRole('textbox', { name: 'Item title' }), 'Ladders');
     await user.type(
@@ -229,7 +231,7 @@ describe('content: tree and reordering', () => {
       ),
     );
     const { user } = await openContent();
-    await user.click(screen.getAllByRole('button', { name: 'Add item' })[0] as HTMLElement);
+    await user.click(screen.getByRole('button', { name: 'Video (add to Getting started)' }));
     const dialog = await screen.findByRole('dialog', { name: 'Add an item to Getting started' });
     await user.click(within(dialog).getByRole('radio', { name: 'PDF' }));
     await user.type(within(dialog).getByRole('textbox', { name: 'Item title' }), 'Checklist');
@@ -276,7 +278,7 @@ describe('content: exam builder', () => {
 
   async function openExam() {
     const view = await openContent();
-    await view.user.click(screen.getByRole('button', { name: 'Exam: Final quiz' }));
+    await view.user.click(screen.getByRole('button', { name: 'Edit Exam: Final quiz' }));
     await screen.findByRole('heading', { name: 'Questions' });
     return view;
   }

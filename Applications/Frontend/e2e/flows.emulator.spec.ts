@@ -180,9 +180,8 @@ test('3. create a course, add content and submit it for review', async ({ page }
   const moduleDialog = page.getByRole('dialog', { name: 'Add a module' });
   await moduleDialog.getByRole('textbox', { name: 'Module title' }).fill('Basics');
   await moduleDialog.getByRole('button', { name: 'Add module' }).click();
-  await page.getByRole('button', { name: 'Add item' }).first().click();
+  await page.getByRole('button', { name: 'Exam (add to Basics)' }).click();
   const itemDialog = page.getByRole('dialog', { name: /^Add an item to / });
-  await itemDialog.getByRole('radio', { name: 'Exam' }).check();
   await itemDialog.getByRole('textbox', { name: 'Item title' }).fill('Basics quiz');
   await itemDialog.getByRole('button', { name: 'Add item' }).click();
   await page.getByRole('button', { name: 'Add question', exact: true }).click();
@@ -261,6 +260,8 @@ test('5. edit a published course, submit the changes, an administrator approves 
   await expect(bar.getByText('1 change')).toBeVisible();
   await bar.getByRole('button', { name: 'Submit changes for review' }).click();
   await expect(page.getByText(/You have changes waiting for review/)).toBeVisible();
+  // The editor has its own top bar; the account menu is in the app header.
+  await page.goto('/');
   await signOut(page, 'Abebe Kebede');
 
   // An administrator reviews the revision: the title from → to, then approves.

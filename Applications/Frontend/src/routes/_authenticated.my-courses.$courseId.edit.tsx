@@ -10,6 +10,8 @@ const tabs = ['details', 'content', 'review'] as const satisfies readonly Editor
 const editorSearchSchema = z.object({ tab: z.enum(tabs).optional().catch(undefined) });
 
 export const Route = createFileRoute('/_authenticated/my-courses/$courseId/edit')({
+  // The editor brings its own top bar.
+  staticData: { layout: 'focus' },
   validateSearch: editorSearchSchema,
   component: EditorRoute,
 });

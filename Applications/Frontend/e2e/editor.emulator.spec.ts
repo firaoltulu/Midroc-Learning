@@ -39,7 +39,9 @@ test('create a course, build it with the keyboard, and submit it for review', as
     const dialog = page.getByRole('dialog', { name: 'Add a module' });
     await dialog.getByRole('textbox', { name: 'Module title' }).fill(title);
     await dialog.getByRole('button', { name: 'Add module' }).click();
-    await expect(page.getByRole('heading', { level: 2, name: title })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { level: 2, name: new RegExp(`· ${title}$`) }),
+    ).toBeVisible();
   }
   const handle = page.getByRole('button', { name: 'Reorder Advanced' });
   await handle.focus();
@@ -51,23 +53,28 @@ test('create a course, build it with the keyboard, and submit it for review', as
   await page.keyboard.press('Space');
   await expect(page.getByText('Advanced dropped at position 1 of 2.')).toBeAttached();
   const modules = page.getByRole('list', { name: 'Modules' });
-  await expect(modules.getByRole('button', { name: /^(Basics|Advanced)$/ })).toHaveText([
-    'Advanced',
-    'Basics',
+  await expect(modules.getByRole('heading', { level: 2 })).toHaveText([
+    'Module 1 · Advanced',
+    'Module 2 · Basics',
   ]);
   const order = authoring.writes.filter((write) => write.path.endsWith('/modules/order'));
   expect(order).toHaveLength(1);
   expect((order[0]?.body as { moduleIds: string[] }).moduleIds).toHaveLength(2);
 
   // An exam with one question in each module.
-  const addItemButtons = page.getByRole('button', { name: 'Add item' });
-  for (const [index, title] of ['Advanced quiz', 'Basics quiz'].entries()) {
-    await addItemButtons.nth(index).click();
+  for (const [module, title] of [
+    ['Advanced', 'Advanced quiz'],
+    ['Basics', 'Basics quiz'],
+  ] as const) {
+    // "+ Exam" under the module opens the dialog with Exam chosen.
+    await page.getByRole('button', { name: `Exam (add to ${module})` }).click();
     const dialog = page.getByRole('dialog', { name: /^Add an item to / });
-    await dialog.getByRole('radio', { name: 'Exam' }).check();
+    await expect(dialog.getByRole('radio', { name: 'Exam' })).toBeChecked();
     await dialog.getByRole('textbox', { name: 'Item title' }).fill(title);
     await dialog.getByRole('button', { name: 'Add item' }).click();
-    await expect(page.getByRole('heading', { level: 2, name: title })).toBeVisible();
+    // The new item opens in the side panel.
+    const panel = page.getByRole('region', { name: `Exam: ${title}` });
+    await expect(panel).toBeVisible();
     await page.getByRole('button', { name: 'Add question', exact: true }).click();
     await page
       .getByRole('textbox', { name: 'Question', exact: true })
@@ -76,6 +83,7 @@ test('create a course, build it with the keyboard, and submit it for review', as
     await page.getByRole('textbox', { name: 'Answer 2' }).fill('No');
     await page.getByRole('radio', { name: 'Answer 1 is correct' }).check();
     await expect(page.getByText('All changes saved')).toBeVisible();
+    await panel.getByRole('button', { name: 'Close' }).click();
   }
 
   // Review: everything is done; submit.
@@ -89,4 +97,30 @@ test('create a course, build it with the keyboard, and submit it for review', as
     ),
   ).toBeVisible();
   await expect(page.getByText('In review')).toBeVisible();
+});
+
+test('on a phone, in Amharic and dark mode, the editor fits the screen', async ({ page }) => {
+  await page.goto('/my-courses/new');
+  await page.getByRole('textbox', { name: 'Course title' }).fill('Introduction to Farm Accounting');
+  await page.getByRole('button', { name: 'Create course' }).click();
+  await page.getByRole('tab', { name: 'Content' }).click();
+  await page.getByRole('button', { name: 'Add module' }).last().click();
+  const dialog = page.getByRole('dialog', { name: 'Add a module' });
+  await dialog.getByRole('textbox', { name: 'Module title' }).fill('Foundations');
+  await dialog.getByRole('button', { name: 'Add module' }).click();
+  await expect(page.getByRole('heading', { level: 2, name: /Foundations$/ })).toBeVisible();
+
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.evaluate(() => {
+    localStorage.setItem('midroc.language', 'am');
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'am');
+  await expect(page.getByRole('heading', { level: 2, name: /Foundations$/ })).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    ),
+  ).toBe(true);
 });

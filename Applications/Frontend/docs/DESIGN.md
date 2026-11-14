@@ -47,5 +47,5 @@ use `hero.fg`, since the primary color would vanish on the green band.
 4. Backend: ratings and reviews. Then Course. (done)
 5. Backend: discussions and notes. Then Player. (done)
 6. Exam. (done)
-7. Editor.
+7. Editor. (done)
 8. Admin: dashboard, users, revision.

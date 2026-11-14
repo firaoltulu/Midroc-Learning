@@ -1,20 +1,18 @@
 import AddOutlined from '@mui/icons-material/AddOutlined';
-import ErrorOutlineOutlined from '@mui/icons-material/ErrorOutlineOutlined';
 import ViewModuleOutlined from '@mui/icons-material/ViewModuleOutlined';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import ListItemButton from '@mui/material/ListItemButton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { visuallyHidden } from '@mui/utils';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { EmptyState } from '../../../../shared/ui/empty-state';
-import { ITEM_ICONS } from '../../../courses';
+import type { ItemType } from '../../../courses';
+import { fromWorkingItem, useItemMeta } from '../../lib/item-meta';
 import { useKeyText } from '../../lib/key-text';
 import { copyProblems, type CopyProblem, type WorkingItem } from '../../model/working-copy';
 import { useWorkingCopy } from '../../model/working-copy-store';
+import { AddItemButtons, EditPanel, ItemRow, ModuleCard } from '../content-layout';
 import { SortableList } from '../sortable-list';
 import { WorkingAddItemDialog, WorkingAddModuleDialog } from './working-add-dialogs';
 import { WorkingItemPanel } from './working-item-panel';
@@ -39,9 +37,9 @@ function rowProblem(
 }
 
 /**
- * Content of a published course: the working copy's tree (drag handles with keyboard
- * support, Move up/down, moving items between modules) next to the selected module's or
- * item's editor. Nothing here is live until the changes are approved, except titles and
+ * Content of a published course: the working copy as module cards (drag handles with keyboard
+ * support; Move up/down and moving items between modules in the editors), each module's or
+ * item's editor in a side panel. Nothing here is live until the changes are approved, except titles and
  * module descriptions of content that is already live.
  */
 export function WorkingContentTab({ courseId, readOnly }: { courseId: string; readOnly: boolean }) {
@@ -55,7 +53,12 @@ export function WorkingContentTab({ courseId, readOnly }: { courseId: string; re
   const submitAttempted = useWorkingCopy((state) => state.submitAttempted);
   const itemErrors = useWorkingCopy((state) => state.itemErrors);
   const [addingModule, setAddingModule] = useState(false);
-  const [addingItemTo, setAddingItemTo] = useState<{ key: string; title: string } | null>(null);
+  const [addingItemTo, setAddingItemTo] = useState<{
+    key: string;
+    title: string;
+    type: ItemType;
+  } | null>(null);
+  const itemMeta = useItemMeta();
   const problems = copyProblems(copy);
 
   const modules = copy.modules;
@@ -70,56 +73,26 @@ export function WorkingContentTab({ courseId, readOnly }: { courseId: string; re
   const selectedItem = itemParent?.items.find((item) => item.key === selection?.key);
 
   const itemRow = (item: WorkingItem, handle: React.ReactNode) => {
-    const Icon = ITEM_ICONS[item.type];
-    const selected = selection?.kind === 'item' && selection.key === item.key;
     const problem = rowProblem(problems, item.key, submitAttempted, itemErrors[item.key]);
+    const notes: Array<{ text: string; tone: 'muted' | 'warning' }> = [];
+    if (!item.id) notes.push({ text: t('working.new'), tone: 'muted' });
+    if (problem) notes.push({ text: keyText(problem) ?? '', tone: 'warning' });
     return (
-      <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-        {handle}
-        <ListItemButton
-          selected={selected}
-          aria-current={selected ? 'true' : undefined}
-          onClick={() => {
-            select({ kind: 'item', key: item.key });
-          }}
-          sx={{ borderRadius: '10px', minHeight: 44, gap: 1.5 }}
-        >
-          <Box component="span" sx={{ display: 'flex', color: 'text.secondary' }} aria-hidden>
-            <Icon />
-          </Box>
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography component="span" sx={{ display: 'block', overflowWrap: 'anywhere' }}>
-              <Box component="span" sx={visuallyHidden}>
-                {t('courses:outline.typePrefix', { type: t(`courses:itemType.${item.type}`) })}
-              </Box>{' '}
-              {item.title || t('working.untitled')}
-            </Typography>
-            {item.id ? null : (
-              <Typography
-                component="span"
-                variant="body2"
-                color="text.secondary"
-                sx={{ display: 'block' }}
-              >
-                {t('working.new')}
-              </Typography>
-            )}
-            {problem ? (
-              <Typography
-                component="span"
-                variant="body2"
-                sx={{ display: 'block', color: 'warning.main' }}
-              >
-                {keyText(problem)}
-              </Typography>
-            ) : null}
-          </Box>
-        </ListItemButton>
-      </Stack>
+      <ItemRow
+        handle={handle}
+        type={item.type}
+        title={item.title || t('working.untitled')}
+        meta={itemMeta(fromWorkingItem(item))}
+        notes={notes}
+        readOnly={readOnly}
+        onEdit={() => {
+          select({ kind: 'item', key: item.key });
+        }}
+      />
     );
   };
 
-  const tree =
+  const content =
     modules.length === 0 ? (
       <EmptyState
         icon={<ViewModuleOutlined />}
@@ -147,71 +120,45 @@ export function WorkingContentTab({ courseId, readOnly }: { courseId: string; re
           disabled={readOnly}
           onReorder={orderModules}
           renderEntry={({ module }, handle) => {
-            const selected = selection?.kind === 'module' && selection.key === module.key;
             const problem = rowProblem(problems, module.key, submitAttempted, null);
             return (
-              <Box sx={{ py: 0.5 }}>
-                <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-                  {handle}
-                  <ListItemButton
-                    selected={selected}
-                    aria-current={selected ? 'true' : undefined}
-                    onClick={() => {
-                      select({ kind: 'module', key: module.key });
-                    }}
-                    sx={{ borderRadius: '10px', minHeight: 44 }}
-                  >
-                    <Typography sx={{ fontWeight: 600, overflowWrap: 'anywhere' }}>
-                      {module.title || t('working.untitled')}
-                    </Typography>
-                  </ListItemButton>
-                </Stack>
-                <Box sx={{ pl: readOnly ? 2 : 5.5 }}>
-                  {problem ? (
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        px: 2,
-                        py: 0.5,
-                        color: 'warning.main',
+              <ModuleCard
+                number={modules.indexOf(module) + 1}
+                title={module.title || t('working.untitled')}
+                handle={handle}
+                itemCount={module.items.length}
+                readOnly={readOnly}
+                onRename={() => {
+                  select({ kind: 'module', key: module.key });
+                }}
+                problem={problem ? keyText(problem) : null}
+                footer={
+                  readOnly ? null : (
+                    <AddItemButtons
+                      moduleTitle={module.title}
+                      onAdd={(type) => {
+                        setAddingItemTo({ key: module.key, title: module.title, type });
                       }}
-                    >
-                      <ErrorOutlineOutlined aria-hidden fontSize="small" />
-                      {keyText(problem)}
-                    </Typography>
-                  ) : null}
-                  {module.items.length > 0 ? (
-                    <SortableList
-                      label={t('content.itemsOf', { title: module.title })}
-                      entries={module.items.map((item) => ({
-                        id: item.key,
-                        title: item.title,
-                        item,
-                      }))}
-                      disabled={readOnly}
-                      onReorder={(keys) => {
-                        orderItems(module.key, keys);
-                      }}
-                      renderEntry={({ item }, itemHandle) => itemRow(item, itemHandle)}
                     />
-                  ) : null}
-                  {readOnly ? null : (
-                    <Button
-                      size="small"
-                      startIcon={<AddOutlined />}
-                      onClick={() => {
-                        setAddingItemTo({ key: module.key, title: module.title });
-                      }}
-                      sx={{ ml: 1, mt: 0.5 }}
-                    >
-                      {t('content.addItem')}
-                    </Button>
-                  )}
-                </Box>
-              </Box>
+                  )
+                }
+              >
+                {module.items.length > 0 ? (
+                  <SortableList
+                    label={t('content.itemsOf', { title: module.title })}
+                    entries={module.items.map((item) => ({
+                      id: item.key,
+                      title: item.title,
+                      item,
+                    }))}
+                    disabled={readOnly}
+                    onReorder={(keys) => {
+                      orderItems(module.key, keys);
+                    }}
+                    renderEntry={({ item }, itemHandle) => itemRow(item, itemHandle)}
+                  />
+                ) : null}
+              </ModuleCard>
             );
           }}
         />
@@ -230,20 +177,31 @@ export function WorkingContentTab({ courseId, readOnly }: { courseId: string; re
       </Stack>
     );
 
-  return (
-    <Box
-      sx={{
-        display: 'grid',
-        gap: 3,
-        gridTemplateColumns: { xs: '1fr', md: 'minmax(280px, 380px) minmax(0, 1fr)' },
-        alignItems: 'start',
-      }}
-    >
-      <Card component="nav" aria-label={t('content.treeLabel')} sx={{ p: 1.5 }}>
-        {tree}
-      </Card>
+  const panelTitle = selectedItem
+    ? t('content.editItemTitle', {
+        type: t(`courses:itemType.${selectedItem.type}`),
+        title: selectedItem.title || t('working.untitled'),
+      })
+    : selectedModule
+      ? t('content.moduleLabel', {
+          number: modules.indexOf(selectedModule) + 1,
+          title: selectedModule.title || t('working.untitled'),
+        })
+      : '';
 
-      <Card sx={{ p: { xs: 2, sm: 3 } }}>
+  return (
+    <Box sx={{ maxWidth: 860 }}>
+      <Box component="section" aria-label={t('content.treeLabel')}>
+        {content}
+      </Box>
+
+      <EditPanel
+        open={Boolean(selectedItem ?? selectedModule)}
+        title={panelTitle}
+        onClose={() => {
+          select(null);
+        }}
+      >
         {selectedItem && itemParent ? (
           <WorkingItemPanel
             key={selectedItem.key}
@@ -260,11 +218,9 @@ export function WorkingContentTab({ courseId, readOnly }: { courseId: string; re
             readOnly={readOnly}
           />
         ) : (
-          <Typography color="text.secondary">
-            {modules.length === 0 ? t('content.startHint') : t('content.selectHint')}
-          </Typography>
+          <Typography color="text.secondary">{t('content.selectHint')}</Typography>
         )}
-      </Card>
+      </EditPanel>
 
       <WorkingAddModuleDialog
         open={addingModule}
@@ -276,6 +232,7 @@ export function WorkingContentTab({ courseId, readOnly }: { courseId: string; re
         <WorkingAddItemDialog
           moduleKey={addingItemTo.key}
           moduleTitle={addingItemTo.title}
+          initialType={addingItemTo.type}
           open
           onClose={() => {
             setAddingItemTo(null);

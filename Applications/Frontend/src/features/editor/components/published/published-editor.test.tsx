@@ -76,7 +76,7 @@ describe('published course: labels and routing', () => {
   it('a live module title applies right away; a description of a new module goes to review', async () => {
     const mock = mockAuthoringApi(published());
     const { user } = await renderRoute(`${EDIT}?tab=content`);
-    await user.click(await screen.findByRole('button', { name: 'Getting started' }));
+    await user.click(await screen.findByRole('button', { name: 'Rename module Getting started' }));
     const moduleTitle = await screen.findByRole('textbox', { name: 'Module title' });
     expect(moduleTitle).toHaveAccessibleDescription(/^Applies right away/);
     await fill(user, moduleTitle, 'Before you start');
@@ -96,14 +96,14 @@ describe('published course: the revision payload', () => {
     const { user } = await renderRoute(`${EDIT}?tab=content`);
 
     // Move the exam (item-3) into the first module, then remove the empty second module.
-    await user.click(await screen.findByRole('button', { name: 'Exam: Final quiz' }));
+    await user.click(await screen.findByRole('button', { name: 'Edit Exam: Final quiz' }));
     await user.click(screen.getByRole('combobox', { name: 'Module' }));
     await user.click(screen.getByRole('option', { name: 'Getting started' }));
-    await user.click(screen.getByRole('button', { name: 'Check your knowledge' }));
+    await user.click(screen.getByRole('button', { name: 'Rename module Check your knowledge' }));
     await user.click(await screen.findByRole('button', { name: 'Remove module' }));
 
     // Edit a question's answer text.
-    await user.click(screen.getByRole('button', { name: 'Exam: Final quiz' }));
+    await user.click(screen.getByRole('button', { name: 'Edit Exam: Final quiz' }));
     await fill(user, await screen.findByRole('textbox', { name: 'Answer 2' }), 'Flip-flops');
 
     // A new module with a new video.
@@ -111,8 +111,7 @@ describe('published course: the revision payload', () => {
     let dialog = await screen.findByRole('dialog', { name: 'Add a module' });
     await fill(user, within(dialog).getByRole('textbox', { name: 'Module title' }), 'Ladders');
     await user.click(within(dialog).getByRole('button', { name: 'Add module' }));
-    const addButtons = await screen.findAllByRole('button', { name: 'Add item' });
-    await user.click(addButtons.at(-1) as HTMLElement);
+    await user.click(await screen.findByRole('button', { name: 'Video (add to Ladders)' }));
     dialog = await screen.findByRole('dialog', { name: 'Add an item to Ladders' });
     await fill(
       user,

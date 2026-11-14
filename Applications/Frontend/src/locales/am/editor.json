@@ -66,17 +66,41 @@
     "modules": "ሞጁሎች",
     "itemsOf": "በ{{title}} ውስጥ ያሉ ክፍሎች",
     "addModule": "ሞጁል ያክሉ",
-    "addItem": "ክፍል ያክሉ",
     "emptyModule": "ገና ምንም ክፍል የለም",
     "empty": {
       "title": "በሞጁል ይጀምሩ",
       "body": "ሞጁሎች ቪዲዮዎችን፣ ሰነዶችንና ፈተናዎችን በደረጃ ያደራጃሉ።"
     },
-    "startHint": "ኮርሱን መገንባት ለመጀመር ሞጁል ያክሉ።",
     "selectHint": "ለማስተካከል ሞጁል ወይም ክፍል ይምረጡ።",
     "warning": {
       "noQuestions": "ከማስገባትዎ በፊት ጥያቄዎችን ያክሉ",
       "videoUnavailable": "ቪዲዮው አይገኝም"
+    },
+    "moduleLabel": "ሞጁል {{number}} · {{title}}",
+    "itemCount_one": "{{count}} ንጥል",
+    "itemCount_other": "{{count}} ንጥሎች",
+    "view": "ይመልከቱ",
+    "rename": "እንደገና ሰይም",
+    "edit": "አርትዕ",
+    "moduleSuffix": "ሞጁል {{title}}",
+    "collapse": "{{title}}ን ሰብስብ",
+    "expand": "{{title}}ን ዘርጋ",
+    "addTypeSuffix": "(ወደ {{title}} ያክሉ)",
+    "closePanel": "ዝጋ",
+    "editItemTitle": "{{type}}፦ {{title}}",
+    "meta": {
+      "verified": "ተረጋግጧል",
+      "videoUnavailable": "አይገኝም",
+      "videoPending": "አገናኙ ሲያስገቡ ይረጋገጣል",
+      "noVideo": "እስካሁን ቪዲዮ የለም",
+      "noFile": "እስካሁን ፋይል የለም",
+      "fileAttached": "ፋይል ተያይዟል",
+      "pages_one": "{{count}} ገጽ",
+      "pages_other": "{{count}} ገጾች",
+      "megabytes": "{{size}} MB",
+      "questions_one": "{{count}} ጥያቄ",
+      "questions_other": "{{count}} ጥያቄዎች",
+      "pass": "ማለፊያ {{percent}}%"
     }
   },
   "dnd": {
@@ -330,5 +354,24 @@
       "sentTitle": "ለግምገማ የተላኩ",
       "sentBody": "ገምጋሚው እነዚህን ለውጦች ያያል። እስኪጸድቁ ድረስ ተማሪዎች የታተመውን ስሪት ያያሉ።"
     }
+  },
+  "readiness": {
+    "title": "ለማስገባት ዝግጁ ነው?",
+    "note": "ኮርስዎ ከመታተሙ በፊት አስተዳዳሪ ይገመግመዋል።",
+    "done": {
+      "DESCRIPTION_REQUIRED": "መግለጫ ተጨምሯል",
+      "NO_MODULES": "ቢያንስ አንድ ሞጁል አለ",
+      "EMPTY_MODULE": "ባዶ ሞጁል የለም",
+      "EMPTY_EXAM": "ሁሉም ፈተናዎች ጥያቄ አላቸው"
+    },
+    "open": {
+      "DESCRIPTION_REQUIRED": "መግለጫ ያክሉ",
+      "NO_MODULES": "ሞጁል ያክሉ",
+      "EMPTY_MODULE": "ንጥል የሌለው ሞጁል አለ",
+      "EMPTY_EXAM": "ጥያቄ የሌለው ፈተና አለ"
+    }
+  },
+  "topBar": {
+    "breadcrumb": "የገጽ መንገድ"
   }
 }
