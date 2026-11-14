@@ -209,6 +209,14 @@ describe('course HTTP behavior', () => {
       total: 1,
       items: [{ userId: viewerId, email: 'viewer@example.test', progressPercent: 0, itemCount: 1 }]
     });
+    const searched = await fetch(`${base}/admin/courses/${course.id}/enrollments?q=nobody%25`, {
+      headers: asUser(adminId, 'admin').headers
+    });
+    expect(await searched.json()).toMatchObject({ total: 0, items: [] });
+    const adminList = await fetch(`${base}/admin/courses`, { headers: asUser(adminId, 'admin').headers });
+    expect(await adminList.json()).toMatchObject({
+      items: [{ id: course.id, ownerEmail: 'owner@example.test', enrollmentCount: 1 }]
+    });
     const forbidden = await fetch(`${base}/admin/courses/${course.id}/enrollments`, {
       headers: asUser(viewerId).headers
     });

@@ -257,6 +257,20 @@ export async function reviewCourse(
   );
 }
 
+/** Admin lists: the owner, the last change and the enrollment count (`c` = courses). */
+const adminColumns = `
+  ${joinedCourseColumns},
+  u.name AS "ownerName", u.email AS "ownerEmail", c.updated_at AS "updatedAt",
+  (SELECT count(*)::int FROM enrollments e WHERE e.course_id = c.id) AS "enrollmentCount"
+`;
+
+export type AdminCourse = Course & {
+  ownerName: string | null;
+  ownerEmail: string;
+  updatedAt: Date;
+  enrollmentCount: number;
+};
+
 export async function listAdminCourses(
   db: Queryable,
   input: {
@@ -265,10 +279,10 @@ export async function listAdminCourses(
     limit: number;
     offset: number;
   }
-): Promise<{ items: Course[]; total: number }> {
-  const { rows } = await db.query<Course & { total: string }>(
-    `SELECT ${courseColumns}, count(*) OVER() AS total
-     FROM courses c
+): Promise<{ items: AdminCourse[]; total: number }> {
+  const { rows } = await db.query<AdminCourse & { total: string }>(
+    `SELECT ${adminColumns}, count(*) OVER() AS total
+     FROM courses c JOIN users u ON u.id = c.owner_id
      WHERE ($1::course_status IS NULL OR c.status = $1::course_status)
        AND ($2::text IS NULL OR c.title ILIKE '%' || $2 || '%' ESCAPE E'\\\\')
      ORDER BY c.created_at DESC, c.id
@@ -278,9 +292,9 @@ export async function listAdminCourses(
   return toPage(rows);
 }
 
-export async function pendingCourses(db: Queryable): Promise<Course[]> {
-  const { rows } = await db.query<Course>(
-    `SELECT ${courseColumns} FROM courses c
+export async function pendingCourses(db: Queryable): Promise<AdminCourse[]> {
+  const { rows } = await db.query<AdminCourse>(
+    `SELECT ${adminColumns} FROM courses c JOIN users u ON u.id = c.owner_id
      WHERE c.status = 'pending_review' ORDER BY c.updated_at, c.id`
   );
   return rows;

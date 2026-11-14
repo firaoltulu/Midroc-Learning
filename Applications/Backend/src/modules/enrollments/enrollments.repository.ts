@@ -1,5 +1,5 @@
 import type { Queryable } from '../../core/db/pool.js';
-import { toPage } from '../../core/db/sql.js';
+import { escapeLike, toPage } from '../../core/db/sql.js';
 
 export async function insertEnrollment(
   db: Queryable,
@@ -140,10 +140,11 @@ export async function listForCourse(
        FROM item_progress p WHERE p.user_id = e.user_id AND p.item_id IN (SELECT id FROM course_items)
      ) stats ON true
      WHERE e.course_id = $1
-       AND ($2::text IS NULL OR u.email ILIKE '%' || $2 || '%' OR u.name ILIKE '%' || $2 || '%')
+       AND ($2::text IS NULL OR u.email ILIKE '%' || $2 || '%' ESCAPE E'\\\\'
+         OR u.name ILIKE '%' || $2 || '%' ESCAPE E'\\\\')
      ORDER BY e.enrolled_at DESC, u.id
      LIMIT $3 OFFSET $4`,
-    [courseId, input.q ?? null, input.limit, input.offset]
+    [courseId, input.q === undefined ? null : escapeLike(input.q), input.limit, input.offset]
   );
   return toPage(rows);
 }
