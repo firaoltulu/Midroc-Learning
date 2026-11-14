@@ -2,7 +2,8 @@
   "timer": {
     "label": "Time left",
     "announce_one": "{{count}} minute left",
-    "announce_other": "{{count}} minutes left"
+    "announce_other": "{{count}} minutes left",
+    "left": "left"
   },
   "history": {
     "title": "Your attempts",
@@ -62,11 +63,12 @@
     "selectOne": "Select one answer",
     "points_one": "{{count}} point",
     "points_other": "{{count}} points",
-    "hint": "{{hint}} · {{points}}",
     "choices": "Answers",
     "previous": "Previous",
     "next": "Next",
-    "review": "Review answers"
+    "review": "Review answers",
+    "saveAndExit": "Save and exit",
+    "questionMeta": "{{question}} · {{points}} · {{hint}}"
   },
   "review": {
     "title": "Review your answers",
@@ -96,6 +98,7 @@
   },
   "notice": {
     "timeExceeded": "Time ran out before your answers arrived, so this attempt counts as not passed.",
-    "alreadySubmitted": "This attempt was already submitted, perhaps in another tab. Your attempts are listed below."
+    "alreadySubmitted": "This attempt was already submitted, perhaps in another tab. Your attempts are listed below.",
+    "saved": "Your answers are saved. The timer keeps running, so choose Resume exam soon to finish."
   }
 }

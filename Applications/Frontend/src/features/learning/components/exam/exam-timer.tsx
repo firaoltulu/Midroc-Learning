@@ -56,28 +56,33 @@ export function ExamTimer({
   return (
     <Stack
       direction="row"
-      spacing={1}
+      // A gold-tinted chip ("24:10 left"); red in the last minute (the text says so too).
+      spacing={0.5}
       sx={{
         alignItems: 'center',
-        px: 1.5,
-        py: 0.75,
-        border: 1,
-        borderRadius: '10px',
-        borderColor: low ? 'warning.main' : 'divider',
-        color: low ? 'warning.main' : 'text.primary',
+        flexShrink: 0,
+        px: 1.25,
+        py: 0.5,
+        borderRadius: '8px',
+        bgcolor: low ? 'status.rejected.bg' : 'status.pending.bg',
+        color: low ? 'status.rejected.fg' : 'status.pending.fg',
+        fontSize: '0.875rem',
       }}
     >
-      <TimerOutlined aria-hidden fontSize="small" />
+      <TimerOutlined aria-hidden sx={{ fontSize: 18, display: { xs: 'none', sm: 'block' } }} />
       <Typography component="span" sx={visuallyHidden}>
         {t('timer.label')}
       </Typography>
       <Typography
         component="span"
         aria-hidden
-        sx={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}
+        sx={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600, fontSize: 'inherit' }}
         data-testid="exam-clock"
       >
         {formatClock(remaining)}
+      </Typography>
+      <Typography component="span" aria-hidden sx={{ fontSize: 'inherit', fontWeight: 500 }}>
+        {t('timer.left')}
       </Typography>
       <Box role="status" aria-live="polite" sx={visuallyHidden}>
         {announcement}

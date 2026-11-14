@@ -2,7 +2,8 @@
   "timer": {
     "label": "የቀረው ጊዜ",
     "announce_one": "{{count}} ደቂቃ ቀርቷል",
-    "announce_other": "{{count}} ደቂቃዎች ቀርተዋል"
+    "announce_other": "{{count}} ደቂቃዎች ቀርተዋል",
+    "left": "ቀርቷል"
   },
   "history": {
     "title": "የእርስዎ ሙከራዎች",
@@ -62,11 +63,12 @@
     "selectOne": "አንድ መልስ ይምረጡ",
     "points_one": "{{count}} ነጥብ",
     "points_other": "{{count}} ነጥቦች",
-    "hint": "{{hint}} · {{points}}",
     "choices": "መልሶች",
     "previous": "ቀዳሚ",
     "next": "ቀጣይ",
-    "review": "መልሶችን ይከልሱ"
+    "review": "መልሶችን ይከልሱ",
+    "saveAndExit": "አስቀምጠው ይውጡ",
+    "questionMeta": "{{question}} · {{points}} · {{hint}}"
   },
   "review": {
     "title": "መልሶችዎን ይከልሱ",
@@ -96,6 +98,7 @@
   },
   "notice": {
     "timeExceeded": "መልሶችዎ ከመድረሳቸው በፊት ጊዜው ስላለቀ ይህ ሙከራ እንዳላለፈ ይቆጠራል።",
-    "alreadySubmitted": "ይህ ሙከራ አስቀድሞ ገብቷል፤ ምናልባት በሌላ ትር። ሙከራዎችዎ ከታች ተዘርዝረዋል።"
+    "alreadySubmitted": "ይህ ሙከራ አስቀድሞ ገብቷል፤ ምናልባት በሌላ ትር። ሙከራዎችዎ ከታች ተዘርዝረዋል።",
+    "saved": "መልሶችዎ ተቀምጠዋል። ሰዓቱ መቁጠሩን ይቀጥላል፤ ለመጨረስ ቶሎ «ፈተናውን ይቀጥሉ» የሚለውን ይምረጡ።"
   }
 }

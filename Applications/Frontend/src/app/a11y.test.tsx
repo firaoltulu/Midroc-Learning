@@ -130,7 +130,7 @@ describe('screens', () => {
     );
     const { user } = await renderRoute('/learn/course-1/item-3');
     await user.click(await screen.findByRole('button', { name: 'Start exam' }));
-    await screen.findByRole('heading', { name: 'Question 1 of 1' });
+    await screen.findByRole('heading', { name: /^Question 1 of 1/ });
     await expectNoAxeViolations();
   });
 

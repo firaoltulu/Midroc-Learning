@@ -106,6 +106,10 @@ function mockExam(options: ExamMock = {}) {
       return options.submit ? options.submit() : HttpResponse.json(result());
     }),
     http.get(api('/me/enrollments'), () => HttpResponse.json([])),
+    http.get(api('/items/item-3/discussions'), () =>
+      HttpResponse.json({ page: 1, pageSize: 10, total: 0, items: [] }),
+    ),
+    http.get(api('/items/item-3/notes'), () => HttpResponse.json([])),
   );
   return submitted;
 }
@@ -113,7 +117,7 @@ function mockExam(options: ExamMock = {}) {
 async function startExam(path = '/learn/course-1/item-3') {
   const view = await renderRoute(path);
   await view.user.click(await screen.findByRole('button', { name: 'Start exam' }));
-  await screen.findByRole('heading', { name: 'Question 1 of 3' });
+  await screen.findByRole('heading', { name: /^Question 1 of 3/ });
   return view;
 }
 
@@ -191,7 +195,7 @@ describe('taking an exam', () => {
     expect(within(navigator).getByRole('button', { name: 'Question 1, answered' })).toBeVisible();
 
     await user.click(within(navigator).getByRole('button', { name: 'Question 3, not answered' }));
-    const heading = screen.getByRole('heading', { name: 'Question 3 of 3' });
+    const heading = screen.getByRole('heading', { name: /^Question 3 of 3/ });
     expect(heading).toHaveFocus();
     expect(
       within(navigator).getByRole('button', { name: 'Question 3, not answered' }),
@@ -254,6 +258,28 @@ describe('taking an exam', () => {
         name: 'Question 1, answered',
       }),
     ).toBeVisible();
+  });
+
+  it('runs full screen with its own bar; Save and exit keeps the answers for resuming', async () => {
+    mockExam({ resumed: true });
+    const { user } = await startExam();
+    const exam = screen.getByRole('dialog', { name: 'Final quiz' });
+    expect(within(exam).getByText('left')).toBeInTheDocument();
+    expect(
+      within(exam).getByRole('heading', { name: /1 point · Select one answer$/ }),
+    ).toBeVisible();
+    await user.click(within(exam).getByRole('radio', { name: 'A hard hat' }));
+
+    await user.click(within(exam).getByRole('button', { name: 'Save and exit' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Final quiz' })).not.toBeInTheDocument();
+    });
+    expect(screen.getByRole('status')).toHaveTextContent(/Your answers are saved/);
+
+    // Starting again resumes the same attempt with the answer kept.
+    await user.click(screen.getByRole('button', { name: /Start exam|Resume exam/ }));
+    const resumed = await screen.findByRole('dialog', { name: 'Final quiz' });
+    expect(within(resumed).getByRole('radio', { name: 'A hard hat' })).toBeChecked();
   });
 
   it('a new (not resumed) attempt starts with no answers', async () => {

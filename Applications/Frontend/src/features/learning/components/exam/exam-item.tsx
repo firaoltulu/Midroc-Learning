@@ -24,7 +24,7 @@ import { ExamResultView } from './exam-result';
 import { ExamTaking } from './exam-taking';
 
 type Step =
-  | { kind: 'overview'; notice?: 'timeExceeded' | 'alreadySubmitted' }
+  | { kind: 'overview'; notice?: 'timeExceeded' | 'alreadySubmitted' | 'saved' }
   | { kind: 'taking'; session: ExamSession }
   | { kind: 'result'; result: ExamResult; questions: ExamQuestion[] };
 
@@ -36,10 +36,13 @@ type Step =
 export default function ExamItem({
   courseId,
   examId,
+  title,
   contentLang,
 }: {
   courseId: string;
   examId: string;
+  /** The item's title, shown in the exam's own top bar. */
+  title: string;
   contentLang: { lang?: string };
 }) {
   const { t } = useTranslation('exam');
@@ -107,7 +110,15 @@ export default function ExamItem({
   if (step.kind === 'taking') {
     return (
       <ExamTaking
+        title={title}
         session={step.session}
+        onExit={() => {
+          // Answers stay in sessionStorage; starting again resumes this attempt.
+          submit.reset();
+          start.reset();
+          void queryClient.invalidateQueries({ queryKey: examKeys.detail(examId) });
+          setStep({ kind: 'overview', notice: 'saved' });
+        }}
         answers={answers}
         onAnswersChange={changeAnswers}
         onSubmit={handleSubmit}
@@ -142,7 +153,11 @@ export default function ExamItem({
       startError={start.error}
       onStart={handleStart}
       notice={
-        step.notice ? (
+        step.notice === 'saved' ? (
+          <Alert severity="info" variant="outlined" role="status">
+            {t('notice.saved')}
+          </Alert>
+        ) : step.notice ? (
           <Alert severity="warning" variant="outlined" role="alert">
             {step.notice === 'timeExceeded'
               ? t('notice.timeExceeded')

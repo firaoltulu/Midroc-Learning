@@ -193,7 +193,12 @@ function Player({
                   completed={completed}
                 />
               ) : (
-                <ExamItem courseId={course.id} examId={item.id} contentLang={contentLang} />
+                <ExamItem
+                  courseId={course.id}
+                  examId={item.id}
+                  title={item.title}
+                  contentLang={contentLang}
+                />
               )}
             </Suspense>
 
