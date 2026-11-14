@@ -542,7 +542,15 @@ export interface paths {
                         "application/json": components["schemas"]["AuthoringView"];
                     };
                 };
-                404: components["responses"]["NotFound"];
+                /** @description Not found, also for anyone but the owner and administrators. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
                 default: components["responses"]["Error"];
             };
         };
@@ -1770,7 +1778,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["CoursePage"];
+                        "application/json": components["schemas"]["AdminCoursePage"];
                     };
                 };
                 default: components["responses"]["Error"];
@@ -1779,6 +1787,95 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/courses/{id}/enrollments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        /** A course's enrollments with each learner's progress, newest first */
+        get: {
+            parameters: {
+                query?: {
+                    page?: components["parameters"]["Page"];
+                    pageSize?: components["parameters"]["PageSize"];
+                    /** @description Email or name search. */
+                    q?: string;
+                };
+                header?: never;
+                path: {
+                    id: components["parameters"]["Id"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description A page of enrollments. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CourseEnrollmentPage"];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/courses/{id}/enrollments/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+                userId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a learner from a course (progress and exam attempts are kept) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["Id"];
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Enrollment removed. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -2176,6 +2273,10 @@ export interface paths {
                             title: string;
                             status: components["schemas"]["CourseStatus"];
                             enrollmentCount: number;
+                            /** @description Enrollments whose learner completed every item. */
+                            completedCount: number;
+                            /** @description completedCount as a percentage of enrollmentCount (null without enrollments). */
+                            completionRate: number | null;
                         }[];
                     };
                 };
@@ -2840,7 +2941,8 @@ export interface components {
             reason: string;
         };
         ModerationQueue: {
-            courses: components["schemas"]["Course"][];
+            /** @description Courses awaiting review; `updatedAt` is when they were submitted. */
+            courses: components["schemas"]["AdminCourse"][];
             revisions: {
                 /** Format: uuid */
                 id: string;
@@ -2849,6 +2951,7 @@ export interface components {
                 courseTitle: string;
                 /** Format: uuid */
                 ownerId: string;
+                ownerName: string | null;
                 /** Format: uuid */
                 submittedBy: string;
                 /** Format: date-time */
@@ -2862,6 +2965,19 @@ export interface components {
             enrollmentCount: number;
             submittedAttemptCount: number;
             averageExamScore: number | null;
+            /** @description Passed share of submitted attempts, in percent. */
+            examPassRate?: number | null;
+            enrollmentsLast30Days?: number;
+            /** @description Users with learning activity (progress or an exam attempt) in the last 30 days. */
+            activeLearnerCount?: number;
+            pendingRevisionCount?: number;
+            coursesByStatus?: {
+                draft: number;
+                pending_review: number;
+                published: number;
+                rejected: number;
+                archived: number;
+            };
         };
         CourseAnalytics: {
             /** Format: uuid */
@@ -2873,6 +2989,61 @@ export interface components {
             completedItemCount: number;
             submittedAttemptCount: number;
             averageExamScore: number | null;
+            examPassRate?: number | null;
+            /** @description Enrolled learners who completed every item. */
+            completedEnrollmentCount?: number;
+            completionRate?: number | null;
+            /** @description Enrolled learners by completed share of the items, in percent buckets. */
+            progressDistribution?: {
+                min: number;
+                max: number;
+                count: number;
+            }[];
+            /** @description Every item in course order. */
+            items?: {
+                /** Format: uuid */
+                id: string;
+                /** @enum {string} */
+                type: "video" | "pdf" | "exam";
+                title: string;
+                /** Format: uuid */
+                moduleId: string;
+                moduleTitle: string;
+                /** @description Enrolled learners who completed the item. */
+                completedCount: number;
+                /** @description Exams only. */
+                submittedAttemptCount: number | null;
+                /** @description Exams only. */
+                passRate: number | null;
+                /** @description Exams only. */
+                averageScore: number | null;
+            }[];
+        };
+        AdminCourse: components["schemas"]["Course"] & {
+            ownerName: string | null;
+            ownerEmail: string;
+            /** Format: date-time */
+            updatedAt: string;
+            enrollmentCount: number;
+        };
+        AdminCoursePage: components["schemas"]["PageInfo"] & {
+            items: components["schemas"]["AdminCourse"][];
+        };
+        CourseEnrollment: {
+            /** Format: uuid */
+            userId: string;
+            email: string;
+            name: string | null;
+            /** Format: date-time */
+            enrolledAt: string;
+            itemCount: number;
+            completedItemCount: number;
+            progressPercent: number;
+            /** Format: date-time */
+            lastActivityAt: string | null;
+        };
+        CourseEnrollmentPage: components["schemas"]["PageInfo"] & {
+            items: components["schemas"]["CourseEnrollment"][];
         };
         UnavailableVideo: {
             /** Format: uuid */
@@ -2884,6 +3055,10 @@ export interface components {
             /** Format: uuid */
             courseId: string;
             courseTitle: string;
+            /** Format: uuid */
+            ownerId: string;
+            ownerName: string | null;
+            ownerEmail: string;
         };
         YoutubeCheckResult: {
             checked: number;

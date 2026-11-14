@@ -12,5 +12,19 @@
     "admin": "አስተዳዳሪ"
   },
   "noName": "አልተሞላም",
-  "signOut": "ውጣ"
+  "signOut": "ውጣ",
+  "profile": "መገለጫ",
+  "settings": {
+    "title": "ምርጫዎች",
+    "language": "ቋንቋ",
+    "theme": "ገጽታ",
+    "calendar": "የቀን አጻጻፍ",
+    "calendarExample": "ዛሬ እንዲህ ይታያል፦ {{date}}።",
+    "calendarUnsupported": "ይህ አሳሽ የኢትዮጵያን ቀን ማሳየት ስለማይችል ቀኖች በግሪጎሪያን አቆጣጠር ይታያሉ። ዛሬ፦ {{date}}።",
+    "calendars": {
+      "language": "ቋንቋውን ይከተል",
+      "gregorian": "ግሪጎሪያን",
+      "ethiopian": "ኢትዮጵያዊ"
+    }
+  }
 }

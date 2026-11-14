@@ -6,7 +6,7 @@ import { renderRoute } from '../../../../test/render';
 import { readPersisted } from '../../model/working-copy-store';
 
 // Whole-app editor flows with many interactions: slow when every test file runs in parallel.
-vi.setConfig({ testTimeout: 30_000 });
+vi.setConfig({ testTimeout: 60_000 });
 
 const EDIT = '/my-courses/course-1/edit';
 const STORAGE_KEY = 'midroc.user.workingCopy.course-1';

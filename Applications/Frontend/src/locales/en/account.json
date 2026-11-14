@@ -12,5 +12,19 @@
     "admin": "Administrator"
   },
   "noName": "Not set",
-  "signOut": "Sign out"
+  "signOut": "Sign out",
+  "profile": "Profile",
+  "settings": {
+    "title": "Preferences",
+    "language": "Language",
+    "theme": "Appearance",
+    "calendar": "Date format",
+    "calendarExample": "Today is shown as {{date}}.",
+    "calendarUnsupported": "This browser can't show Ethiopian dates, so dates use the Gregorian calendar. Today: {{date}}.",
+    "calendars": {
+      "language": "Follow the language",
+      "gregorian": "Gregorian",
+      "ethiopian": "Ethiopian"
+    }
+  }
 }

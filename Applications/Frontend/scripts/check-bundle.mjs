@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * After `vite build`: checks that heavy, lazily loaded code (pdf.js / react-pdf, the YouTube
- * player, the course editor with dnd-kit) is not in what the catalog route loads up front, and
+ * player, the course editor with dnd-kit, the admin charts) is not in what the catalog route loads up front, and
  * reports that route's initial JavaScript size (gzip).
  *
  * "Up front" = the app entry (index.html) plus the catalog route's chunks, following static
@@ -20,6 +20,7 @@ export const LAZY_MARKERS = [
   { name: 'pdf.js / react-pdf', pattern: /GlobalWorkerOptions|pdfjs-dist|react-pdf__/ },
   { name: 'YouTube player', pattern: /youtube-nocookie\.com|iframe_api/ },
   { name: 'course editor (dnd-kit)', pattern: /DndDescribedBy|DndLiveRegion/ },
+  { name: 'admin charts (@mui/x-charts)', pattern: /MuiChartsSurface|MuiChartsAxis/ },
 ];
 
 /** Every chunk file reachable through static imports from the given manifest keys. */

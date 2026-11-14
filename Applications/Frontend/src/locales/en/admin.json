@@ -1,6 +1,400 @@
 {
-  "home": {
-    "title": "Administration",
-    "body": "The dashboard, moderation, users and videos will appear here."
+  "nav": {
+    "label": "Administration",
+    "dashboard": "Dashboard",
+    "moderation": "Moderation",
+    "courses": "Courses",
+    "users": "Users",
+    "videos": "Videos"
+  },
+  "filters": {
+    "label": "Filters",
+    "allStatuses": "All statuses",
+    "allRoles": "All roles",
+    "clear": "Clear filters"
+  },
+  "columns": {
+    "course": "Course",
+    "status": "Status",
+    "enrollments": "Enrollments",
+    "completionRate": "Completion",
+    "owner": "Owner",
+    "updated": "Last change",
+    "item": "Item",
+    "module": "Module",
+    "completed": "Completed",
+    "passRate": "Pass rate",
+    "averageScore": "Average score",
+    "learner": "Learner",
+    "progress": "Progress",
+    "enrolled": "Enrolled",
+    "lastActivity": "Last activity",
+    "actions": "Actions",
+    "language": "Language",
+    "submitted": "Submitted",
+    "user": "User",
+    "role": "Role",
+    "accountStatus": "Account",
+    "joined": "Joined",
+    "video": "Video",
+    "lastChecked": "Last checked"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "description": "How the platform is doing: people, learning and what's waiting for review.",
+    "loading": "Loading figures",
+    "metricsLabel": "Key figures",
+    "none": "None yet",
+    "metrics": {
+      "users": "Users",
+      "activeLearners": "Active learners",
+      "last30Days": "In the last 30 days",
+      "enrollments": "Enrollments in the last 30 days",
+      "enrollmentsTotal_one": "{{total}} enrollment in total",
+      "enrollmentsTotal_other": "{{total}} enrollments in total",
+      "passRate": "Exam pass rate",
+      "attempts_one": "From {{total}} submitted attempt",
+      "attempts_other": "From {{total}} submitted attempts",
+      "waiting": "Waiting for review",
+      "waitingDetail": "{{courses}} courses, {{revisions}} changes",
+      "coursesByStatus": "Courses by status ({{total}} in all)"
+    },
+    "chart": {
+      "title": "Enrollments over time",
+      "weekOf": "Week of {{date}}",
+      "summary_one": "{{total}} enrollment from {{from}} to {{to}}.",
+      "summary_other": "{{total}} enrollments from {{from}} to {{to}}.",
+      "series": "Enrollments",
+      "showTable": "Show the numbers",
+      "bucket": {
+        "day": "Day",
+        "week": "Week",
+        "month": "Month"
+      }
+    },
+    "range": {
+      "label": "Period",
+      "presets": {
+        "7d": "Last 7 days",
+        "30d": "Last 30 days",
+        "90d": "Last 90 days",
+        "12m": "Last 12 months",
+        "custom": "Custom range"
+      },
+      "from": "From",
+      "to": "To",
+      "interval": "Group by",
+      "intervals": {
+        "day": "Day",
+        "week": "Week",
+        "month": "Month"
+      },
+      "problems": {
+        "order": "The start date must be on or before the end date.",
+        "tooLong": "Choose a range of 400 days or less."
+      }
+    },
+    "top": {
+      "title": "Courses with the most learners",
+      "empty": "No enrollments yet",
+      "emptyBody": "Courses appear here once learners enroll."
+    }
+  },
+  "courses": {
+    "title": "Courses",
+    "description": "Every course on the platform. Open one to see its figures and learners.",
+    "search": "Search by title",
+    "noMatches": "No courses match",
+    "noMatchesBody": "Try other words or another status.",
+    "empty": "No courses yet",
+    "emptyBody": "Courses appear here as soon as someone creates one."
+  },
+  "course": {
+    "notFound": "Course not found",
+    "description": "Enrollment, completion and exam figures, and the people enrolled.",
+    "openCourse": "Open the course page",
+    "figures": {
+      "enrolled": "Enrolled",
+      "completed": "Completed the course",
+      "completedValue_one": "{{completed}} ({{rate}})",
+      "completedValue_other": "{{completed}} ({{rate}})",
+      "items": "Items",
+      "passRate": "Exam pass rate",
+      "averageScore": "Average exam score",
+      "attempts": "Exam attempts"
+    },
+    "progress": {
+      "title": "Learners by progress",
+      "exact": "{{percent}}%",
+      "range": "{{min}}–{{max}}%",
+      "none": "No one is enrolled yet.",
+      "learners": "Learners",
+      "bucket_one": "{{label}}: {{total}} learner",
+      "bucket_other": "{{label}}: {{total}} learners"
+    },
+    "items": {
+      "title": "Items",
+      "empty": "This course has no items yet.",
+      "completedOf": "{{completed}} ({{rate}})",
+      "notExam": "Not an exam"
+    },
+    "enrollments": {
+      "title": "Enrollments",
+      "search": "Search by email or name",
+      "noMatches": "No learners match",
+      "noMatchesBody": "Try another email or name.",
+      "empty": "No one is enrolled",
+      "emptyBody": "Learners appear here when they enroll.",
+      "progress": "{{percent}}% ({{completed}} of {{total}} items)",
+      "remove": "Remove from course",
+      "removeNamed": "Remove {{name}} from the course",
+      "removeTitle": "Remove {{name}} from this course?",
+      "removeBody": "They lose access to the course. Their progress and exam attempts are kept, so nothing is lost if they enroll again.",
+      "removed": "{{name}} was removed from the course."
+    }
+  },
+  "reject": {
+    "reason": "Reason",
+    "reasonHint": "The owner sees this. Say what to change. {{length}}/{{max}}",
+    "errors": {
+      "required": "Give a reason so the owner knows what to change.",
+      "tooLong": "Keep the reason under 4000 characters."
+    }
+  },
+  "decision": {
+    "course": {
+      "approve": "Approve and publish",
+      "approveTitle": "Approve and publish this course?",
+      "approveBody": "It appears in the catalog right away and learners can enroll.",
+      "reject": "Reject",
+      "rejectTitle": "Reject this course?",
+      "rejectBody": "The course goes back to its owner with your reason, and they can edit and submit it again.",
+      "approved": "Course approved and published.",
+      "rejected": "Course rejected. The owner can see your reason."
+    },
+    "revision": {
+      "approve": "Approve changes",
+      "approveTitle": "Approve these changes?",
+      "approveBody": "They apply to the live course right away. Learners keep their progress on content that stays.",
+      "reject": "Reject changes",
+      "rejectTitle": "Reject these changes?",
+      "rejectBody": "The live course stays as it is. The owner sees your reason and can change and resubmit.",
+      "approved": "Changes approved and live.",
+      "rejected": "Changes rejected. The owner can see your reason."
+    }
+  },
+  "moderation": {
+    "title": "Moderation",
+    "description": "Courses waiting to be published and changes to published courses, oldest first.",
+    "back": "Back to moderation",
+    "tabsLabel": "Review queues",
+    "tabs": {
+      "courses": "New courses",
+      "revisions": "Changes to published courses"
+    },
+    "tabWithCount": "{{label}} ({{number}})",
+    "emptyCourses": "No courses waiting",
+    "emptyRevisions": "No changes waiting",
+    "emptyBody": "You're all caught up. New submissions appear here."
+  },
+  "review": {
+    "notFound": "Course not found",
+    "description": "Check the details and content, including exam answers, before you decide.",
+    "notPending": "This course isn't waiting for review anymore, so there's nothing to decide.",
+    "details": "Details",
+    "content": "Content",
+    "fields": {
+      "owner": "Owner",
+      "language": "Language",
+      "category": "Category",
+      "tags": "Tags",
+      "duration": "Estimated time"
+    },
+    "noOwnerName": "No name set",
+    "none": "None",
+    "noDescription": "No description.",
+    "minutes_one": "{{minutes}} minute",
+    "minutes_other": "{{minutes}} minutes"
+  },
+  "tree": {
+    "empty": "No modules.",
+    "module": "Module {{number}}:",
+    "noItems": "No items in this module.",
+    "new": "New",
+    "video": {
+      "title": "YouTube title: {{title}}",
+      "unavailable": "YouTube reports this video as unavailable.",
+      "watch": "Watch on YouTube"
+    },
+    "pdf_one": "PDF, {{pages}} page, {{size}} MB",
+    "pdf_other": "PDF, {{pages}} pages, {{size}} MB",
+    "exam": {
+      "settings": "Pass at {{passing}}% · {{attempts}} · {{time}}",
+      "unlimited": "Unlimited attempts",
+      "attempts_one": "{{count}} attempt",
+      "attempts_other": "{{count}} attempts",
+      "noTimeLimit": "No time limit",
+      "minutes_one": "{{count}} minute",
+      "minutes_other": "{{count}} minutes",
+      "noQuestions": "No questions yet.",
+      "showQuestions_one": "Show the question and answers ({{count}})",
+      "showQuestions_other": "Show the questions and answers ({{count}})",
+      "multiple_one": "Several answers · {{count}} point",
+      "multiple_other": "Several answers · {{count}} points",
+      "single_one": "One answer · {{count}} point",
+      "single_other": "One answer · {{count}} points",
+      "correct": " (correct answer)"
+    }
+  },
+  "revision": {
+    "notFound": "Changes not found",
+    "title": "Changes to “{{title}}”",
+    "submitted": "Submitted {{date}}",
+    "status": {
+      "pending": "Waiting for review",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "stale": "The live course changed after these changes were submitted, so they can't be applied. Reject them with a reason so the owner can update and resubmit.",
+    "alreadyDecided": "Someone has already reviewed these changes.",
+    "decided": {
+      "approved": "These changes were approved and are live.",
+      "rejected": "These changes were rejected."
+    },
+    "reason": "Reason: {{reason}}",
+    "courseChangesTitle": "Course details",
+    "changesTitle": "Content changes",
+    "treeTitle": "Content after the changes",
+    "treeHint": "The course as learners will see it once approved. New modules and items are marked.",
+    "noCourseChanges": "The course details don't change.",
+    "noChanges": "No content changes.",
+    "fields": {
+      "title": "Title",
+      "description": "Description",
+      "category": "Category",
+      "language": "Language",
+      "video": "Video",
+      "file": "PDF file",
+      "instructions": "Instructions",
+      "passingScorePercent": "Passing score",
+      "maxAttempts": "Attempts allowed",
+      "timeLimitMinutes": "Time limit",
+      "questions": "Questions"
+    },
+    "before": "Now",
+    "after": "Proposed",
+    "kinds": {
+      "added": "Added",
+      "removed": "Removed",
+      "moved": "Moved",
+      "edited": "Edited",
+      "reordered": "Reordered"
+    },
+    "targets": {
+      "course": "Course",
+      "module": "Module",
+      "item": "Item"
+    },
+    "changeTitle": "{{what}}: {{title}}",
+    "moved": "From “{{from}}” to “{{to}}”",
+    "changedFields": "Changed: {{fields}}",
+    "fieldSeparator": ", ",
+    "reorderedModules": "The order of the modules changes.",
+    "reorderedItems": "The order of the items in this module changes."
+  },
+  "users": {
+    "title": "Users",
+    "description": "Everyone with an account. Open someone to change their role or suspend them.",
+    "search": "Search by email",
+    "noMatches": "No users match",
+    "noMatchesBody": "Try another email, role or status.",
+    "empty": "No users yet",
+    "emptyBody": "People appear here after they sign in for the first time.",
+    "roles": {
+      "user": "Learner and author",
+      "admin": "Administrator"
+    },
+    "status": {
+      "active": "Active",
+      "suspended": "Suspended"
+    },
+    "back": "Back to users",
+    "notFound": "User not found",
+    "self": "This is your account. Another administrator has to change your role or status.",
+    "profile": "Profile",
+    "access": "Role and access",
+    "fields": {
+      "email": "Email",
+      "name": "Name",
+      "role": "Role",
+      "status": "Account",
+      "joined": "Joined"
+    },
+    "noName": "Not set",
+    "roleHint": {
+      "user": "Can learn and create courses.",
+      "admin": "Can also review courses, manage users and see analytics."
+    },
+    "statusHint": {
+      "active": "Can sign in and use the platform.",
+      "suspended": "Can't sign in. Their courses and progress are kept."
+    },
+    "makeRole": {
+      "admin": "Make administrator",
+      "user": "Remove administrator role"
+    },
+    "setStatus": {
+      "suspended": "Suspend account",
+      "active": "Reactivate account"
+    },
+    "confirmRole": {
+      "admin": {
+        "title": "Make {{name}} an administrator?",
+        "body": "They'll be able to review courses, manage users and see analytics."
+      },
+      "user": {
+        "title": "Remove {{name}}'s administrator role?",
+        "body": "They keep their courses and learning, but lose access to administration."
+      }
+    },
+    "confirmStatus": {
+      "suspended": {
+        "title": "Suspend {{name}}?",
+        "body": "They're signed out and can't sign in until you reactivate the account. Their courses and progress are kept."
+      },
+      "active": {
+        "title": "Reactivate {{name}}?",
+        "body": "They can sign in again and pick up where they left off."
+      }
+    },
+    "roleChanged": "{{name}} is now: {{role}}.",
+    "statusChanged": {
+      "active": "{{name}} can sign in again.",
+      "suspended": "{{name}} is suspended."
+    },
+    "claimNotSynced": "The role is saved. Their app may show the old role until they next sign in.",
+    "sessionsNotRevoked": "The account is suspended. Sessions that are already open end within an hour; the platform refuses their requests now."
+  },
+  "videos": {
+    "title": "Unavailable videos",
+    "description": "Videos that YouTube reports as private, deleted or not embeddable, in published courses and courses under review.",
+    "runCheck": "Run check now",
+    "search": "Search by course, video or owner",
+    "noMatches": "No videos match",
+    "noMatchesBody": "Try another course, video or owner.",
+    "empty": "All videos are available",
+    "emptyBody": "Videos YouTube can't play appear here after a check.",
+    "onYoutube": "On YouTube: {{title}}",
+    "neverChecked": "Not checked yet",
+    "summary": {
+      "done": "Check finished",
+      "aborted": "Check stopped early: YouTube kept failing. Try again later.",
+      "checked": "Checked",
+      "available": "Available",
+      "newlyUnavailable": "Newly unavailable",
+      "stillUnavailable": "Still unavailable",
+      "recovered": "Available again",
+      "unreachable": "Couldn't check"
+    }
   }
 }

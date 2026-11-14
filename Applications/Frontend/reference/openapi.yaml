@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Learning Platform API
-  version: 1.4.1
+  version: 1.6.0
   description: |
     REST API of the learning platform. All endpoints except /health need a Firebase ID token
     (`Authorization: Bearer <token>`).
@@ -245,7 +245,11 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/AuthoringView" }
-        "404": { $ref: "#/components/responses/NotFound" }
+        "404":
+          description: Not found, also for anyone but the owner and administrators.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
         default: { $ref: "#/components/responses/Error" }
 
   /courses/{courseId}/modules:
@@ -822,7 +826,42 @@ paths:
           description: A page of courses.
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/CoursePage" }
+              schema: { $ref: "#/components/schemas/AdminCoursePage" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /admin/courses/{id}/enrollments:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      summary: A course's enrollments with each learner's progress, newest first
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+        - in: query
+          name: q
+          description: Email or name search.
+          schema: { type: string, minLength: 1, maxLength: 200 }
+      responses:
+        "200":
+          description: A page of enrollments.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CourseEnrollmentPage" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /admin/courses/{id}/enrollments/{userId}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+      - in: path
+        name: userId
+        required: true
+        schema: { type: string, format: uuid }
+    delete:
+      summary: Remove a learner from a course (progress and exam attempts are kept)
+      responses:
+        "204": { description: Enrollment removed. }
+        "404": { $ref: "#/components/responses/NotFound" }
         default: { $ref: "#/components/responses/Error" }
 
   /admin/moderation:
@@ -974,12 +1013,18 @@ paths:
                 type: array
                 items:
                   type: object
-                  required: [id, title, status, enrollmentCount]
+                  required: [id, title, status, enrollmentCount, completedCount, completionRate]
                   properties:
                     id: { type: string, format: uuid }
                     title: { type: string }
                     status: { $ref: "#/components/schemas/CourseStatus" }
                     enrollmentCount: { type: integer }
+                    completedCount:
+                      type: integer
+                      description: Enrollments whose learner completed every item.
+                    completionRate:
+                      type: [number, "null"]
+                      description: completedCount as a percentage of enrollmentCount (null without enrollments).
         default: { $ref: "#/components/responses/Error" }
 
   /admin/analytics/courses/{courseId}:
@@ -1864,17 +1909,19 @@ components:
       properties:
         courses:
           type: array
-          items: { $ref: "#/components/schemas/Course" }
+          description: Courses awaiting review; `updatedAt` is when they were submitted.
+          items: { $ref: "#/components/schemas/AdminCourse" }
         revisions:
           type: array
           items:
             type: object
-            required: [id, courseId, courseTitle, ownerId, submittedBy, submittedAt]
+            required: [id, courseId, courseTitle, ownerId, ownerName, submittedBy, submittedAt]
             properties:
               id: { type: string, format: uuid }
               courseId: { type: string, format: uuid }
               courseTitle: { type: string }
               ownerId: { type: string, format: uuid }
+              ownerName: { type: [string, "null"] }
               submittedBy: { type: string, format: uuid }
               submittedAt: { type: string, format: date-time }
 
@@ -1894,6 +1941,23 @@ components:
         enrollmentCount: { type: integer }
         submittedAttemptCount: { type: integer }
         averageExamScore: { type: [number, "null"] }
+        examPassRate:
+          type: [number, "null"]
+          description: Passed share of submitted attempts, in percent.
+        enrollmentsLast30Days: { type: integer }
+        activeLearnerCount:
+          type: integer
+          description: Users with learning activity (progress or an exam attempt) in the last 30 days.
+        pendingRevisionCount: { type: integer }
+        coursesByStatus:
+          type: object
+          required: [draft, pending_review, published, rejected, archived]
+          properties:
+            draft: { type: integer }
+            pending_review: { type: integer }
+            published: { type: integer }
+            rejected: { type: integer }
+            archived: { type: integer }
     CourseAnalytics:
       type: object
       required:
@@ -1914,9 +1978,108 @@ components:
         completedItemCount: { type: integer }
         submittedAttemptCount: { type: integer }
         averageExamScore: { type: [number, "null"] }
+        examPassRate: { type: [number, "null"] }
+        completedEnrollmentCount:
+          type: integer
+          description: Enrolled learners who completed every item.
+        completionRate: { type: [number, "null"] }
+        progressDistribution:
+          type: array
+          description: Enrolled learners by completed share of the items, in percent buckets.
+          items:
+            type: object
+            required: [min, max, count]
+            properties:
+              min: { type: integer }
+              max: { type: integer }
+              count: { type: integer }
+        items:
+          type: array
+          description: Every item in course order.
+          items:
+            type: object
+            required:
+              - id
+              - type
+              - title
+              - moduleId
+              - moduleTitle
+              - completedCount
+              - submittedAttemptCount
+              - passRate
+              - averageScore
+            properties:
+              id: { type: string, format: uuid }
+              type: { type: string, enum: [video, pdf, exam] }
+              title: { type: string }
+              moduleId: { type: string, format: uuid }
+              moduleTitle: { type: string }
+              completedCount:
+                type: integer
+                description: Enrolled learners who completed the item.
+              submittedAttemptCount: { type: [integer, "null"], description: Exams only. }
+              passRate: { type: [number, "null"], description: Exams only. }
+              averageScore: { type: [number, "null"], description: Exams only. }
+    AdminCourse:
+      allOf:
+        - $ref: "#/components/schemas/Course"
+        - type: object
+          required: [ownerName, ownerEmail, updatedAt, enrollmentCount]
+          properties:
+            ownerName: { type: [string, "null"] }
+            ownerEmail: { type: string }
+            updatedAt: { type: string, format: date-time }
+            enrollmentCount: { type: integer }
+    AdminCoursePage:
+      allOf:
+        - $ref: "#/components/schemas/PageInfo"
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/AdminCourse" }
+    CourseEnrollment:
+      type: object
+      required:
+        - userId
+        - email
+        - name
+        - enrolledAt
+        - itemCount
+        - completedItemCount
+        - progressPercent
+        - lastActivityAt
+      properties:
+        userId: { type: string, format: uuid }
+        email: { type: string }
+        name: { type: [string, "null"] }
+        enrolledAt: { type: string, format: date-time }
+        itemCount: { type: integer }
+        completedItemCount: { type: integer }
+        progressPercent: { type: integer }
+        lastActivityAt: { type: [string, "null"], format: date-time }
+    CourseEnrollmentPage:
+      allOf:
+        - $ref: "#/components/schemas/PageInfo"
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/CourseEnrollment" }
     UnavailableVideo:
       type: object
-      required: [itemId, itemTitle, youtubeTitle, lastCheckedAt, courseId, courseTitle]
+      required:
+        - itemId
+        - itemTitle
+        - youtubeTitle
+        - lastCheckedAt
+        - courseId
+        - courseTitle
+        - ownerId
+        - ownerName
+        - ownerEmail
       properties:
         itemId: { type: string, format: uuid }
         itemTitle: { type: string }
@@ -1924,6 +2087,9 @@ components:
         lastCheckedAt: { type: [string, "null"], format: date-time }
         courseId: { type: string, format: uuid }
         courseTitle: { type: string }
+        ownerId: { type: string, format: uuid }
+        ownerName: { type: [string, "null"] }
+        ownerEmail: { type: string }
     YoutubeCheckResult:
       type: object
       required:

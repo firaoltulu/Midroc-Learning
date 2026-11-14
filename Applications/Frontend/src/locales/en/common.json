@@ -66,5 +66,15 @@
     "title": "This page is on its way",
     "body": "It arrives in a later update. Until then, browse the courses.",
     "action": "Browse courses"
+  },
+  "table": {
+    "range": "{{from}}–{{to}} of {{total}}",
+    "pages": "Pages",
+    "page": "Go to page {{page}}",
+    "currentPage": "Page {{page}}, current page",
+    "first": "First page",
+    "last": "Last page",
+    "next": "Next page",
+    "previous": "Previous page"
   }
 }

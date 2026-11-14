@@ -1,3 +1,3 @@
-// Public API of the admin/videos feature: export only screens and the few hooks other features may use.
-// Internals live in api/, components/, screens/ and schemas/.
-export {};
+// Public API of the admin/videos feature (unavailable videos, run a YouTube check).
+// Routes and other features import only from here.
+export { VideosScreen, type VideosSearch } from './screens/videos-screen';

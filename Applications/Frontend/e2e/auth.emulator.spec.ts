@@ -145,6 +145,40 @@ test('an admin reaches the admin area', async ({ page }) => {
   await page.getByRole('button', { name: "I've verified my email" }).click();
   await expect(page.getByRole('link', { name: 'Administration' }).first()).toBeVisible();
 
+  // The dashboard's figures (the backend isn't running in this suite).
+  await page.route('**/api/admin/analytics/**', (route) => {
+    const url = route.request().url();
+    return route.fulfill({
+      json: url.includes('/overview')
+        ? {
+            userCount: 3,
+            courseCount: 1,
+            publishedCourseCount: 1,
+            enrollmentCount: 2,
+            submittedAttemptCount: 0,
+            averageExamScore: null,
+            examPassRate: null,
+            enrollmentsLast30Days: 2,
+            activeLearnerCount: 1,
+            pendingRevisionCount: 0,
+            coursesByStatus: {
+              draft: 0,
+              pending_review: 0,
+              published: 1,
+              rejected: 0,
+              archived: 0,
+            },
+          }
+        : [],
+    });
+  });
+
   await page.goto('/admin');
-  await expect(page.getByRole('heading', { level: 1, name: 'Administration' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible();
+  const sections = page.getByRole('navigation', { name: 'Administration' });
+  await expect(sections.getByRole('link', { name: 'Dashboard' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  await expect(page.getByText('Active learners')).toBeVisible();
 });

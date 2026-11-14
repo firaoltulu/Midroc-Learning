@@ -1,6 +1,400 @@
 {
-  "home": {
-    "title": "አስተዳደር",
-    "body": "ዳሽቦርዱ፣ የይዘት ግምገማ፣ ተጠቃሚዎችና ቪዲዮዎች እዚህ ይቀርባሉ።"
+  "nav": {
+    "label": "አስተዳደር",
+    "dashboard": "ዳሽቦርድ",
+    "moderation": "ግምገማ",
+    "courses": "ኮርሶች",
+    "users": "ተጠቃሚዎች",
+    "videos": "ቪዲዮዎች"
+  },
+  "filters": {
+    "label": "ማጣሪያዎች",
+    "allStatuses": "ሁሉም ሁኔታዎች",
+    "allRoles": "ሁሉም ሚናዎች",
+    "clear": "ማጣሪያዎችን ያጽዱ"
+  },
+  "columns": {
+    "course": "ኮርስ",
+    "status": "ሁኔታ",
+    "enrollments": "ምዝገባዎች",
+    "completionRate": "ያጠናቀቁ",
+    "owner": "ባለቤት",
+    "updated": "የመጨረሻ ለውጥ",
+    "item": "ክፍል",
+    "module": "ሞጁል",
+    "completed": "ያጠናቀቁ",
+    "passRate": "የማለፍ መጠን",
+    "averageScore": "አማካይ ውጤት",
+    "learner": "ተማሪ",
+    "progress": "እድገት",
+    "enrolled": "የተመዘገበበት",
+    "lastActivity": "የመጨረሻ እንቅስቃሴ",
+    "actions": "ተግባሮች",
+    "language": "ቋንቋ",
+    "submitted": "የቀረበበት",
+    "user": "ተጠቃሚ",
+    "role": "ሚና",
+    "accountStatus": "መለያ",
+    "joined": "የተቀላቀለበት",
+    "video": "ቪዲዮ",
+    "lastChecked": "ለመጨረሻ ጊዜ የተረጋገጠ"
+  },
+  "dashboard": {
+    "title": "ዳሽቦርድ",
+    "description": "የመድረኩ ሁኔታ፦ ሰዎች፣ ትምህርት እና ግምገማ የሚጠብቁ ነገሮች።",
+    "loading": "አሃዞች እየተጫኑ ነው",
+    "metricsLabel": "ዋና አሃዞች",
+    "none": "ገና የለም",
+    "metrics": {
+      "users": "ተጠቃሚዎች",
+      "activeLearners": "ንቁ ተማሪዎች",
+      "last30Days": "ባለፉት 30 ቀናት",
+      "enrollments": "ባለፉት 30 ቀናት የተደረጉ ምዝገባዎች",
+      "enrollmentsTotal_one": "በአጠቃላይ {{total}} ምዝገባ",
+      "enrollmentsTotal_other": "በአጠቃላይ {{total}} ምዝገባዎች",
+      "passRate": "የፈተና ማለፍ መጠን",
+      "attempts_one": "ከ{{total}} የገባ ሙከራ",
+      "attempts_other": "ከ{{total}} የገቡ ሙከራዎች",
+      "waiting": "ግምገማ የሚጠብቁ",
+      "waitingDetail": "{{courses}} ኮርሶች፣ {{revisions}} ለውጦች",
+      "coursesByStatus": "ኮርሶች በሁኔታ (በአጠቃላይ {{total}})"
+    },
+    "chart": {
+      "title": "ምዝገባዎች በጊዜ ሂደት",
+      "weekOf": "የ{{date}} ሳምንት",
+      "summary_one": "ከ{{from}} እስከ {{to}} {{total}} ምዝገባ።",
+      "summary_other": "ከ{{from}} እስከ {{to}} {{total}} ምዝገባዎች።",
+      "series": "ምዝገባዎች",
+      "showTable": "አሃዞቹን አሳይ",
+      "bucket": {
+        "day": "ቀን",
+        "week": "ሳምንት",
+        "month": "ወር"
+      }
+    },
+    "range": {
+      "label": "ጊዜ",
+      "presets": {
+        "7d": "ያለፉት 7 ቀናት",
+        "30d": "ያለፉት 30 ቀናት",
+        "90d": "ያለፉት 90 ቀናት",
+        "12m": "ያለፉት 12 ወራት",
+        "custom": "የራስዎ ክልል"
+      },
+      "from": "ከ",
+      "to": "እስከ",
+      "interval": "በዚህ ይመድቡ",
+      "intervals": {
+        "day": "ቀን",
+        "week": "ሳምንት",
+        "month": "ወር"
+      },
+      "problems": {
+        "order": "የመጀመሪያው ቀን ከመጨረሻው ቀን በፊት ወይም እኩል መሆን አለበት።",
+        "tooLong": "400 ቀናት ወይም ከዚያ ያነሰ ክልል ይምረጡ።"
+      }
+    },
+    "top": {
+      "title": "ብዙ ተማሪዎች ያሏቸው ኮርሶች",
+      "empty": "ገና ምንም ምዝገባ የለም",
+      "emptyBody": "ተማሪዎች ሲመዘገቡ ኮርሶቹ እዚህ ይታያሉ።"
+    }
+  },
+  "courses": {
+    "title": "ኮርሶች",
+    "description": "በመድረኩ ላይ ያሉ ሁሉም ኮርሶች። አሃዞቹንና ተማሪዎቹን ለማየት አንዱን ይክፈቱ።",
+    "search": "በርዕስ ይፈልጉ",
+    "noMatches": "የሚዛመድ ኮርስ የለም",
+    "noMatchesBody": "ሌላ ቃል ወይም ሌላ ሁኔታ ይሞክሩ።",
+    "empty": "ገና ምንም ኮርስ የለም",
+    "emptyBody": "አንድ ሰው ኮርስ እንደፈጠረ እዚህ ይታያል።"
+  },
+  "course": {
+    "notFound": "ኮርሱ አልተገኘም",
+    "description": "የምዝገባ፣ የማጠናቀቅና የፈተና አሃዞች፣ እንዲሁም የተመዘገቡ ሰዎች።",
+    "openCourse": "የኮርሱን ገጽ ይክፈቱ",
+    "figures": {
+      "enrolled": "የተመዘገቡ",
+      "completed": "ኮርሱን ያጠናቀቁ",
+      "completedValue_one": "{{completed}} ({{rate}})",
+      "completedValue_other": "{{completed}} ({{rate}})",
+      "items": "ክፍሎች",
+      "passRate": "የፈተና ማለፍ መጠን",
+      "averageScore": "አማካይ የፈተና ውጤት",
+      "attempts": "የፈተና ሙከራዎች"
+    },
+    "progress": {
+      "title": "ተማሪዎች በእድገታቸው",
+      "exact": "{{percent}}%",
+      "range": "{{min}}–{{max}}%",
+      "none": "ገና የተመዘገበ ሰው የለም።",
+      "learners": "ተማሪዎች",
+      "bucket_one": "{{label}}፦ {{total}} ተማሪ",
+      "bucket_other": "{{label}}፦ {{total}} ተማሪዎች"
+    },
+    "items": {
+      "title": "ክፍሎች",
+      "empty": "ይህ ኮርስ ገና ምንም ክፍል የለውም።",
+      "completedOf": "{{completed}} ({{rate}})",
+      "notExam": "ፈተና አይደለም"
+    },
+    "enrollments": {
+      "title": "ምዝገባዎች",
+      "search": "በኢሜይል ወይም በስም ይፈልጉ",
+      "noMatches": "የሚዛመድ ተማሪ የለም",
+      "noMatchesBody": "ሌላ ኢሜይል ወይም ስም ይሞክሩ።",
+      "empty": "የተመዘገበ ሰው የለም",
+      "emptyBody": "ተማሪዎች ሲመዘገቡ እዚህ ይታያሉ።",
+      "progress": "{{percent}}% (ከ{{total}} ክፍሎች {{completed}})",
+      "remove": "ከኮርሱ ያስወግዱ",
+      "removeNamed": "{{name}}ን ከኮርሱ ያስወግዱ",
+      "removeTitle": "{{name}}ን ከዚህ ኮርስ ያስወግዱ?",
+      "removeBody": "ኮርሱን ማግኘት አይችሉም። እድገታቸውና የፈተና ሙከራዎቻቸው ይቀመጣሉ፤ እንደገና ቢመዘገቡ ምንም አይጠፋም።",
+      "removed": "{{name}} ከኮርሱ ተወግደዋል።"
+    }
+  },
+  "reject": {
+    "reason": "ምክንያት",
+    "reasonHint": "ባለቤቱ ይህን ያያሉ። ምን መቀየር እንዳለበት ይግለጹ። {{length}}/{{max}}",
+    "errors": {
+      "required": "ባለቤቱ ምን መቀየር እንዳለበት እንዲያውቁ ምክንያት ይስጡ።",
+      "tooLong": "ምክንያቱን ከ4000 ቁምፊዎች በታች ያድርጉት።"
+    }
+  },
+  "decision": {
+    "course": {
+      "approve": "አጽድቀው ያትሙ",
+      "approveTitle": "ይህን ኮርስ አጽድቀው ያትሙ?",
+      "approveBody": "ወዲያውኑ በኮርሶች ዝርዝር ውስጥ ይታያል፤ ተማሪዎችም መመዝገብ ይችላሉ።",
+      "reject": "ውድቅ ያድርጉ",
+      "rejectTitle": "ይህን ኮርስ ውድቅ ያድርጉ?",
+      "rejectBody": "ኮርሱ ከምክንያትዎ ጋር ወደ ባለቤቱ ይመለሳል፤ አስተካክለው እንደገና ማስገባት ይችላሉ።",
+      "approved": "ኮርሱ ጸድቆ ታትሟል።",
+      "rejected": "ኮርሱ ውድቅ ተደርጓል። ባለቤቱ ምክንያትዎን ማየት ይችላሉ።"
+    },
+    "revision": {
+      "approve": "ለውጦቹን ያጽድቁ",
+      "approveTitle": "እነዚህን ለውጦች ያጽድቁ?",
+      "approveBody": "በታተመው ኮርስ ላይ ወዲያውኑ ይተገበራሉ። ተማሪዎች በሚቀጥለው ይዘት ላይ ያላቸውን እድገት ይይዛሉ።",
+      "reject": "ለውጦቹን ውድቅ ያድርጉ",
+      "rejectTitle": "እነዚህን ለውጦች ውድቅ ያድርጉ?",
+      "rejectBody": "የታተመው ኮርስ እንዳለ ይቆያል። ባለቤቱ ምክንያትዎን አይተው አስተካክለው እንደገና ማስገባት ይችላሉ።",
+      "approved": "ለውጦቹ ጸድቀው ተተግብረዋል።",
+      "rejected": "ለውጦቹ ውድቅ ተደርገዋል። ባለቤቱ ምክንያትዎን ማየት ይችላሉ።"
+    }
+  },
+  "moderation": {
+    "title": "ግምገማ",
+    "description": "ለመታተም የሚጠብቁ ኮርሶችና በታተሙ ኮርሶች ላይ የቀረቡ ለውጦች፣ ከቀደሙት ጀምሮ።",
+    "back": "ወደ ግምገማ ይመለሱ",
+    "tabsLabel": "የግምገማ ወረፋዎች",
+    "tabs": {
+      "courses": "አዲስ ኮርሶች",
+      "revisions": "በታተሙ ኮርሶች ላይ የቀረቡ ለውጦች"
+    },
+    "tabWithCount": "{{label}} ({{number}})",
+    "emptyCourses": "የሚጠብቅ ኮርስ የለም",
+    "emptyRevisions": "የሚጠብቅ ለውጥ የለም",
+    "emptyBody": "ሁሉንም ጨርሰዋል። አዳዲስ ማስገቢያዎች እዚህ ይታያሉ።"
+  },
+  "review": {
+    "notFound": "ኮርሱ አልተገኘም",
+    "description": "ከመወሰንዎ በፊት ዝርዝሮቹንና ይዘቱን፣ የፈተና መልሶችንም ጨምሮ፣ ይመልከቱ።",
+    "notPending": "ይህ ኮርስ ከእንግዲህ ግምገማ እየጠበቀ አይደለም፤ የሚወሰን ነገር የለም።",
+    "details": "ዝርዝሮች",
+    "content": "ይዘት",
+    "fields": {
+      "owner": "ባለቤት",
+      "language": "ቋንቋ",
+      "category": "ምድብ",
+      "tags": "መለያዎች",
+      "duration": "የሚገመት ጊዜ"
+    },
+    "noOwnerName": "ስም አልተሰጠም",
+    "none": "የለም",
+    "noDescription": "መግለጫ የለም።",
+    "minutes_one": "{{minutes}} ደቂቃ",
+    "minutes_other": "{{minutes}} ደቂቃዎች"
+  },
+  "tree": {
+    "empty": "ምንም ሞጁል የለም።",
+    "module": "ሞጁል {{number}}፦",
+    "noItems": "በዚህ ሞጁል ውስጥ ምንም ክፍል የለም።",
+    "new": "አዲስ",
+    "video": {
+      "title": "የYouTube ርዕስ፦ {{title}}",
+      "unavailable": "YouTube ይህ ቪዲዮ እንደማይገኝ ገልጿል።",
+      "watch": "በYouTube ይመልከቱ"
+    },
+    "pdf_one": "PDF፣ {{pages}} ገጽ፣ {{size}} MB",
+    "pdf_other": "PDF፣ {{pages}} ገጾች፣ {{size}} MB",
+    "exam": {
+      "settings": "በ{{passing}}% ማለፍ · {{attempts}} · {{time}}",
+      "unlimited": "ያልተገደበ ሙከራ",
+      "attempts_one": "{{count}} ሙከራ",
+      "attempts_other": "{{count}} ሙከራዎች",
+      "noTimeLimit": "የጊዜ ገደብ የለም",
+      "minutes_one": "{{count}} ደቂቃ",
+      "minutes_other": "{{count}} ደቂቃዎች",
+      "noQuestions": "ገና ምንም ጥያቄ የለም።",
+      "showQuestions_one": "ጥያቄውንና መልሶቹን አሳይ ({{count}})",
+      "showQuestions_other": "ጥያቄዎቹንና መልሶቹን አሳይ ({{count}})",
+      "multiple_one": "ብዙ መልሶች · {{count}} ነጥብ",
+      "multiple_other": "ብዙ መልሶች · {{count}} ነጥቦች",
+      "single_one": "አንድ መልስ · {{count}} ነጥብ",
+      "single_other": "አንድ መልስ · {{count}} ነጥቦች",
+      "correct": " (ትክክለኛ መልስ)"
+    }
+  },
+  "revision": {
+    "notFound": "ለውጦቹ አልተገኙም",
+    "title": "በ«{{title}}» ላይ የቀረቡ ለውጦች",
+    "submitted": "የቀረበው {{date}}",
+    "status": {
+      "pending": "ግምገማ እየጠበቀ",
+      "approved": "ጸድቋል",
+      "rejected": "ውድቅ ተደርጓል"
+    },
+    "stale": "እነዚህ ለውጦች ከቀረቡ በኋላ የታተመው ኮርስ ስለተቀየረ ሊተገበሩ አይችሉም። ባለቤቱ አስተካክለው እንደገና እንዲያስገቡ በምክንያት ውድቅ ያድርጓቸው።",
+    "alreadyDecided": "እነዚህን ለውጦች ሌላ ሰው አስቀድሞ ገምግሟቸዋል።",
+    "decided": {
+      "approved": "እነዚህ ለውጦች ጸድቀው ተተግብረዋል።",
+      "rejected": "እነዚህ ለውጦች ውድቅ ተደርገዋል።"
+    },
+    "reason": "ምክንያት፦ {{reason}}",
+    "courseChangesTitle": "የኮርሱ ዝርዝሮች",
+    "changesTitle": "የይዘት ለውጦች",
+    "treeTitle": "ከለውጦቹ በኋላ ያለው ይዘት",
+    "treeHint": "ከጸደቀ በኋላ ተማሪዎች የሚያዩት ኮርስ። አዲስ ሞጁሎችና ክፍሎች ምልክት ተደርጎባቸዋል።",
+    "noCourseChanges": "የኮርሱ ዝርዝሮች አይቀየሩም።",
+    "noChanges": "የይዘት ለውጥ የለም።",
+    "fields": {
+      "title": "ርዕስ",
+      "description": "መግለጫ",
+      "category": "ምድብ",
+      "language": "ቋንቋ",
+      "video": "ቪዲዮ",
+      "file": "የPDF ፋይል",
+      "instructions": "መመሪያዎች",
+      "passingScorePercent": "የማለፊያ ውጤት",
+      "maxAttempts": "የተፈቀዱ ሙከራዎች",
+      "timeLimitMinutes": "የጊዜ ገደብ",
+      "questions": "ጥያቄዎች"
+    },
+    "before": "አሁን",
+    "after": "የቀረበው",
+    "kinds": {
+      "added": "ታክሏል",
+      "removed": "ተወግዷል",
+      "moved": "ተንቀሳቅሷል",
+      "edited": "ተስተካክሏል",
+      "reordered": "ቅደም ተከተል ተቀይሯል"
+    },
+    "targets": {
+      "course": "ኮርስ",
+      "module": "ሞጁል",
+      "item": "ክፍል"
+    },
+    "changeTitle": "{{what}}፦ {{title}}",
+    "moved": "ከ«{{from}}» ወደ «{{to}}»",
+    "changedFields": "የተቀየሩ፦ {{fields}}",
+    "fieldSeparator": "፣ ",
+    "reorderedModules": "የሞጁሎቹ ቅደም ተከተል ይቀየራል።",
+    "reorderedItems": "በዚህ ሞጁል ውስጥ ያሉ ክፍሎች ቅደም ተከተል ይቀየራል።"
+  },
+  "users": {
+    "title": "ተጠቃሚዎች",
+    "description": "መለያ ያላቸው ሁሉም ሰዎች። ሚናቸውን ለመቀየር ወይም ለማገድ አንዱን ይክፈቱ።",
+    "search": "በኢሜይል ይፈልጉ",
+    "noMatches": "የሚዛመድ ተጠቃሚ የለም",
+    "noMatchesBody": "ሌላ ኢሜይል፣ ሚና ወይም ሁኔታ ይሞክሩ።",
+    "empty": "ገና ምንም ተጠቃሚ የለም",
+    "emptyBody": "ሰዎች ለመጀመሪያ ጊዜ ሲገቡ እዚህ ይታያሉ።",
+    "roles": {
+      "user": "ተማሪና ደራሲ",
+      "admin": "አስተዳዳሪ"
+    },
+    "status": {
+      "active": "ንቁ",
+      "suspended": "የታገደ"
+    },
+    "back": "ወደ ተጠቃሚዎች ይመለሱ",
+    "notFound": "ተጠቃሚው አልተገኘም",
+    "self": "ይህ የእርስዎ መለያ ነው። ሚናዎን ወይም ሁኔታዎን ሌላ አስተዳዳሪ መቀየር አለበት።",
+    "profile": "መገለጫ",
+    "access": "ሚናና ፈቃድ",
+    "fields": {
+      "email": "ኢሜይል",
+      "name": "ስም",
+      "role": "ሚና",
+      "status": "መለያ",
+      "joined": "የተቀላቀለበት"
+    },
+    "noName": "አልተሰጠም",
+    "roleHint": {
+      "user": "መማርና ኮርሶችን መፍጠር ይችላሉ።",
+      "admin": "በተጨማሪም ኮርሶችን መገምገም፣ ተጠቃሚዎችን ማስተዳደርና ትንታኔ ማየት ይችላሉ።"
+    },
+    "statusHint": {
+      "active": "መግባትና መድረኩን መጠቀም ይችላሉ።",
+      "suspended": "መግባት አይችሉም። ኮርሶቻቸውና እድገታቸው ይቀመጣሉ።"
+    },
+    "makeRole": {
+      "admin": "አስተዳዳሪ ያድርጉ",
+      "user": "የአስተዳዳሪ ሚናን ያንሱ"
+    },
+    "setStatus": {
+      "suspended": "መለያውን ያግዱ",
+      "active": "መለያውን እንደገና ያንቁ"
+    },
+    "confirmRole": {
+      "admin": {
+        "title": "{{name}}ን አስተዳዳሪ ያድርጉ?",
+        "body": "ኮርሶችን መገምገም፣ ተጠቃሚዎችን ማስተዳደርና ትንታኔ ማየት ይችላሉ።"
+      },
+      "user": {
+        "title": "የ{{name}}ን የአስተዳዳሪ ሚና ያንሱ?",
+        "body": "ኮርሶቻቸውንና ትምህርታቸውን ይይዛሉ፤ ነገር ግን አስተዳደርን መጠቀም አይችሉም።"
+      }
+    },
+    "confirmStatus": {
+      "suspended": {
+        "title": "{{name}}ን ያግዱ?",
+        "body": "ይወጣሉ፤ መለያውን እንደገና እስኪያነቁት ድረስ መግባት አይችሉም። ኮርሶቻቸውና እድገታቸው ይቀመጣሉ።"
+      },
+      "active": {
+        "title": "{{name}}ን እንደገና ያንቁ?",
+        "body": "እንደገና ገብተው ካቆሙበት መቀጠል ይችላሉ።"
+      }
+    },
+    "roleChanged": "{{name}} አሁን፦ {{role}}።",
+    "statusChanged": {
+      "active": "{{name}} እንደገና መግባት ይችላሉ።",
+      "suspended": "{{name}} ታግደዋል።"
+    },
+    "claimNotSynced": "ሚናው ተቀምጧል። እንደገና እስኪገቡ ድረስ መተግበሪያቸው የቀድሞውን ሚና ሊያሳይ ይችላል።",
+    "sessionsNotRevoked": "መለያው ታግዷል። አስቀድመው የተከፈቱ ክፍለ ጊዜዎች በአንድ ሰዓት ውስጥ ያበቃሉ፤ መድረኩ ጥያቄዎቻቸውን አሁኑኑ አይቀበልም።"
+  },
+  "videos": {
+    "title": "የማይገኙ ቪዲዮዎች",
+    "description": "በታተሙና በግምገማ ላይ ባሉ ኮርሶች ውስጥ YouTube የግል፣ የተሰረዙ ወይም ሊከተቱ የማይችሉ ብሎ የገለጻቸው ቪዲዮዎች።",
+    "runCheck": "አሁን ያረጋግጡ",
+    "search": "በኮርስ፣ በቪዲዮ ወይም በባለቤት ይፈልጉ",
+    "noMatches": "የሚዛመድ ቪዲዮ የለም",
+    "noMatchesBody": "ሌላ ኮርስ፣ ቪዲዮ ወይም ባለቤት ይሞክሩ።",
+    "empty": "ሁሉም ቪዲዮዎች ይገኛሉ",
+    "emptyBody": "YouTube ሊያጫውታቸው ያልቻላቸው ቪዲዮዎች ከማረጋገጫ በኋላ እዚህ ይታያሉ።",
+    "onYoutube": "በYouTube፦ {{title}}",
+    "neverChecked": "ገና አልተረጋገጠም",
+    "summary": {
+      "done": "ማረጋገጫው ተጠናቋል",
+      "aborted": "YouTube በተደጋጋሚ ስላልሰራ ማረጋገጫው ቀድሞ ቆሟል። ቆይተው እንደገና ይሞክሩ።",
+      "checked": "የተረጋገጡ",
+      "available": "የሚገኙ",
+      "newlyUnavailable": "አዲስ የማይገኙ",
+      "stillUnavailable": "አሁንም የማይገኙ",
+      "recovered": "እንደገና የሚገኙ",
+      "unreachable": "ሊረጋገጡ ያልቻሉ"
+    }
   }
 }
