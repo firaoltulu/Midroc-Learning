@@ -147,7 +147,7 @@ describe('user detail: role and status', () => {
     expect(await screen.findByRole('button', { name: 'Reactivate account' })).toBeVisible();
   });
 
-  it('notes when the account is your own', async () => {
+  it('your own account: a note instead of role and status actions', async () => {
     server.use(
       http.get(api('/admin/users/admin-1'), () =>
         HttpResponse.json(
@@ -161,5 +161,12 @@ describe('user detail: role and status', () => {
         'This is your account. Another administrator has to change your role or status.',
       ),
     ).toBeVisible();
+    expect(
+      screen.getByText('Can also review courses, manage users and see analytics.'),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole('button', { name: 'Remove administrator role' }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Suspend account' })).not.toBeInTheDocument();
   });
 });

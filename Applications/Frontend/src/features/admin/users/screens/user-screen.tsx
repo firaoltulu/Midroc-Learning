@@ -138,11 +138,6 @@ function UserDetail({ user }: { user: User }) {
   return (
     <Stack spacing={3} sx={{ maxWidth: 720 }}>
       <PageHeader title={name} meta={<AccountStatusChip status={user.status} />} />
-      {isSelf ? (
-        <Alert severity="info" variant="outlined">
-          {t('users.self')}
-        </Alert>
-      ) : null}
       {outcome?.kind === 'error' ? (
         <Alert severity="error" variant="outlined" role="alert">
           {errorMessage(outcome.error)}
@@ -178,28 +173,39 @@ function UserDetail({ user }: { user: User }) {
       </Section>
       <Section title={t('users.access')}>
         <Stack spacing={3}>
+          {/* Your own role and status can only be changed by another administrator (the
+              server refuses SELF_CHANGE_FORBIDDEN): say so instead of offering dead ends. */}
+          {isSelf ? (
+            <Alert severity="info" variant="outlined">
+              {t('users.self')}
+            </Alert>
+          ) : null}
           <Stack spacing={1} sx={{ alignItems: 'flex-start' }}>
             <Typography>{t(`users.roleHint.${user.role}`)}</Typography>
-            <Button
-              variant="outlined"
-              onClick={() => {
-                setPending({ kind: 'role', role: nextRole });
-              }}
-            >
-              {t(`users.makeRole.${nextRole}`)}
-            </Button>
+            {isSelf ? null : (
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  setPending({ kind: 'role', role: nextRole });
+                }}
+              >
+                {t(`users.makeRole.${nextRole}`)}
+              </Button>
+            )}
           </Stack>
           <Stack spacing={1} sx={{ alignItems: 'flex-start' }}>
             <Typography>{t(`users.statusHint.${user.status}`)}</Typography>
-            <Button
-              variant="outlined"
-              color={nextStatus === 'suspended' ? 'error' : 'primary'}
-              onClick={() => {
-                setPending({ kind: 'status', status: nextStatus });
-              }}
-            >
-              {t(`users.setStatus.${nextStatus}`)}
-            </Button>
+            {isSelf ? null : (
+              <Button
+                variant="outlined"
+                color={nextStatus === 'suspended' ? 'error' : 'primary'}
+                onClick={() => {
+                  setPending({ kind: 'status', status: nextStatus });
+                }}
+              >
+                {t(`users.setStatus.${nextStatus}`)}
+              </Button>
+            )}
           </Stack>
         </Stack>
       </Section>
