@@ -219,6 +219,10 @@ export async function mockApi(
       else enrolled.delete(enrollMatch[1]);
       return method === 'POST' ? json({ enrolled: true }, 201) : route.fulfill({ status: 204 });
     }
+    if (/^\/items\/[^/]+\/discussions$/.test(path) && method === 'GET') {
+      return json({ page: 1, pageSize: 10, total: 0, items: [] });
+    }
+    if (/^\/items\/[^/]+\/notes$/.test(path) && method === 'GET') return json([]);
     if (/^\/courses\/[^/]+\/reviews$/.test(path)) {
       return json({
         page: 1,

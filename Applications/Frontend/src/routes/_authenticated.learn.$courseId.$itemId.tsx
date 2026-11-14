@@ -2,6 +2,8 @@ import { createFileRoute } from '@tanstack/react-router';
 import { PlayerScreen } from '../features/learning';
 
 export const Route = createFileRoute('/_authenticated/learn/$courseId/$itemId')({
+  // The player brings its own slim top bar.
+  staticData: { layout: 'focus' },
   component: PlayerRoute,
 });
 

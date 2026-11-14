@@ -45,7 +45,7 @@ test('take the exam, pass, see the result and the history; the outline checks it
   await expect(page.getByRole('heading', { name: 'Your attempts' })).toBeVisible();
 
   const outline = page.getByRole('complementary', { name: 'Course content' });
-  await expect(outline.getByRole('img', { name: 'Completed' })).toHaveCount(1);
+  await expect(outline.getByRole('link', { name: /, Completed$/ })).toHaveCount(1);
 });
 
 test('answers survive a page reload and the attempt resumes', async ({ page }) => {

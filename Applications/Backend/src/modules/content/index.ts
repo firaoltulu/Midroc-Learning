@@ -3,6 +3,7 @@ export { contentAdminRoutes } from './content.admin.routes.js';
 export {
   getPdfKey,
   getVideoForPlayback,
+  itemAccess,
   listReferencedPdfKeys,
   uploadPdf,
   verifyPdfFile,

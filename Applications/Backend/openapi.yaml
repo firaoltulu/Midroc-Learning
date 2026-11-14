@@ -301,6 +301,168 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         default: { $ref: "#/components/responses/Error" }
 
+  /items/{itemId}/discussions:
+    parameters:
+      - in: path
+        name: itemId
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      summary: Discussion threads on an item, newest first
+      description: >-
+        Enrolled learners of the published course, its owner and administrators. Authors are
+        shown as "First L." and never by email; `byInstructor` marks the course owner.
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: A page of threads.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ThreadPage" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+    post:
+      summary: Start a thread (published courses only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PostInput" }
+      responses:
+        "201":
+          description: Thread created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Thread" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "`NOT_PUBLISHED`."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /discussions/{postId}/replies:
+    parameters:
+      - in: path
+        name: postId
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      summary: Replies to a thread, oldest first
+      responses:
+        "200":
+          description: Replies.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Post" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+    post:
+      summary: Reply to a thread (one level; replies have no replies)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PostInput" }
+      responses:
+        "201":
+          description: Reply created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Post" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "`NOT_PUBLISHED`."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /discussions/{postId}:
+    parameters:
+      - in: path
+        name: postId
+        required: true
+        schema: { type: string, format: uuid }
+    delete:
+      summary: Delete a post (its author, the course owner or an administrator); a thread takes its replies
+      responses:
+        "204": { description: Deleted. }
+        "403":
+          description: Not the author, the course owner or an administrator.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /items/{itemId}/notes:
+    parameters:
+      - in: path
+        name: itemId
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      summary: My private notes on an item (video notes by position, then by time)
+      responses:
+        "200":
+          description: Notes.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Note" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+    post:
+      summary: Add a note
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NoteCreate" }
+      responses:
+        "201":
+          description: Note created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Note" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /notes/{noteId}:
+    parameters:
+      - in: path
+        name: noteId
+        required: true
+        schema: { type: string, format: uuid }
+    patch:
+      summary: Edit my note
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NotePatch" }
+      responses:
+        "200":
+          description: The edited note.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Note" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+    delete:
+      summary: Delete my note
+      responses:
+        "204": { description: Deleted. }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+
   /courses/{courseId}/authoring:
     parameters:
       - $ref: "#/components/parameters/CourseId"
@@ -1487,6 +1649,66 @@ components:
                         id: { type: string, format: uuid }
                         type: { $ref: "#/components/schemas/ItemType" }
                         title: { type: string }
+
+    PostInput:
+      type: object
+      additionalProperties: false
+      required: [body]
+      properties:
+        body: { type: string, minLength: 1, maxLength: 4000 }
+    Post:
+      type: object
+      required: [id, authorName, mine, byInstructor, body, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        authorName:
+          type: [string, "null"]
+          description: First name and last initial; null when the author has no name.
+        mine: { type: boolean }
+        byInstructor: { type: boolean, description: Written by the course owner. }
+        body: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    Thread:
+      allOf:
+        - $ref: "#/components/schemas/Post"
+        - type: object
+          required: [replyCount]
+          properties:
+            replyCount: { type: integer, minimum: 0 }
+    ThreadPage:
+      allOf:
+        - $ref: "#/components/schemas/PageInfo"
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/Thread" }
+    Note:
+      type: object
+      required: [id, body, positionSeconds, createdAt, updatedAt]
+      properties:
+        id: { type: string, format: uuid }
+        body: { type: string }
+        positionSeconds:
+          type: [integer, "null"]
+          description: Where in the video the note was taken.
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    NoteCreate:
+      type: object
+      additionalProperties: false
+      required: [body]
+      properties:
+        body: { type: string, minLength: 1, maxLength: 4000 }
+        positionSeconds: { type: [integer, "null"], minimum: 0, default: null }
+    NotePatch:
+      type: object
+      additionalProperties: false
+      required: [body]
+      properties:
+        body: { type: string, minLength: 1, maxLength: 4000 }
 
     ReviewInput:
       type: object

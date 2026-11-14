@@ -59,6 +59,18 @@ async function authorizedItem(itemId: string, actor: Actor) {
   return item;
 }
 
+/**
+ * Who may open an item, for features attached to it (discussions, notes): the course owner,
+ * administrators, and learners enrolled in the published course. Throws NotFound otherwise.
+ */
+export async function itemAccess(
+  itemId: string,
+  actor: Actor
+): Promise<{ courseId: string; ownerId: string; status: string }> {
+  const item = await authorizedItem(itemId, actor);
+  return { courseId: item.courseId, ownerId: item.ownerId, status: item.status };
+}
+
 export type VideoPlayback = {
   youtubeVideoId: string;
   youtubeTitle: string | null;

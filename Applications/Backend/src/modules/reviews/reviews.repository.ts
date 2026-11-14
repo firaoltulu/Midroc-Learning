@@ -1,4 +1,5 @@
 import type { Queryable } from '../../core/db/pool.js';
+import { shortNameSql } from '../../core/db/display-name.js';
 import { toPage } from '../../core/db/sql.js';
 
 /**
@@ -17,16 +18,7 @@ export type PublicReview = {
   mine: boolean;
 };
 
-/** "Sara Tadesse" -> "Sara T."; a single name stays as it is. */
-const authorName = `
-  CASE
-    WHEN u.name IS NULL OR btrim(u.name) = '' THEN NULL
-    WHEN cardinality(regexp_split_to_array(btrim(u.name), '[[:space:]]+')) = 1 THEN btrim(u.name)
-    ELSE split_part(btrim(u.name), ' ', 1) || ' ' ||
-      left((regexp_split_to_array(btrim(u.name), '[[:space:]]+'))[
-        cardinality(regexp_split_to_array(btrim(u.name), '[[:space:]]+'))], 1) || '.'
-  END
-`;
+const authorName = shortNameSql('u.name');
 
 export async function listForCourse(
   db: Queryable,

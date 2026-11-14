@@ -51,7 +51,10 @@ interface PdfItemProps {
   completed: boolean;
 }
 
-/** A PDF item: the document with paging, zoom, download and "Mark as complete". Lazy. */
+/**
+ * A PDF item: the document with paging, zoom and download. Reaching the last page completes it;
+ * the player's "Mark as complete" does so by hand. Lazy.
+ */
 export default function PdfItem({ courseId, itemId, title, completed }: PdfItemProps) {
   const { t } = useTranslation('learning');
   const errorMessage = useErrorMessage();
@@ -113,11 +116,6 @@ export default function PdfItem({ courseId, itemId, title, completed }: PdfItemP
           {t('pdf.open')}
         </Button>
       ) : null}
-      {completed ? null : (
-        <Button variant="text" onClick={markComplete}>
-          {t('pdf.markComplete')}
-        </Button>
-      )}
     </Stack>
   );
 

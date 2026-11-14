@@ -127,7 +127,7 @@ test('1. sign up, verify, browse, enroll and watch a video (progress is saved)',
     .poll(() => api.progress.some((entry) => (entry.body as { completed?: boolean }).completed))
     .toBe(true);
   const outline = page.getByRole('complementary', { name: 'Course content' });
-  await expect(outline.getByRole('img', { name: 'Completed' })).toHaveCount(1);
+  await expect(outline.getByRole('link', { name: /, Completed$/ })).toHaveCount(1);
 });
 
 test('2. take an exam, pass and see the result', async ({ page }) => {

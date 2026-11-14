@@ -45,7 +45,7 @@ use `hero.fg`, since the primary color would vanish on the green band.
 2. Sign in, sign up, password reset, verify email: split screen, labels above the fields. (done)
 3. Backend: course level, outcomes, skills, category counts, sort, enrollment progress. Then Home. (done)
 4. Backend: ratings and reviews. Then Course. (done)
-5. Backend: discussions and notes. Then Player.
+5. Backend: discussions and notes. Then Player. (done)
 6. Exam.
 7. Editor.
 8. Admin: dashboard, users, revision.

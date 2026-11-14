@@ -29,7 +29,6 @@
     "loading": "Loading the document",
     "download": "Download",
     "open": "Open PDF",
-    "markComplete": "Mark as complete",
     "renderFailed": {
       "title": "This document can't be shown here",
       "body": "Download it or open it in your device's PDF viewer."
@@ -47,7 +46,6 @@
     "outline": "Course content",
     "itemNavigation": "Previous and next item",
     "position": "{{module}} · Item {{position}} of {{total}}",
-    "openOutline": "Course content ({{completed}}/{{total}})",
     "progress": "{{completed}} of {{total}} items done",
     "previous": "Previous",
     "next": "Next",
@@ -65,6 +63,61 @@
       "title": "This item isn't available",
       "body": "It may have been moved or removed from the course.",
       "action": "Go to My learning"
+    },
+    "markComplete": "Mark as complete",
+    "percentComplete": "{{percent}}% complete"
+  },
+  "tabs": {
+    "label": "About this item",
+    "overview": "Overview",
+    "discussions": "Discussions",
+    "notes": "Notes",
+    "discussionsCount": "Discussions ({{count}})",
+    "notesCount": "Notes ({{count}})"
+  },
+  "discussions": {
+    "askLabel": "Your question or comment",
+    "askPlaceholder": "Ask a question or share something with the class",
+    "post": "Post",
+    "reply": "Reply",
+    "replyLabel": "Your reply",
+    "replies_one": "{{count}} reply",
+    "replies_other": "{{count}} replies",
+    "hideReplies": "Hide replies",
+    "empty": "No discussions yet. Ask the first question.",
+    "showMore": "Show more discussions",
+    "you": "You",
+    "anonymous": "A learner",
+    "instructor": "Instructor",
+    "required": "Write something first.",
+    "tooLong": "Keep it to {{max}} characters or fewer.",
+    "delete": {
+      "short": "Delete",
+      "action": "Delete the post by {{author}}",
+      "title": "Delete this post?",
+      "body": "It disappears for everyone. Deleting a question also deletes its replies. This can't be undone.",
+      "confirm": "Delete post",
+      "done": "Post deleted."
+    },
+    "postReply": "Post reply"
+  },
+  "notes": {
+    "private": "Only you can see your notes.",
+    "newLabel": "Write a note",
+    "editLabel": "Edit note",
+    "save": "Save note",
+    "update": "Save changes",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "saved": "Note saved.",
+    "empty": "No notes on this item yet.",
+    "required": "Write something first.",
+    "tooLong": "Keep it to {{max}} characters or fewer.",
+    "delete": {
+      "short": "Delete",
+      "title": "Delete this note?",
+      "body": "This can't be undone.",
+      "confirm": "Delete note"
     }
   }
 }

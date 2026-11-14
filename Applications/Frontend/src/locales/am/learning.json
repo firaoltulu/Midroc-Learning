@@ -29,7 +29,6 @@
     "loading": "ሰነዱ በመጫን ላይ",
     "download": "ያውርዱ",
     "open": "PDF ይክፈቱ",
-    "markComplete": "እንደተጠናቀቀ ምልክት ያድርጉ",
     "renderFailed": {
       "title": "ይህ ሰነድ እዚህ ሊታይ አይችልም",
       "body": "ያውርዱት ወይም በመሣሪያዎ የPDF መመልከቻ ይክፈቱት።"
@@ -47,7 +46,6 @@
     "outline": "የኮርሱ ይዘት",
     "itemNavigation": "ቀዳሚና ቀጣይ ንጥል",
     "position": "{{module}} · ንጥል {{position}} ከ{{total}}",
-    "openOutline": "የኮርሱ ይዘት ({{completed}}/{{total}})",
     "progress": "ከ{{total}} ንጥሎች {{completed}} ተጠናቀዋል",
     "previous": "ቀዳሚ",
     "next": "ቀጣይ",
@@ -65,6 +63,61 @@
       "title": "ይህ ንጥል አይገኝም",
       "body": "ከኮርሱ ተዛውሮ ወይም ተወግዶ ሊሆን ይችላል።",
       "action": "ወደ የእኔ ትምህርት ይሂዱ"
+    },
+    "markComplete": "እንደተጠናቀቀ ምልክት አድርግ",
+    "percentComplete": "{{percent}}% ተጠናቋል"
+  },
+  "tabs": {
+    "label": "ስለዚህ ክፍል",
+    "overview": "አጠቃላይ እይታ",
+    "discussions": "ውይይቶች",
+    "notes": "ማስታወሻዎች",
+    "discussionsCount": "ውይይቶች ({{count}})",
+    "notesCount": "ማስታወሻዎች ({{count}})"
+  },
+  "discussions": {
+    "askLabel": "ጥያቄዎ ወይም አስተያየትዎ",
+    "askPlaceholder": "ጥያቄ ይጠይቁ ወይም ለክፍሉ አንድ ነገር ያጋሩ",
+    "post": "ለጥፍ",
+    "reply": "መልስ ስጥ",
+    "replyLabel": "መልስዎ",
+    "replies_one": "{{count}} መልስ",
+    "replies_other": "{{count}} መልሶች",
+    "hideReplies": "መልሶችን ደብቅ",
+    "empty": "እስካሁን ውይይት የለም። የመጀመሪያውን ጥያቄ ይጠይቁ።",
+    "showMore": "ተጨማሪ ውይይቶችን አሳይ",
+    "you": "እርስዎ",
+    "anonymous": "አንድ ተማሪ",
+    "instructor": "አስተማሪ",
+    "required": "መጀመሪያ አንድ ነገር ይጻፉ።",
+    "tooLong": "ከ{{max}} ቁምፊ አይብለጥ።",
+    "delete": {
+      "short": "ሰርዝ",
+      "action": "የ{{author}}ን ጽሑፍ ሰርዝ",
+      "title": "ይህን ጽሑፍ ይሰርዙ?",
+      "body": "ጽሑፉ ለሁሉም ይጠፋል። ጥያቄን መሰረዝ መልሶቹንም ይሰርዛል። መልሶ ማምጣት አይቻልም።",
+      "confirm": "ጽሑፉን ሰርዝ",
+      "done": "ጽሑፉ ተሰርዟል።"
+    },
+    "postReply": "መልሱን ለጥፍ"
+  },
+  "notes": {
+    "private": "ማስታወሻዎችዎን የሚያዩት እርስዎ ብቻ ነዎት።",
+    "newLabel": "ማስታወሻ ይጻፉ",
+    "editLabel": "ማስታወሻውን ያርትዑ",
+    "save": "ማስታወሻ አስቀምጥ",
+    "update": "ለውጦቹን አስቀምጥ",
+    "cancel": "ይቅር",
+    "edit": "አርትዕ",
+    "saved": "ማስታወሻው ተቀምጧል።",
+    "empty": "በዚህ ክፍል ላይ እስካሁን ማስታወሻ የለም።",
+    "required": "መጀመሪያ አንድ ነገር ይጻፉ።",
+    "tooLong": "ከ{{max}} ቁምፊ አይብለጥ።",
+    "delete": {
+      "short": "ሰርዝ",
+      "title": "ይህን ማስታወሻ ይሰርዙ?",
+      "body": "መልሶ ማምጣት አይቻልም።",
+      "confirm": "ማስታወሻውን ሰርዝ"
     }
   }
 }

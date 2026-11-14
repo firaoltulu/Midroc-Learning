@@ -44,7 +44,7 @@ test('a PDF renders for real, pages through and completes on the last page', asy
 
   // The outline checks the item off.
   const outline = page.getByRole('complementary', { name: 'Course content' });
-  await expect(outline.getByRole('img', { name: 'Completed' })).toHaveCount(1);
+  await expect(outline.getByRole('link', { name: /, Completed$/ })).toHaveCount(1);
 
   // Download carries a proper file name.
   await expect(page.getByRole('link', { name: 'Download' })).toHaveAttribute(

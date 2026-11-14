@@ -45,7 +45,8 @@ describe('Firebase authentication middleware', () => {
       '004_course_language.sql',
       '005_course_details.sql',
       '006_course_reviews.sql',
-      '007_review_ids.sql'
+      '007_review_ids.sql',
+      '008_discussions_notes.sql'
     ]) {
       await pglite.engine.exec(await readFile(`migrations/${migration}`, 'utf8'));
     }

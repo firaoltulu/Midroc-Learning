@@ -9,6 +9,7 @@ export type ItemForPlayback = {
   fileKey: string | null;
   lastPositionSeconds: number | null;
   completed: boolean;
+  courseId: string;
   ownerId: string;
   status: string;
   enrolled: boolean;
@@ -22,7 +23,7 @@ export async function itemForPlayback(
   const { rows } = await db.query<ItemForPlayback>(
     `SELECT i.id, i.type, v.youtube_video_id AS "youtubeVideoId",
        v.youtube_title AS "youtubeTitle", v.is_available AS "isAvailable",
-       p.file_path AS "fileKey", c.owner_id AS "ownerId", c.status,
+       p.file_path AS "fileKey", c.id AS "courseId", c.owner_id AS "ownerId", c.status,
        pr.last_position_seconds AS "lastPositionSeconds",
        (pr.completed_at IS NOT NULL) AS completed,
        EXISTS (SELECT 1 FROM enrollments e

@@ -653,6 +653,357 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/items/{itemId}/discussions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * Discussion threads on an item, newest first
+         * @description Enrolled learners of the published course, its owner and administrators. Authors are shown as "First L." and never by email; `byInstructor` marks the course owner.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: components["parameters"]["Page"];
+                    pageSize?: components["parameters"]["PageSize"];
+                };
+                header?: never;
+                path: {
+                    itemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description A page of threads. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ThreadPage"];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        /** Start a thread (published courses only) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    itemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PostInput"];
+                };
+            };
+            responses: {
+                /** @description Thread created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Thread"];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                /** @description `NOT_PUBLISHED`. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                default: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/discussions/{postId}/replies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postId: string;
+            };
+            cookie?: never;
+        };
+        /** Replies to a thread, oldest first */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    postId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Replies. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Post"][];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        /** Reply to a thread (one level; replies have no replies) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    postId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PostInput"];
+                };
+            };
+            responses: {
+                /** @description Reply created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Post"];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                /** @description `NOT_PUBLISHED`. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                default: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/discussions/{postId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                postId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a post (its author, the course owner or an administrator); a thread takes its replies */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    postId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not the author, the course owner or an administrator. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/items/{itemId}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        /** My private notes on an item (video notes by position, then by time) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    itemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Notes. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Note"][];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        /** Add a note */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    itemId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["NoteCreate"];
+                };
+            };
+            responses: {
+                /** @description Note created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Note"];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notes/{noteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                noteId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete my note */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    noteId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Edit my note */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    noteId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["NotePatch"];
+                };
+            };
+            responses: {
+                /** @description The edited note. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Note"];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
+            };
+        };
+        trace?: never;
+    };
     "/courses/{courseId}/authoring": {
         parameters: {
             query?: never;
@@ -2756,6 +3107,48 @@ export interface components {
                     title: string;
                 }[];
             }[];
+        };
+        PostInput: {
+            body: string;
+        };
+        Post: {
+            /** Format: uuid */
+            id: string;
+            /** @description First name and last initial; null when the author has no name. */
+            authorName: string | null;
+            mine: boolean;
+            /** @description Written by the course owner. */
+            byInstructor: boolean;
+            body: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        Thread: components["schemas"]["Post"] & {
+            replyCount: number;
+        };
+        ThreadPage: components["schemas"]["PageInfo"] & {
+            items: components["schemas"]["Thread"][];
+        };
+        Note: {
+            /** Format: uuid */
+            id: string;
+            body: string;
+            /** @description Where in the video the note was taken. */
+            positionSeconds: number | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        NoteCreate: {
+            body: string;
+            /** @default null */
+            positionSeconds: number | null;
+        };
+        NotePatch: {
+            body: string;
         };
         ReviewInput: {
             rating: number;

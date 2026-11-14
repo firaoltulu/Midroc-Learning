@@ -54,6 +54,10 @@ function mockPlayer(overrides: Record<string, unknown> = {}) {
       return new HttpResponse(null, { status: 204 });
     }),
     http.get(api('/me/enrollments'), () => HttpResponse.json([])),
+    http.get(api('/items/:itemId/discussions'), () =>
+      HttpResponse.json({ page: 1, pageSize: 10, total: 0, items: [] }),
+    ),
+    http.get(api('/items/:itemId/notes'), () => HttpResponse.json([])),
   );
   return saves;
 }
@@ -94,6 +98,141 @@ function fakeYouTube() {
   return { player, state };
 }
 
+describe('discussions and notes', () => {
+  it('posts a question, opens its replies and replies; the instructor is marked', async () => {
+    mockPlayer();
+    const threads = [
+      {
+        id: 'post-1',
+        authorName: 'Dawit M.',
+        mine: false,
+        byInstructor: false,
+        body: 'Where do I record a sale paid in two parts?',
+        createdAt: '2026-11-12T08:00:00.000Z',
+        updatedAt: '2026-11-12T08:00:00.000Z',
+        replyCount: 1,
+      },
+    ];
+    const posted: unknown[] = [];
+    server.use(
+      http.get(api('/items/item-2/discussions'), () =>
+        HttpResponse.json({ page: 1, pageSize: 10, total: threads.length, items: threads }),
+      ),
+      http.post(api('/items/item-2/discussions'), async ({ request }) => {
+        const body = (await request.json()) as { body: string };
+        posted.push(body);
+        const thread = {
+          id: `post-${String(threads.length + 1)}`,
+          authorName: 'Abebe K.',
+          mine: true,
+          byInstructor: false,
+          body: body.body,
+          createdAt: '2026-11-14T08:00:00.000Z',
+          updatedAt: '2026-11-14T08:00:00.000Z',
+          replyCount: 0,
+        };
+        threads.unshift(thread);
+        return HttpResponse.json(thread, { status: 201 });
+      }),
+      http.get(api('/discussions/post-1/replies'), () =>
+        HttpResponse.json([
+          {
+            id: 'reply-1',
+            authorName: 'Almaz B.',
+            mine: false,
+            byInstructor: true,
+            body: 'Record the payment received and the rest as owed.',
+            createdAt: '2026-11-12T09:00:00.000Z',
+            updatedAt: '2026-11-12T09:00:00.000Z',
+          },
+        ]),
+      ),
+      http.post(api('/discussions/post-1/replies'), async ({ request }) => {
+        posted.push({ reply: ((await request.json()) as { body: string }).body });
+        return HttpResponse.json(
+          {
+            id: 'reply-2',
+            authorName: 'Abebe K.',
+            mine: true,
+            byInstructor: false,
+            body: 'Thanks',
+            createdAt: '2026-11-14T09:00:00.000Z',
+            updatedAt: '2026-11-14T09:00:00.000Z',
+          },
+          { status: 201 },
+        );
+      }),
+    );
+    const { user } = await renderRoute('/learn/course-1/item-2');
+    await user.click(await screen.findByRole('tab', { name: 'Discussions (1)' }));
+    const panel = screen.getByRole('tabpanel');
+    expect(within(panel).getByText('Where do I record a sale paid in two parts?')).toBeVisible();
+
+    // An empty question explains itself instead of posting.
+    await user.click(within(panel).getByRole('button', { name: 'Post' }));
+    expect(within(panel).getByText('Write something first.')).toBeVisible();
+    await user.type(
+      within(panel).getByRole('textbox', { name: 'Your question or comment' }),
+      'Is VAT included?',
+    );
+    await user.click(within(panel).getByRole('button', { name: 'Post' }));
+    expect(await screen.findByRole('tab', { name: 'Discussions (2)' })).toBeVisible();
+    expect(await within(panel).findByText('Is VAT included?')).toBeVisible();
+    expect(posted).toEqual([{ body: 'Is VAT included?' }]);
+
+    await user.click(within(panel).getByRole('button', { name: '1 reply' }));
+    expect(await within(panel).findByText('Instructor')).toBeVisible();
+    await user.type(within(panel).getByRole('textbox', { name: 'Your reply' }), 'Thanks');
+    await user.click(within(panel).getByRole('button', { name: 'Post reply' }));
+    await waitFor(() => {
+      expect(posted).toContainEqual({ reply: 'Thanks' });
+    });
+  });
+
+  it('notes: write one, see it listed (private), edit it', async () => {
+    mockPlayer();
+    const notes: Array<{ id: string; body: string }> = [];
+    const note = (id: string, body: string) => ({
+      id,
+      body,
+      positionSeconds: null,
+      createdAt: '2026-11-14T08:00:00.000Z',
+      updatedAt: '2026-11-14T08:00:00.000Z',
+    });
+    server.use(
+      http.get(api('/items/item-2/notes'), () =>
+        HttpResponse.json(notes.map((entry) => note(entry.id, entry.body))),
+      ),
+      http.post(api('/items/item-2/notes'), async ({ request }) => {
+        const { body } = (await request.json()) as { body: string };
+        notes.push({ id: `note-${String(notes.length + 1)}`, body });
+        return HttpResponse.json(note(`note-${String(notes.length)}`, body), { status: 201 });
+      }),
+      http.patch(api('/notes/:noteId'), async ({ request, params }) => {
+        const { body } = (await request.json()) as { body: string };
+        const found = notes.find((entry) => entry.id === params.noteId);
+        if (found) found.body = body;
+        return HttpResponse.json(note(String(params.noteId), body));
+      }),
+    );
+    const { user } = await renderRoute('/learn/course-1/item-2');
+    await user.click(await screen.findByRole('tab', { name: 'Notes (0)' }));
+    const panel = screen.getByRole('tabpanel');
+    expect(within(panel).getByText('Only you can see your notes.')).toBeVisible();
+    await user.type(within(panel).getByRole('textbox', { name: 'Write a note' }), 'Two lines');
+    await user.click(within(panel).getByRole('button', { name: 'Save note' }));
+    expect(await screen.findByRole('tab', { name: 'Notes (1)' })).toBeVisible();
+    expect(await within(panel).findByText('Two lines')).toBeVisible();
+
+    await user.click(within(panel).getByRole('button', { name: 'Edit' }));
+    const box = within(panel).getByRole('textbox', { name: 'Edit note' });
+    await user.clear(box);
+    await user.type(box, 'Two lines, one per part');
+    await user.click(within(panel).getByRole('button', { name: 'Save changes' }));
+    expect(await within(panel).findByText('Two lines, one per part')).toBeVisible();
+  });
+});
+
 describe('player shell', () => {
   it('shows the item, the outline with the current item, and previous/next across modules', async () => {
     mockPlayer({ completedItemIds: ['item-1'] });
@@ -106,7 +245,20 @@ describe('player shell', () => {
     expect(within(outline).getByRole('link', { current: 'page' })).toHaveTextContent(
       'Safety handbook',
     );
-    expect(within(outline).getByText('1 of 3 items done')).toBeVisible();
+    // Done items say so in their name, not only with the check icon.
+    expect(within(outline).getByRole('link', { name: /Welcome, Completed/ })).toBeVisible();
+    // The player's own top bar: course title, progress and the way back.
+    const bar = screen.getByRole('banner');
+    expect(within(bar).getByText('Workplace safety basics')).toBeVisible();
+    expect(within(bar).getByText('33% complete')).toBeVisible();
+    expect(within(bar).getByRole('link', { name: 'Back to course' })).toHaveAttribute(
+      'href',
+      '/courses/course-1',
+    );
+    // Overview, Discussions and Notes with their counts.
+    expect(screen.getByRole('tab', { name: 'Overview', selected: true })).toBeVisible();
+    expect(await screen.findByRole('tab', { name: 'Discussions (0)' })).toBeVisible();
+    expect(await screen.findByRole('tab', { name: 'Notes (0)' })).toBeVisible();
 
     const itemNav = screen.getByRole('navigation', { name: 'Previous and next item' });
     expect(within(itemNav).getByRole('link', { name: 'Previous' })).toHaveAttribute(
@@ -122,7 +274,7 @@ describe('player shell', () => {
   it('opens the outline from the bottom on small screens', async () => {
     mockPlayer();
     const { user } = await renderRoute('/learn/course-1/item-3');
-    await user.click(await screen.findByRole('button', { name: 'Course content (0/3)' }));
+    await user.click(await screen.findByRole('button', { name: 'Course content' }));
     const drawer = await screen.findByRole('navigation', { name: 'Course content' });
     expect(within(drawer).getAllByRole('link')).toHaveLength(3);
   });
@@ -195,7 +347,7 @@ describe('video item', () => {
       expect(saves.at(-1)).toEqual({ itemId: 'item-1', lastPositionSeconds: 600, completed: true });
     });
     // The outline checks the item off without waiting for a refetch.
-    expect(await screen.findAllByTitle('Completed')).not.toHaveLength(0);
+    expect(await screen.findByRole('link', { name: /Welcome, Completed/ })).toBeInTheDocument();
   });
 
   it('shows "video unavailable" instead of a broken player', async () => {

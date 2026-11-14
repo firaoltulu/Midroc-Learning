@@ -50,6 +50,12 @@ export const learningKeys = {
   all: ['learning'] as const,
   video: (itemId: string) => [...learningKeys.all, 'video', itemId] as const,
   pdf: (itemId: string) => [...learningKeys.all, 'pdf', itemId] as const,
+  /** GET /items/:id/discussions (pages of threads). */
+  discussions: (itemId: string) => [...learningKeys.all, 'discussions', itemId] as const,
+  /** GET /discussions/:id/replies. */
+  replies: (postId: string) => [...learningKeys.all, 'replies', postId] as const,
+  /** GET /items/:id/notes (the viewer's private notes). */
+  notes: (itemId: string) => [...learningKeys.all, 'notes', itemId] as const,
 };
 
 export const examKeys = {

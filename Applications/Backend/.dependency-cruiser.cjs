@@ -9,7 +9,9 @@ const modules = [
   'editing',
   'moderation',
   'analytics',
-  'reviews'
+  'reviews',
+  'discussions',
+  'notes'
 ];
 const allowed = {
   users: [],
@@ -22,7 +24,9 @@ const allowed = {
   editing: ['courses', 'content'],
   moderation: ['courses', 'editing'],
   analytics: [],
-  reviews: ['courses', 'enrollments']
+  reviews: ['courses', 'enrollments'],
+  discussions: ['content'],
+  notes: ['content']
 };
 
 const moduleRules = modules.flatMap((source) =>
