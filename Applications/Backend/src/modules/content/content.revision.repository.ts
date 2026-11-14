@@ -316,3 +316,22 @@ export async function applyRevisionTree(db: Queryable, courseId: string, tree: R
     await db.query('DELETE FROM modules WHERE id = ANY($1::uuid[])', [removedModuleIds]);
   }
 }
+
+/** Fields edited directly on the live course (not through review): module and item titles. */
+export type LiveDirectFields = {
+  modules: Array<{ id: string; title: string; description: string }>;
+  items: Array<{ id: string; title: string }>;
+};
+
+export async function liveDirectFields(db: Queryable, courseId: string): Promise<LiveDirectFields> {
+  const { rows: modules } = await db.query<{ id: string; title: string; description: string }>(
+    'SELECT id, title, description FROM modules WHERE course_id = $1',
+    [courseId]
+  );
+  const { rows: items } = await db.query<{ id: string; title: string }>(
+    `SELECT i.id, i.title FROM module_items i JOIN modules m ON m.id = i.module_id
+     WHERE m.course_id = $1`,
+    [courseId]
+  );
+  return { modules, items };
+}

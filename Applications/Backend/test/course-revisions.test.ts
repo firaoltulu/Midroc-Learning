@@ -2,8 +2,11 @@ import { readFile } from 'node:fs/promises';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { db, setDatabaseForTests } from '../src/core/db/pool.js';
 import { Conflict, Unprocessable } from '../src/core/http/app-error.js';
+import { patchItem, patchModule } from '../src/modules/content/content.authoring.service.js';
 import {
   approveCourseRevision,
+  getCourseRevision,
+  getRevisionDiff,
   saveCourseRevision
 } from '../src/modules/editing/editing.revisions.service.js';
 import { createPgliteDatabase } from './harness/pglite.js';
@@ -295,6 +298,43 @@ describe('published course revisions', () => {
     expect(choiceRows).toHaveLength(1);
     expect(attempts[0]?.count).toBe(1);
     expect(courseRows[0]?.title).toBe('Approved title');
+  });
+
+  it('titles edited directly after submitting are not reverted by approving', async () => {
+    const { owner, admin } = await setup();
+    const revision = await saveRevision(owner, courseId, {
+      // Reorders the modules; titles as they are live.
+      modules: [{ id: secondModuleId, title: 'Second module', description: '', items: [] }, existingExamTree]
+    });
+    expect(revision.data).not.toHaveProperty('directFields');
+
+    await patchModule(owner, firstModuleId, { title: 'Renamed module', description: 'New text' });
+    await patchItem(owner, examId, { title: 'Renamed exam' });
+
+    const pending = await getCourseRevision(owner, courseId);
+    expect(pending.revision?.data.modules?.[1]).toMatchObject({
+      title: 'Renamed module',
+      description: 'New text',
+      items: [{ title: 'Renamed exam' }]
+    });
+    expect(pending.revision?.data).not.toHaveProperty('directFields');
+    const diff = await getRevisionDiff(revision.id, admin);
+    expect(diff.changes.map((change) => change.kind)).toEqual(['reordered']);
+
+    await approveCourseRevision(admin, revision.id);
+    const { rows: modules } = await db.query<{ title: string; description: string }>(
+      'SELECT title, description FROM modules WHERE course_id = $1 ORDER BY position',
+      [courseId]
+    );
+    const { rows: items } = await db.query<{ title: string }>(
+      'SELECT title FROM module_items WHERE id = $1',
+      [examId]
+    );
+    expect(modules).toEqual([
+      { title: 'Second module', description: '' },
+      { title: 'Renamed module', description: 'New text' }
+    ]);
+    expect(items[0]?.title).toBe('Renamed exam');
   });
 
   it('rejects stale tree references before changing any live data', async () => {

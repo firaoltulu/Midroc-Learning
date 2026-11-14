@@ -5,8 +5,10 @@ import { verifyPdfFile, verifyVideoLink } from './content.service.js';
 import {
   applyRevisionTree,
   assertRevisionIdsBelongToCourse,
+  liveDirectFields,
   revisionBase,
   validateRevisionTree,
+  type LiveDirectFields,
   type RevisionBase,
   type RevisionTree
 } from './content.revision.repository.js';
@@ -117,4 +119,12 @@ export async function validateAndApplyRevisionTree(
   await applyRevisionTree(queryable, courseId, tree);
 }
 
-export type { RevisionBase, RevisionTree };
+/** Module and item fields the owner edits directly on the live course. */
+export async function readLiveDirectFields(
+  queryable: Queryable,
+  courseId: string
+): Promise<LiveDirectFields> {
+  return liveDirectFields(queryable, courseId);
+}
+
+export type { LiveDirectFields, RevisionBase, RevisionTree };

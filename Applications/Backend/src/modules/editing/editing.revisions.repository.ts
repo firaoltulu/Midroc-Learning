@@ -4,6 +4,8 @@ export type RevisionData = {
   course: Record<string, string | null>;
   modules?: import('../content/index.js').RevisionTree['modules'];
   base?: import('../content/index.js').RevisionBase;
+  /** Live module and item titles when the tree was saved (see revision-live-fields). */
+  directFields?: import('../content/index.js').LiveDirectFields;
 };
 
 export type CourseRevision = {

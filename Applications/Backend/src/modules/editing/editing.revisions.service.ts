@@ -13,11 +13,13 @@ import {
   authoringTree,
   captureRevisionBase,
   prepareRevisionTree,
+  readLiveDirectFields,
   validateAndApplyRevisionTree,
   validateRevisionIds
 } from '../content/index.js';
 import type { courseRevisionPutSchema } from './editing.schemas.js';
 import * as repository from './editing.revisions.repository.js';
+import { withLiveDirectFields } from './revision-live-fields.js';
 import { summarizeRevision, type ModuleLike, type RevisionChange } from './revision-summary.js';
 import type { z } from 'zod';
 
@@ -34,6 +36,27 @@ function revisionCourse(course: Course): Pick<Course, 'title' | 'description' | 
     category: course.category,
     language: course.language
   };
+}
+
+/**
+ * The revision's data as approving it would apply it: module and item titles changed directly
+ * on the live course since the tree was saved win over the revision's (see revision-live-fields).
+ */
+async function withLiveTitles(
+  queryable: Queryable,
+  courseId: string,
+  data: repository.RevisionData
+): Promise<repository.RevisionData> {
+  if (!data.modules || !data.directFields) return data;
+  const live = await readLiveDirectFields(queryable, courseId);
+  return { ...data, modules: withLiveDirectFields(data.modules, live, data.directFields) };
+}
+
+/** A revision as clients see it: internal bookkeeping stays on the server. */
+function present(revision: repository.CourseRevision): repository.CourseRevision {
+  const data = { ...revision.data };
+  delete data.directFields;
+  return { ...revision, data };
 }
 
 function decisionSummary(revision: repository.CourseRevision | undefined) {
@@ -53,7 +76,12 @@ export async function getCourseRevision(actor: Actor, courseId: string) {
     repository.pendingForCourse(db, courseId),
     repository.latestDecision(db, courseId)
   ]);
-  return { revision: revision ?? null, lastDecision: decisionSummary(latest) };
+  return {
+    revision: revision
+      ? present({ ...revision, data: await withLiveTitles(db, courseId, revision.data) })
+      : null,
+    lastDecision: decisionSummary(latest)
+  };
 }
 
 export type SaveRevisionResult =
@@ -87,7 +115,8 @@ export async function saveCourseRevision(
     const data: repository.RevisionData = {
       course: { ...(pending?.data.course ?? {}) },
       ...(pending?.data.modules === undefined ? {} : { modules: pending.data.modules }),
-      ...(pending?.data.base === undefined ? {} : { base: pending.data.base })
+      ...(pending?.data.base === undefined ? {} : { base: pending.data.base }),
+      ...(pending?.data.directFields === undefined ? {} : { directFields: pending.data.directFields })
     };
 
     if (input.course) {
@@ -107,20 +136,28 @@ export async function saveCourseRevision(
       }
       data.modules = preparedTree.modules;
       data.base ??= await captureRevisionBase(tx, courseId);
+      // The new tree was written against the current titles.
+      data.directFields = await readLiveDirectFields(tx, courseId);
     }
+    const effective = await withLiveTitles(tx, courseId, data);
 
     const changes = summarizeRevision({
       courseTitle: course.title,
       courseChanges: data.course,
       live: live.modules as ModuleLike[],
-      proposed: data.modules as ModuleLike[] | undefined
+      proposed: effective.modules as ModuleLike[] | undefined
     });
     if (changes.length === 0) {
       if (pending) await repository.deletePendingRevision(tx, pending.id);
       return { saved: false, unchanged: true, revision: null, changes: [] } as const;
     }
     const revision = await repository.savePendingRevision(tx, courseId, actor.id, data);
-    return { saved: true, unchanged: false, revision, changes } as const;
+    return {
+      saved: true,
+      unchanged: false,
+      revision: present({ ...revision, data: effective }),
+      changes
+    } as const;
   });
 }
 
@@ -148,7 +185,8 @@ async function lockPendingRevision(tx: Queryable, revisionId: string) {
 
 export async function approveCourseRevision(reviewer: Actor, revisionId: string): Promise<void> {
   await withTx(async (tx) => {
-    const { course, revision } = await lockPendingRevision(tx, revisionId);
+    const { course, revision: stored } = await lockPendingRevision(tx, revisionId);
+    const revision = { ...stored, data: await withLiveTitles(tx, course.id, stored.data) };
     if (revision.data.modules) {
       if (!revision.data.base) throw new Conflict('Revision content snapshot is incomplete', 'STALE_REVISION');
       try {
@@ -181,8 +219,12 @@ export async function rejectCourseRevision(
 }
 
 export async function getRevisionDiff(revisionId: string, actor: Actor) {
-  const revision = await repository.findRevision(db, revisionId);
-  if (!revision) throw new NotFound('Course revision not found');
+  const stored = await repository.findRevision(db, revisionId);
+  if (!stored) throw new NotFound('Course revision not found');
+  // A decided revision shows what was submitted; a pending one shows what approving would do.
+  const revision = stored.status === 'pending'
+    ? { ...stored, data: await withLiveTitles(db, stored.courseId, stored.data) }
+    : stored;
   const tree = await authoringTree(revision.courseId, actor);
   const currentCourse = revisionCourse(tree.course as Course);
   const proposedCourse = { ...currentCourse, ...revision.data.course };
