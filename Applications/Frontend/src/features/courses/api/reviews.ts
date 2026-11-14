@@ -7,6 +7,8 @@ import { ownReviewSchema } from './schemas';
 
 /** GET /courses/:id/reviews (reference/openapi.yaml: Review, ReviewPage). */
 export const reviewSchema = z.object({
+  /** Opaque; administrators remove a review by it. */
+  id: z.string(),
   /** "Sara T."; null when the author has no name. */
   authorName: z.string().nullable(),
   rating: z.number().int().min(1).max(5),
@@ -63,5 +65,18 @@ function useReviewMutation<TInput>(courseId: string, method: 'PUT' | 'DELETE') {
 
 export const useSaveReview = (courseId: string) =>
   useReviewMutation<{ rating: number; comment: string }>(courseId, 'PUT');
+/**
+ * Administrators: remove a review that breaks the terms of use. The course rating and the
+ * review list change, so the course data is refreshed.
+ */
+export function useRemoveReview() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (reviewId: string) =>
+      apiRequest<unknown>(`/admin/reviews/${reviewId}`, { method: 'DELETE' }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: courseKeys.all }),
+  });
+}
+
 export const useDeleteReview = (courseId: string) =>
   useReviewMutation<undefined>(courseId, 'DELETE');

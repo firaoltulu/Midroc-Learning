@@ -25,7 +25,13 @@ import { ConfirmDialog } from '../../../shared/ui/confirm-dialog';
 import { ErrorState } from '../../../shared/ui/error-state';
 import { LoadingRegion } from '../../../shared/ui/skeletons';
 import { useToast } from '../../../shared/ui/toast/toast-context';
-import { reviewsQueryOptions, useDeleteReview, useSaveReview, type Review } from '../api/reviews';
+import {
+  reviewsQueryOptions,
+  useDeleteReview,
+  useRemoveReview,
+  useSaveReview,
+  type Review,
+} from '../api/reviews';
 import type { CourseDetail } from '../api/schemas';
 import { formatRating } from '../lib/course-text';
 import { RatingStars } from './rating-stars';
@@ -42,7 +48,16 @@ const REVIEW_COMMENT_MAX = 2000;
  * Learner reviews: the average with stars and the count, how many ratings gave each number of
  * stars, the viewer's own rating (enrolled learners), and the reviews, a page at a time.
  */
-export function CourseReviews({ course, canReview }: { course: CourseDetail; canReview: boolean }) {
+export function CourseReviews({
+  course,
+  canReview,
+  canModerate = false,
+}: {
+  course: CourseDetail;
+  canReview: boolean;
+  /** Administrators: remove reviews that break the terms of use. */
+  canModerate?: boolean;
+}) {
   const { t } = useTranslation('courses');
 
   return (
@@ -52,7 +67,7 @@ export function CourseReviews({ course, canReview }: { course: CourseDetail; can
       </Typography>
       {course.ratingCount > 0 ? <RatingSummary course={course} /> : null}
       {canReview ? <MyReview course={course} /> : null}
-      <ReviewList course={course} />
+      <ReviewList course={course} canModerate={canModerate} />
     </Stack>
   );
 }
@@ -255,10 +270,13 @@ function MyReview({ course }: { course: CourseDetail }) {
   );
 }
 
-function ReviewList({ course }: { course: CourseDetail }) {
+function ReviewList({ course, canModerate }: { course: CourseDetail; canModerate: boolean }) {
   const { t } = useTranslation('courses');
   const errorMessage = useErrorMessage();
+  const toast = useToast();
   const reviews = useInfiniteQuery(reviewsQueryOptions(course.id));
+  const remove = useRemoveReview();
+  const [removing, setRemoving] = useState<Review | null>(null);
 
   if (reviews.isPending) {
     return (
@@ -291,8 +309,16 @@ function ReviewList({ course }: { course: CourseDetail }) {
       >
         {items.map((review) => (
           <ReviewCard
-            key={`${review.authorName ?? ''}-${review.createdAt}-${String(review.mine)}`}
+            key={review.id}
             review={review}
+            onRemove={
+              canModerate && !review.mine
+                ? () => {
+                    remove.reset();
+                    setRemoving(review);
+                  }
+                : undefined
+            }
           />
         ))}
       </Stack>
@@ -305,11 +331,32 @@ function ReviewList({ course }: { course: CourseDetail }) {
           {t('reviews.showMore')}
         </Button>
       ) : null}
+      <ConfirmDialog
+        open={removing !== null}
+        tone="danger"
+        title={t('reviews.remove.title')}
+        description={t('reviews.remove.body')}
+        confirmLabel={t('reviews.remove.confirm')}
+        onClose={() => {
+          setRemoving(null);
+        }}
+        onConfirm={async () => {
+          if (!removing) return;
+          try {
+            await remove.mutateAsync(removing.id);
+            toast.show({ message: t('reviews.remove.done'), severity: 'success' });
+          } catch (error) {
+            toast.show({ message: errorMessage(error), severity: 'error' });
+          } finally {
+            setRemoving(null);
+          }
+        }}
+      />
     </Stack>
   );
 }
 
-function ReviewCard({ review }: { review: Review }) {
+function ReviewCard({ review, onRemove }: { review: Review; onRemove?: () => void }) {
   const { t } = useTranslation('courses');
   const { formatDate } = useDateFormat();
   const author = review.mine ? t('reviews.you') : (review.authorName ?? t('reviews.anonymous'));
@@ -331,6 +378,17 @@ function ReviewCard({ review }: { review: Review }) {
           <Typography variant="body2" color="text.secondary">
             {formatDate(review.updatedAt)}
           </Typography>
+          {onRemove ? (
+            <Button
+              size="small"
+              color="error"
+              onClick={onRemove}
+              aria-label={t('reviews.remove.action', { author })}
+              sx={{ ml: 'auto', minHeight: 44 }}
+            >
+              {t('reviews.remove.short')}
+            </Button>
+          ) : null}
         </Stack>
         {review.comment ? (
           <Typography sx={{ mt: 1, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>

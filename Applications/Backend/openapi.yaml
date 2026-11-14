@@ -931,6 +931,19 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         default: { $ref: "#/components/responses/Error" }
 
+  /admin/reviews/{reviewId}:
+    parameters:
+      - in: path
+        name: reviewId
+        required: true
+        schema: { type: string, format: uuid }
+    delete:
+      summary: Remove a review that breaks the terms of use (the course rating follows)
+      responses:
+        "204": { description: Review removed. }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+
   /admin/moderation:
     get:
       summary: Review queues, oldest first
@@ -1491,8 +1504,9 @@ components:
         updatedAt: { type: string, format: date-time }
     Review:
       type: object
-      required: [authorName, rating, comment, createdAt, updatedAt, mine]
+      required: [id, authorName, rating, comment, createdAt, updatedAt, mine]
       properties:
+        id: { type: string, format: uuid, description: "Opaque; administrators remove a review by it." }
         authorName:
           type: [string, "null"]
           description: First name and last initial ("Sara T."); null when the author has no name.

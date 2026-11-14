@@ -120,6 +120,14 @@
       "deleted": "Your review was deleted.",
       "deleteTitle": "Delete your review?",
       "deleteBody": "Your rating and comment will be removed from this course."
+    },
+    "remove": {
+      "short": "Remove",
+      "action": "Remove the review by {{author}}",
+      "title": "Remove this review?",
+      "body": "It disappears from the course for everyone, and the course rating is recalculated. Use this for reviews that break the terms of use. It can't be undone.",
+      "confirm": "Remove review",
+      "done": "Review removed."
     }
   }
 }

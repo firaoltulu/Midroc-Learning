@@ -25,6 +25,14 @@ export async function save(req: Request, res: Response): Promise<void> {
   res.status(created ? 201 : 200).json(review);
 }
 
+export async function adminRemove(req: Request, res: Response): Promise<void> {
+  parseEmptyBody(req);
+  const reviewId = routeParam(req, 'reviewId');
+  if (!isUuid(reviewId)) throw invalidParameter('reviewId');
+  await service.removeReview(reviewId);
+  res.status(204).end();
+}
+
 export async function remove(req: Request, res: Response): Promise<void> {
   parseEmptyBody(req);
   await service.deleteReview(req.user, courseId(req));

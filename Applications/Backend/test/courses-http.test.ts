@@ -28,7 +28,8 @@ describe('course HTTP behavior', () => {
       '003_youtube_video.sql',
       '004_course_language.sql',
       '005_course_details.sql',
-      '006_course_reviews.sql'
+      '006_course_reviews.sql',
+      '007_review_ids.sql'
     ]) {
       const { readFile } = await import('node:fs/promises');
       await pglite.engine.exec(await readFile(`migrations/${migration}`, 'utf8'));

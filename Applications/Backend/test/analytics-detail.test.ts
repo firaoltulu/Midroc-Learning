@@ -31,7 +31,8 @@ describe('admin analytics figures', () => {
       '003_youtube_video.sql',
       '004_course_language.sql',
       '005_course_details.sql',
-      '006_course_reviews.sql'
+      '006_course_reviews.sql',
+      '007_review_ids.sql'
     ]) {
       await pglite.engine.exec(await readFile(`migrations/${migration}`, 'utf8'));
     }

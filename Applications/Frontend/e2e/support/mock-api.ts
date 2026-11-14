@@ -226,6 +226,7 @@ export async function mockApi(
         total: 2,
         items: [
           {
+            id: 'review-1',
             authorName: 'Sara T.',
             rating: 5,
             comment: 'Clear and practical. The exam questions matched real situations.',
@@ -234,6 +235,7 @@ export async function mockApi(
             mine: false,
           },
           {
+            id: 'review-2',
             authorName: null,
             rating: 4,
             comment: '',

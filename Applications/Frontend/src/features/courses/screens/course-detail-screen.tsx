@@ -128,7 +128,7 @@ function CourseDetailView({
 
           <CourseOutline course={course} linkItems={course.enrolled || isOwner} />
           {course.status === 'published' ? (
-            <CourseReviews course={course} canReview={canReview} />
+            <CourseReviews course={course} canReview={canReview} canModerate={isAdmin} />
           ) : null}
         </Stack>
       </Container>

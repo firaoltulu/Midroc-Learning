@@ -1,1 +1,1 @@
-export { reviewsRoutes } from './reviews.routes.js';
+export { reviewsAdminRoutes, reviewsRoutes } from './reviews.routes.js';

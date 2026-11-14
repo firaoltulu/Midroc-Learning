@@ -36,6 +36,14 @@ export async function saveReview(actor: Actor, courseId: string, input: ReviewIn
   return repository.upsert(db, courseId, actor.id, input);
 }
 
+/**
+ * Administrators remove a review that breaks the terms of use (any course, any author). The
+ * course rating follows, since it is computed from the remaining reviews.
+ */
+export async function removeReview(reviewId: string): Promise<void> {
+  if (!(await repository.removeById(db, reviewId))) throw new NotFound('Review not found');
+}
+
 export async function deleteReview(actor: Actor, courseId: string): Promise<void> {
   if (!(await repository.remove(db, courseId, actor.id))) throw new NotFound('Review not found');
 }

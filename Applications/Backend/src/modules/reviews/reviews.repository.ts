@@ -6,6 +6,8 @@ import { toPage } from '../../core/db/sql.js';
  * never the email; `authorName` is null when the user has no name.
  */
 export type PublicReview = {
+  /** Opaque id (administrators remove a review by it). */
+  id: string;
   authorName: string | null;
   rating: number;
   comment: string;
@@ -34,7 +36,7 @@ export async function listForCourse(
 ): Promise<{ items: PublicReview[]; total: number }> {
   // Reviews with a comment first (they say the most), then the newest.
   const { rows } = await db.query<PublicReview & { total: string }>(
-    `SELECT ${authorName} AS "authorName", r.rating, r.comment,
+    `SELECT r.id, ${authorName} AS "authorName", r.rating, r.comment,
        r.created_at AS "createdAt", r.updated_at AS "updatedAt",
        r.user_id = $2 AS mine, count(*) OVER() AS total
      FROM course_reviews r JOIN users u ON u.id = r.user_id
@@ -64,6 +66,12 @@ export async function upsert(
   );
   const { created, ...review } = rows[0]!;
   return { created, review };
+}
+
+/** Administrators: delete any review by its id. */
+export async function removeById(db: Queryable, reviewId: string): Promise<boolean> {
+  const { rows } = await db.query('DELETE FROM course_reviews WHERE id = $1 RETURNING id', [reviewId]);
+  return rows.length > 0;
 }
 
 export async function remove(db: Queryable, courseId: string, userId: string): Promise<boolean> {

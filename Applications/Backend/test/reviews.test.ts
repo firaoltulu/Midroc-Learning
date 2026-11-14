@@ -11,7 +11,8 @@ const MIGRATIONS = [
   '003_youtube_video.sql',
   '004_course_language.sql',
   '005_course_details.sql',
-  '006_course_reviews.sql'
+  '006_course_reviews.sql',
+  '007_review_ids.sql'
 ];
 
 const ownerId = '6c1f3a2e-0d4b-4c51-9a77-1b2c3d4e5f01';
@@ -138,6 +139,44 @@ describe('course ratings and reviews', () => {
       headers: asUser(saraId).headers
     });
     expect(hidden.status).toBe(404);
+  });
+
+  it('an administrator removes an inappropriate review; learners cannot', async () => {
+    await review(saraId, { rating: 1, comment: 'Something that breaks the terms.' });
+    await review(dawitId, { rating: 5 });
+    const list = await fetch(`${base}/courses/${courseId}/reviews`, {
+      headers: asUser(dawitId).headers
+    });
+    const { items } = (await list.json()) as { items: Array<{ id: string; rating: number }> };
+    const target = items.find((item) => item.rating === 1)!;
+    expect(target.id).toMatch(/^[0-9a-f-]{36}$/);
+
+    const asLearner = await fetch(`${base}/admin/reviews/${target.id}`, {
+      method: 'DELETE',
+      headers: asUser(dawitId).headers
+    });
+    expect(asLearner.status).toBe(403);
+
+    await db.query(`UPDATE users SET role = 'admin' WHERE id = $1`, [outsiderId]);
+    const removed = await fetch(`${base}/admin/reviews/${target.id}`, {
+      method: 'DELETE',
+      headers: asUser(outsiderId, 'admin').headers
+    });
+    expect(removed.status).toBe(204);
+    const again = await fetch(`${base}/admin/reviews/${target.id}`, {
+      method: 'DELETE',
+      headers: asUser(outsiderId, 'admin').headers
+    });
+    expect(again.status).toBe(404);
+    const invalid = await fetch(`${base}/admin/reviews/not-a-uuid`, {
+      method: 'DELETE',
+      headers: asUser(outsiderId, 'admin').headers
+    });
+    expect(invalid.status).toBe(400);
+
+    // The rating follows the remaining reviews.
+    const detail = await fetch(`${base}/courses/${courseId}`, { headers: asUser(saraId).headers });
+    expect(await detail.json()).toMatchObject({ ratingAverage: 5, ratingCount: 1, myReview: null });
   });
 
   it('a learner deletes their own review', async () => {

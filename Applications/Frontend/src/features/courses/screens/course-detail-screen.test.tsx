@@ -5,6 +5,7 @@ import { api, apiError, server } from '../../../test/msw';
 import { renderRoute } from '../../../test/render';
 
 const review = (overrides: Record<string, unknown> = {}) => ({
+  id: 'review-0',
   authorName: 'Sara T.',
   rating: 5,
   comment: 'Clear and practical.',
@@ -27,6 +28,7 @@ function mockCourse(overrides: Record<string, unknown> = {}, { reviewCount = 2 }
   reviewBodies = [];
   const allReviews = Array.from({ length: reviewCount }, (_, index) =>
     review({
+      id: `review-${String(index)}`,
       authorName: index === 0 ? 'Sara T.' : `Learner ${String(index)}`,
       createdAt: `2026-10-${String(10 + index).padStart(2, '0')}T08:00:00.000Z`,
     }),
@@ -174,6 +176,38 @@ describe('course detail', () => {
       expect(calls).toContain('deleteReview');
     });
     expect(await screen.findByRole('region', { name: 'Rate this course' })).toBeVisible();
+  });
+
+  it('an administrator removes a review after confirming; learners see no Remove', async () => {
+    mockCourse({}, { reviewCount: 2 });
+    const removed: string[] = [];
+    server.use(
+      http.delete(api('/admin/reviews/:reviewId'), ({ params }) => {
+        removed.push(String(params.reviewId));
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    const { user } = await renderRoute('/courses/course-1', { as: 'admin' });
+    const reviews = await screen.findByRole('region', { name: 'Learner reviews' });
+    const remove = await within(reviews).findByRole('button', {
+      name: 'Remove the review by Sara T.',
+    });
+    await user.click(remove);
+    const dialog = await screen.findByRole('dialog', { name: 'Remove this review?' });
+    expect(dialog).toHaveTextContent('the course rating is recalculated');
+    await user.click(within(dialog).getByRole('button', { name: 'Remove review' }));
+    await waitFor(() => {
+      expect(removed).toEqual(['review-0']);
+    });
+    expect((await screen.findAllByText('Review removed.')).length).toBeGreaterThan(0);
+  });
+
+  it('learners do not see the Remove action', async () => {
+    mockCourse({}, { reviewCount: 2 });
+    await renderRoute('/courses/course-1');
+    const reviews = await screen.findByRole('region', { name: 'Learner reviews' });
+    await within(reviews).findByText('Sara T.');
+    expect(within(reviews).queryByRole('button', { name: /Remove/ })).toBeNull();
   });
 
   it('without ratings the hero says so and there is no summary', async () => {

@@ -7,3 +7,7 @@ const writeLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 30 });
 reviewsRoutes.get('/courses/:id/reviews', controller.list);
 reviewsRoutes.put('/courses/:id/review', writeLimiter, controller.save);
 reviewsRoutes.delete('/courses/:id/review', writeLimiter, controller.remove);
+
+/** Mounted under /admin (administrators only). */
+export const reviewsAdminRoutes = Router();
+reviewsAdminRoutes.delete('/reviews/:reviewId', controller.adminRemove);

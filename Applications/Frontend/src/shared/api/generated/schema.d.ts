@@ -2022,6 +2022,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/reviews/{reviewId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reviewId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a review that breaks the terms of use (the course rating follows) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    reviewId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Review removed. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/moderation": {
         parameters: {
             query?: never;
@@ -2729,6 +2769,11 @@ export interface components {
             updatedAt: string;
         };
         Review: {
+            /**
+             * Format: uuid
+             * @description Opaque; administrators remove a review by it.
+             */
+            id: string;
             /** @description First name and last initial ("Sara T."); null when the author has no name. */
             authorName: string | null;
             rating: number;
