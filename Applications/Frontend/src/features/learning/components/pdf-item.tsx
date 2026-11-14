@@ -175,8 +175,17 @@ export default function PdfItem({ courseId, itemId, title, completed }: PdfItemP
 
       <Box
         ref={measureRef}
+        // Scrolls on its own (zoomed pages): reachable and named for keyboard users.
+        role="region"
+        tabIndex={0}
+        aria-label={t('pdf.documentLabel', { title })}
         sx={{
           overflow: 'auto',
+          '&:focus-visible': {
+            outline: '2px solid',
+            outlineColor: 'primary.main',
+            outlineOffset: 2,
+          },
           maxHeight: { xs: '70vh', md: '75vh' },
           border: 1,
           borderColor: 'divider',

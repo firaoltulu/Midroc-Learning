@@ -9,8 +9,8 @@ export interface EnrollmentChartProps {
 }
 
 /**
- * The enrollment time series (lazy-loaded with @mui/x-charts). Decorative for screen readers:
- * the dashboard offers the same numbers as a table.
+ * The enrollment time series (lazy-loaded with @mui/x-charts), a labelled figure with the
+ * chart's own keyboard navigation. The dashboard also offers the numbers as a table.
  */
 export default function EnrollmentChart({
   points,
@@ -21,7 +21,7 @@ export default function EnrollmentChart({
   const theme = useTheme();
   const color = theme.vars?.palette.primary.main ?? theme.palette.primary.main;
   return (
-    <div aria-hidden>
+    <figure aria-label={label} style={{ margin: 0 }}>
       <LineChart
         height={280}
         margin={{ left: 8, right: 16, top: 16, bottom: 8 }}
@@ -45,6 +45,6 @@ export default function EnrollmentChart({
         hideLegend
         grid={{ horizontal: true }}
       />
-    </div>
+    </figure>
   );
 }

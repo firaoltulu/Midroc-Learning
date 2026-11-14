@@ -147,7 +147,7 @@
       "emptyBody": "ተማሪዎች ሲመዘገቡ እዚህ ይታያሉ።",
       "progress": "{{percent}}% (ከ{{total}} ክፍሎች {{completed}})",
       "remove": "ከኮርሱ ያስወግዱ",
-      "removeNamed": "{{name}}ን ከኮርሱ ያስወግዱ",
+      "removeNamed": "ከኮርሱ ያስወግዱ፦ {{name}}",
       "removeTitle": "{{name}}ን ከዚህ ኮርስ ያስወግዱ?",
       "removeBody": "ኮርሱን ማግኘት አይችሉም። እድገታቸውና የፈተና ሙከራዎቻቸው ይቀመጣሉ፤ እንደገና ቢመዘገቡ ምንም አይጠፋም።",
       "removed": "{{name}} ከኮርሱ ተወግደዋል።"

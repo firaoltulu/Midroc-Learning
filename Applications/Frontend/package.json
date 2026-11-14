@@ -3,6 +3,13 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "sideEffects": [
+    "*.css",
+    "./src/main.tsx",
+    "./src/shared/lib/env.ts",
+    "./src/shared/theme/fonts.ts",
+    "./src/features/learning/components/pdf-item.tsx"
+  ],
   "engines": {
     "node": ">=20.19"
   },

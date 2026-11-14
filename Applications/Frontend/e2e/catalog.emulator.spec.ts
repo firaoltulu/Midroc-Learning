@@ -108,3 +108,32 @@ test.describe('mobile width, both themes and both languages', () => {
     }
   }
 });
+
+test('the catalog and a course page load without layout shift (CLS under 0.1)', async ({
+  page,
+}) => {
+  for (const path of ['/courses', '/courses/course-1']) {
+    await page.goto(path);
+    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
+    // Layout shifts since navigation (buffered), without those right after user input.
+    const cls = await page.evaluate(
+      () =>
+        new Promise<number>((resolve) => {
+          let total = 0;
+          new PerformanceObserver((list) => {
+            for (const entry of list.getEntries() as (PerformanceEntry & {
+              value: number;
+              hadRecentInput: boolean;
+            })[]) {
+              if (!entry.hadRecentInput) total += entry.value;
+            }
+          }).observe({ type: 'layout-shift', buffered: true });
+          setTimeout(() => {
+            resolve(total);
+          }, 500);
+        }),
+    );
+    expect(cls, `${path} CLS`).toBeLessThan(0.1);
+  }
+});

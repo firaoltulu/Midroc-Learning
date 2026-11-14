@@ -17,6 +17,7 @@ import { ButtonLink, ListItemLink, RouterLink } from '../../shared/ui/router-lin
 import { ThemeModeSwitch } from '../../shared/ui/theme-mode-switch';
 import { isVerified, useAuth, useMe, UserMenu } from '../../features/auth';
 import { visibleNavItems } from './nav-items';
+import { PageFocus } from './page-focus';
 
 export const MAIN_CONTENT_ID = 'main-content';
 
@@ -41,6 +42,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
       <SkipLink />
+      <PageFocus mainId={MAIN_CONTENT_ID} />
 
       <AppBar position="sticky">
         <Container maxWidth="lg" disableGutters>

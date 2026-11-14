@@ -99,15 +99,17 @@ export function CourseOutline({ course, linkItems }: CourseOutlineProps) {
                       ) : null}
                     </>
                   );
+                  // A link can't be a list item itself: only <li> may sit in a <ul>.
                   return linkItems ? (
-                    <ListItemLink
-                      key={item.id}
-                      to="/learn/$courseId/$itemId"
-                      params={{ courseId: course.id, itemId: item.id }}
-                      sx={{ borderRadius: '10px', minHeight: 44 }}
-                    >
-                      {content}
-                    </ListItemLink>
+                    <li key={item.id}>
+                      <ListItemLink
+                        to="/learn/$courseId/$itemId"
+                        params={{ courseId: course.id, itemId: item.id }}
+                        sx={{ borderRadius: '10px', minHeight: 44 }}
+                      >
+                        {content}
+                      </ListItemLink>
+                    </li>
                   ) : (
                     <ListItem key={item.id} sx={{ minHeight: 44 }}>
                       {content}

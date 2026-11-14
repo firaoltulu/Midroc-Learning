@@ -40,7 +40,8 @@
     "pageOf": "ገጽ {{page}} ከ{{total}}",
     "zoomOut": "አሳንስ",
     "zoomIn": "አስፋ",
-    "zoomLevel": "{{percent}}%"
+    "zoomLevel": "{{percent}}%",
+    "documentLabel": "{{title}} (PDF)"
   },
   "player": {
     "outline": "የኮርሱ ይዘት",

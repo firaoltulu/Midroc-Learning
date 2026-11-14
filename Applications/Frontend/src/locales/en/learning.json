@@ -40,7 +40,8 @@
     "pageOf": "Page {{page}} of {{total}}",
     "zoomOut": "Zoom out",
     "zoomIn": "Zoom in",
-    "zoomLevel": "{{percent}}%"
+    "zoomLevel": "{{percent}}%",
+    "documentLabel": "{{title}} (PDF)"
   },
   "player": {
     "outline": "Course content",

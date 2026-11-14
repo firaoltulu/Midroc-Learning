@@ -147,7 +147,7 @@
       "emptyBody": "Learners appear here when they enroll.",
       "progress": "{{percent}}% ({{completed}} of {{total}} items)",
       "remove": "Remove from course",
-      "removeNamed": "Remove {{name}} from the course",
+      "removeNamed": "Remove from course: {{name}}",
       "removeTitle": "Remove {{name}} from this course?",
       "removeBody": "They lose access to the course. Their progress and exam attempts are kept, so nothing is lost if they enroll again.",
       "removed": "{{name}} was removed from the course."

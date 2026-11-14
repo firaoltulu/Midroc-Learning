@@ -138,15 +138,14 @@ function Summary({ course }: { course: CourseAnalytics }) {
       }}
     >
       {figures.map(([label, value]) => (
-        <Card key={label}>
-          <CardContent>
-            <Typography component="dt" variant="body2" color="text.secondary">
-              {label}
-            </Typography>
-            <Typography component="dd" variant="h5" sx={{ m: 0, mt: 0.5, fontWeight: 600 }}>
-              {value}
-            </Typography>
-          </CardContent>
+        // A <div> grouping one <dt>/<dd> pair is the only wrapper a <dl> allows.
+        <Card key={label} sx={{ p: 2 }}>
+          <Typography component="dt" variant="body2" color="text.secondary">
+            {label}
+          </Typography>
+          <Typography component="dd" variant="h5" sx={{ m: 0, mt: 0.5, fontWeight: 600 }}>
+            {value}
+          </Typography>
         </Card>
       ))}
     </Box>

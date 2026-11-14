@@ -243,7 +243,7 @@ describe('admin courses', () => {
 
     const enrollments = await screen.findByRole('table', { name: 'Enrollments' });
     await user.click(
-      within(enrollments).getByRole('button', { name: 'Remove Sara Tesfaye from the course' }),
+      within(enrollments).getByRole('button', { name: 'Remove from course: Sara Tesfaye' }),
     );
     const dialog = await screen.findByRole('dialog', {
       name: 'Remove Sara Tesfaye from this course?',

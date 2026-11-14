@@ -8,14 +8,14 @@ export interface ProgressChartProps {
 }
 
 /**
- * Learners by progress bucket (lazy-loaded with @mui/x-charts). Decorative for screen readers:
- * the screen shows the same numbers as a list.
+ * Learners by progress bucket (lazy-loaded with @mui/x-charts), a labelled figure with the
+ * chart's own keyboard navigation. The screen also lists the numbers as text.
  */
 export default function ProgressChart({ buckets, seriesLabel, formatCount }: ProgressChartProps) {
   const theme = useTheme();
   const color = theme.vars?.palette.primary.main ?? theme.palette.primary.main;
   return (
-    <div aria-hidden>
+    <figure aria-label={seriesLabel} style={{ margin: 0 }}>
       <BarChart
         height={240}
         margin={{ left: 8, right: 16, top: 16, bottom: 8 }}
@@ -32,6 +32,6 @@ export default function ProgressChart({ buckets, seriesLabel, formatCount }: Pro
         hideLegend
         grid={{ horizontal: true }}
       />
-    </div>
+    </figure>
   );
 }

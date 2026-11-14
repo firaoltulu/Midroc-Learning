@@ -14,7 +14,8 @@
   "shell": {
     "skipToContent": "Skip to content",
     "openNavigation": "Open navigation",
-    "primaryNavigation": "Main navigation"
+    "primaryNavigation": "Main navigation",
+    "pageTitle": "{{page}} – {{app}}"
   },
   "nav": {
     "courses": "Courses",

@@ -33,7 +33,8 @@ test('switching to Amharic translates the UI, sets lang/title, loads the font an
   await page.getByRole('menuitemradio', { name: 'አማርኛ' }).click();
 
   await expect(page.locator('html')).toHaveAttribute('lang', 'am');
-  await expect(page).toHaveTitle('ሚድሮክ ትምህርት');
+  // "<page heading> – <app name>", in Amharic.
+  await expect(page).toHaveTitle(/ – ሚድሮክ ትምህርት$/);
   await expect(page.getByRole('heading', { level: 1, name: 'ይግቡ' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'በGoogle ይቀጥሉ' })).toBeVisible();
 

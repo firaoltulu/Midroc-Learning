@@ -14,7 +14,8 @@
   "shell": {
     "skipToContent": "ወደ ዋናው ይዘት ይለፉ",
     "openNavigation": "ማውጫውን ክፈት",
-    "primaryNavigation": "ዋና ማውጫ"
+    "primaryNavigation": "ዋና ማውጫ",
+    "pageTitle": "{{page}} – {{app}}"
   },
   "nav": {
     "courses": "ኮርሶች",

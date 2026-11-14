@@ -147,7 +147,16 @@ export function makePdf(pages: number): Buffer {
   return Buffer.from(body, 'latin1');
 }
 
-export async function mockApi(page: Page, me: MockUser): Promise<MockApi> {
+export interface MockApiOptions {
+  /** item-1's video plays (with the fake YouTube API, see youtube-fake.ts). Default: unavailable. */
+  videoAvailable?: boolean;
+}
+
+export async function mockApi(
+  page: Page,
+  me: MockUser,
+  options: MockApiOptions = {},
+): Promise<MockApi> {
   const enrolled = new Set<string>();
   const requests: string[] = [];
   const progress: MockApi['progress'] = [];
@@ -272,13 +281,15 @@ export async function mockApi(page: Page, me: MockUser): Promise<MockApi> {
       });
     }
     if (path === '/items/item-1/video') {
-      // Unavailable: keeps the e2e run off the real YouTube network.
+      // Unavailable unless the test fakes the YouTube API: no real YouTube traffic in e2e.
+      const saved = progress.filter((entry) => entry.itemId === 'item-1').at(-1)?.body as
+        { lastPositionSeconds?: number } | undefined;
       return json({
         youtubeVideoId: 'abcdefghijk',
-        youtubeTitle: null,
-        isAvailable: false,
-        lastPositionSeconds: 0,
-        completed: false,
+        youtubeTitle: options.videoAvailable ? 'Welcome to safety' : null,
+        isAvailable: Boolean(options.videoAvailable),
+        lastPositionSeconds: saved?.lastPositionSeconds ?? 0,
+        completed: completedItems.has('item-1'),
       });
     }
     if (path === '/items/item-2/pdf') {

@@ -28,61 +28,61 @@ export function PlayerOutline({
   return (
     <Box component="nav" aria-label={t('learning:player.outline')}>
       {course.modules.map((module) => (
-        <List
-          key={module.id}
-          dense
-          subheader={
-            <ListSubheader
-              component="div"
-              disableSticky
-              sx={{ bgcolor: 'transparent', lineHeight: 1.4, py: 1, fontWeight: 600 }}
-              {...contentLang}
-            >
-              {module.title}
-            </ListSubheader>
-          }
-        >
-          {module.items.map((item) => {
-            const Icon = ITEM_ICONS[item.type];
-            const current = item.id === currentItemId;
-            const completed = done.has(item.id);
-            return (
-              <ListItemLink
-                key={item.id}
-                to="/learn/$courseId/$itemId"
-                params={{ courseId: course.id, itemId: item.id }}
-                selected={current}
-                aria-current={current ? 'page' : undefined}
-                onClick={onNavigate}
-                sx={{ borderRadius: '10px', minHeight: 44 }}
-              >
-                <ListItemIcon sx={{ minWidth: 36, color: 'text.secondary' }}>
-                  <Icon />
-                </ListItemIcon>
-                <ListItemText
-                  primary={
-                    <>
-                      <Box component="span" sx={visuallyHidden}>
-                        {t('courses:outline.typePrefix', {
-                          type: t(`courses:itemType.${item.type}`),
-                        })}
-                      </Box>
-                      <span {...contentLang}>{item.title}</span>
-                    </>
-                  }
-                  slotProps={{ primary: { sx: { overflowWrap: 'anywhere' } } }}
-                />
-                {completed ? (
-                  <CheckCircleOutlined
-                    titleAccess={t('courses:outline.completed')}
-                    fontSize="small"
-                    sx={{ color: 'success.main', ml: 1, flexShrink: 0 }}
-                  />
-                ) : null}
-              </ListItemLink>
-            );
-          })}
-        </List>
+        <Box key={module.id}>
+          {/* The module title names its list (only <li> may sit directly inside a <ul>). */}
+          <ListSubheader
+            id={`outline-module-${module.id}`}
+            component="div"
+            disableSticky
+            sx={{ bgcolor: 'transparent', lineHeight: 1.4, py: 1, fontWeight: 600 }}
+            {...contentLang}
+          >
+            {module.title}
+          </ListSubheader>
+          <List dense aria-labelledby={`outline-module-${module.id}`} sx={{ pt: 0 }}>
+            {module.items.map((item) => {
+              const Icon = ITEM_ICONS[item.type];
+              const current = item.id === currentItemId;
+              const completed = done.has(item.id);
+              return (
+                <li key={item.id}>
+                  <ListItemLink
+                    to="/learn/$courseId/$itemId"
+                    params={{ courseId: course.id, itemId: item.id }}
+                    selected={current}
+                    aria-current={current ? 'page' : undefined}
+                    onClick={onNavigate}
+                    sx={{ borderRadius: '10px', minHeight: 44 }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 36, color: 'text.secondary' }}>
+                      <Icon />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={
+                        <>
+                          <Box component="span" sx={visuallyHidden}>
+                            {t('courses:outline.typePrefix', {
+                              type: t(`courses:itemType.${item.type}`),
+                            })}
+                          </Box>
+                          <span {...contentLang}>{item.title}</span>
+                        </>
+                      }
+                      slotProps={{ primary: { sx: { overflowWrap: 'anywhere' } } }}
+                    />
+                    {completed ? (
+                      <CheckCircleOutlined
+                        titleAccess={t('courses:outline.completed')}
+                        fontSize="small"
+                        sx={{ color: 'success.main', ml: 1, flexShrink: 0 }}
+                      />
+                    ) : null}
+                  </ListItemLink>
+                </li>
+              );
+            })}
+          </List>
+        </Box>
       ))}
     </Box>
   );
