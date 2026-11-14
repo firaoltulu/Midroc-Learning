@@ -11,7 +11,8 @@ test.describe('themes', () => {
   for (const scheme of ['light', 'dark'] as const) {
     test(`follows the system ${scheme} scheme by default`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: scheme });
-      await page.goto('/login');
+      // A page with the app header (the sign-in pages draw their own split screen).
+      await page.goto('/about');
       await expect(page.locator('html')).toHaveAttribute(`data-${scheme}`, '');
       expect(await bodyBackground(page)).toBe(PAGE_BG[scheme]);
       // Header logos are decorative (the link carries the name), so select by variant.
@@ -86,6 +87,21 @@ test.describe('accessibility basics', () => {
   });
 });
 
+test('the sign-in pages are a split screen without the app header and footer', async ({ page }) => {
+  for (const path of ['/login', '/signup', '/forgot-password']) {
+    await page.goto(path);
+    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await expect(page.getByRole('banner')).toHaveCount(0);
+    await expect(page.getByRole('contentinfo')).toHaveCount(0);
+    // The brand panel: light-lettered logo in both schemes, and the legal links.
+    await expect(page.locator('main img[data-variant="full"]')).toHaveAttribute('src', /logo-dark/);
+    await expect(page.getByRole('link', { name: 'Privacy' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Language: English' })).toBeVisible();
+  }
+  await page.getByRole('link', { name: 'Terms' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Terms of use' })).toBeVisible();
+});
+
 test('unknown routes show the NotFound screen inside the shell', async ({ page }) => {
   await page.goto('/this-page-does-not-exist');
   await expect(page.getByRole('heading', { level: 1, name: 'Page not found' })).toBeVisible();
@@ -99,7 +115,7 @@ test.describe('mobile', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
   test('signed out, the header shows the mark and no empty navigation', async ({ page }) => {
-    await page.goto('/login');
+    await page.goto('/about');
     await expect(page.getByRole('banner').locator('img[data-variant="mark"]')).toBeVisible();
     // Nothing to navigate to before signing in (the signed-in drawer is tested in the
     // emulator suite).

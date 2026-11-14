@@ -15,6 +15,8 @@ export type FormTextFieldProps = Omit<TextFieldProps, 'error' | 'helperText'> & 
   errorKey?: string | undefined;
   /** Shown when there is no error. */
   hint?: string;
+  /** `above`: the label sits on its own line above the box (sign-in pages). Default `floating`. */
+  labelPlacement?: 'floating' | 'above';
 };
 
 /**
@@ -22,10 +24,14 @@ export type FormTextFieldProps = Omit<TextFieldProps, 'error' | 'helperText'> & 
  * passwords, a show/hide toggle.
  */
 export const FormTextField = forwardRef<HTMLInputElement, FormTextFieldProps>(
-  function FormTextField({ errorKey, hint, type, slotProps, ...props }, ref) {
+  function FormTextField(
+    { errorKey, hint, type, slotProps, labelPlacement = 'floating', ...props },
+    ref,
+  ) {
     const { t, i18n } = useTranslation('common');
     const [visible, setVisible] = useState(false);
     const isPassword = type === 'password';
+    const above = labelPlacement === 'above';
 
     return (
       <TextField
@@ -37,8 +43,27 @@ export const FormTextField = forwardRef<HTMLInputElement, FormTextFieldProps>(
         fullWidth
         slotProps={{
           ...slotProps,
+          ...(above
+            ? {
+                inputLabel: {
+                  shrink: true,
+                  sx: {
+                    position: 'static',
+                    transform: 'none',
+                    mb: 0.75,
+                    color: 'text.primary',
+                    fontWeight: 500,
+                    '&.Mui-focused': { color: 'text.primary' },
+                    '&.Mui-error': { color: 'error.main' },
+                  },
+                },
+                // Hints and errors line up with the label, not the text inside the box.
+                formHelperText: { sx: { mx: 0 } },
+              }
+            : {}),
           input: isPassword
             ? {
+                ...(above ? { notched: false } : {}),
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
@@ -54,7 +79,9 @@ export const FormTextField = forwardRef<HTMLInputElement, FormTextFieldProps>(
                   </InputAdornment>
                 ),
               }
-            : undefined,
+            : above
+              ? { notched: false }
+              : undefined,
         }}
       />
     );

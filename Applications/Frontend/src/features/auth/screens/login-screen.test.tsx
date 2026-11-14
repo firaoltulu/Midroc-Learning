@@ -1,3 +1,4 @@
+import { ThemeProvider } from '@mui/material/styles';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   createMemoryHistory,
@@ -8,12 +9,13 @@ import {
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
+import { theme } from '../../../shared/theme/theme';
 import { AuthProvider } from '../components/auth-provider';
 import type { AuthSearch } from '../schemas/search';
 import { createFakeAuthController } from '../testing/fake-auth-controller';
 import { LoginScreen } from './login-screen';
 
-/** Renders a screen inside the providers and a one-route memory router (links need one). */
+/** Renders a screen inside the theme, the providers and a one-route memory router (links need one). */
 function renderWithAuth(ui: ReactNode) {
   const fake = createFakeAuthController();
   fake.signOutNow();
@@ -23,11 +25,13 @@ function renderWithAuth(ui: ReactNode) {
     history: createMemoryHistory({ initialEntries: ['/'] }),
   });
   render(
-    <QueryClientProvider client={new QueryClient()}>
-      <AuthProvider controller={fake.controller}>
-        <RouterProvider router={router as never} />
-      </AuthProvider>
-    </QueryClientProvider>,
+    <ThemeProvider theme={theme}>
+      <QueryClientProvider client={new QueryClient()}>
+        <AuthProvider controller={fake.controller}>
+          <RouterProvider router={router as never} />
+        </AuthProvider>
+      </QueryClientProvider>
+    </ThemeProvider>,
   );
   return fake;
 }

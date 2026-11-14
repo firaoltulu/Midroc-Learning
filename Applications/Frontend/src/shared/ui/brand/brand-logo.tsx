@@ -16,7 +16,7 @@ export interface BrandLogoProps {
    * so screen readers don't hear the name twice.
    */
   decorative?: boolean;
-  /** Force a scheme instead of following the resolved one (only for previews). */
+  /** Force a scheme instead of following the resolved one (e.g. `dark` on a dark brand band). */
   colorScheme?: ResolvedColorScheme;
 }
 

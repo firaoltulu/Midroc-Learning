@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { FormTextField } from '../../../shared/ui/form-text-field';
 import { RouterLink } from '../../../shared/ui/router-links';
-import { AuthCard } from '../components/auth-card';
+import { AuthLayout } from '../components/auth-layout';
 import { useAuthController } from '../components/auth-context';
 import { AuthErrorAlert } from '../components/auth-error-alert';
 import { authErrorKey } from '../lib/auth-errors';
@@ -42,7 +42,7 @@ export function ForgotPasswordScreen({ search }: { search: AuthSearch }) {
   });
 
   return (
-    <AuthCard
+    <AuthLayout
       title={t('forgot.title')}
       subtitle={t('forgot.subtitle')}
       footer={
@@ -61,6 +61,8 @@ export function ForgotPasswordScreen({ search }: { search: AuthSearch }) {
           <FormTextField
             {...register('email')}
             label={t('fields.email')}
+            labelPlacement="above"
+            placeholder={t('fields.emailPlaceholder')}
             type="email"
             autoComplete="email"
             errorKey={errors.email?.message}
@@ -70,6 +72,6 @@ export function ForgotPasswordScreen({ search }: { search: AuthSearch }) {
           </Button>
         </Stack>
       )}
-    </AuthCard>
+    </AuthLayout>
   );
 }

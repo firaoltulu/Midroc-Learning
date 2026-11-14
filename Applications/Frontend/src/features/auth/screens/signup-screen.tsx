@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { FormTextField } from '../../../shared/ui/form-text-field';
 import { RouterLink } from '../../../shared/ui/router-links';
-import { AuthCard } from '../components/auth-card';
+import { AuthLayout } from '../components/auth-layout';
 import { useAuthController } from '../components/auth-context';
 import { AuthErrorAlert } from '../components/auth-error-alert';
 import { GoogleSignIn } from '../components/google-button';
@@ -39,7 +39,7 @@ export function SignUpScreen({ search }: { search: AuthSearch }) {
   });
 
   return (
-    <AuthCard
+    <AuthLayout
       title={t('signup.title')}
       subtitle={t('signup.subtitle')}
       footer={
@@ -57,12 +57,15 @@ export function SignUpScreen({ search }: { search: AuthSearch }) {
         <FormTextField
           {...register('name')}
           label={t('fields.name')}
+          labelPlacement="above"
           autoComplete="name"
           errorKey={errors.name?.message}
         />
         <FormTextField
           {...register('email')}
           label={t('fields.email')}
+          labelPlacement="above"
+          placeholder={t('fields.emailPlaceholder')}
           type="email"
           autoComplete="email"
           errorKey={errors.email?.message}
@@ -70,6 +73,7 @@ export function SignUpScreen({ search }: { search: AuthSearch }) {
         <FormTextField
           {...register('password')}
           label={t('fields.newPassword')}
+          labelPlacement="above"
           type="password"
           autoComplete="new-password"
           hint={t('fields.newPasswordHelp')}
@@ -79,6 +83,6 @@ export function SignUpScreen({ search }: { search: AuthSearch }) {
           {t('signup.submit')}
         </Button>
       </Stack>
-    </AuthCard>
+    </AuthLayout>
   );
 }

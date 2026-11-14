@@ -41,8 +41,8 @@ use `hero.fg`, since the primary color would vanish on the green band.
 
 ## Delivery steps (one commit each)
 
-1. Shell: header, footer, layouts, tokens.
-2. Sign in, sign up, password reset: split screen.
+1. Shell: header, footer, layouts, tokens. (done; footer pages added too)
+2. Sign in, sign up, password reset, verify email: split screen, labels above the fields. (done)
 3. Backend: course level, outcomes, skills, category counts, sort. Then Home.
 4. Backend: ratings and reviews. Then Course.
 5. Backend: discussions and notes. Then Player.

@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { FormTextField } from '../../../shared/ui/form-text-field';
 import { RouterLink } from '../../../shared/ui/router-links';
-import { AuthCard } from '../components/auth-card';
+import { AuthLayout } from '../components/auth-layout';
 import { useAuthController } from '../components/auth-context';
 import { AuthErrorAlert } from '../components/auth-error-alert';
 import { GoogleSignIn } from '../components/google-button';
@@ -38,7 +38,7 @@ export function LoginScreen({ search }: { search: AuthSearch }) {
   });
 
   return (
-    <AuthCard
+    <AuthLayout
       title={t('login.title')}
       subtitle={t('login.subtitle')}
       footer={
@@ -66,6 +66,8 @@ export function LoginScreen({ search }: { search: AuthSearch }) {
         <FormTextField
           {...register('email')}
           label={t('fields.email')}
+          labelPlacement="above"
+          placeholder={t('fields.emailPlaceholder')}
           type="email"
           autoComplete="email"
           errorKey={errors.email?.message}
@@ -73,6 +75,8 @@ export function LoginScreen({ search }: { search: AuthSearch }) {
         <FormTextField
           {...register('password')}
           label={t('fields.password')}
+          labelPlacement="above"
+          placeholder={t('fields.passwordPlaceholder')}
           type="password"
           autoComplete="current-password"
           errorKey={errors.password?.message}
@@ -80,7 +84,8 @@ export function LoginScreen({ search }: { search: AuthSearch }) {
         <RouterLink
           to="/forgot-password"
           search={{ redirect: search.redirect }}
-          sx={{ alignSelf: 'flex-start' }}
+          underline="hover"
+          sx={{ alignSelf: 'flex-end', fontWeight: 600, mt: -1 }}
         >
           {t('login.forgot')}
         </RouterLink>
@@ -88,6 +93,6 @@ export function LoginScreen({ search }: { search: AuthSearch }) {
           {t('login.submit')}
         </Button>
       </Stack>
-    </AuthCard>
+    </AuthLayout>
   );
 }

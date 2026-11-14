@@ -3,7 +3,7 @@ import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AuthCard } from '../components/auth-card';
+import { AuthLayout } from '../components/auth-layout';
 import { useAuthController, useSignOut } from '../components/auth-context';
 import { AuthErrorAlert } from '../components/auth-error-alert';
 import { cooldownRemaining, markVerificationSent } from '../lib/verification-cooldown';
@@ -64,7 +64,7 @@ export function VerifyEmailScreen({ email }: { email: string }) {
   };
 
   return (
-    <AuthCard title={t('verify.title')} subtitle={t('verify.body', { email })}>
+    <AuthLayout title={t('verify.title')} subtitle={t('verify.body', { email })}>
       <Stack spacing={2}>
         <AuthErrorAlert error={error} />
         {notice === 'resent' ? (
@@ -103,6 +103,6 @@ export function VerifyEmailScreen({ email }: { email: string }) {
         </Button>
         <Button onClick={() => void signOut()}>{t('verify.useAnother')}</Button>
       </Stack>
-    </AuthCard>
+    </AuthLayout>
   );
 }

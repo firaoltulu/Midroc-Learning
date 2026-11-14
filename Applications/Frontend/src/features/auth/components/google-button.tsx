@@ -1,18 +1,18 @@
 import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthController } from './auth-context';
 
-/** "Continue with Google" plus the "or" divider. Errors go to `onError`. */
+/** "Continue with Google" plus the "or use your email" line. Errors go to `onError`. */
 export function GoogleSignIn({ onError }: { onError: (error: unknown) => void }) {
   const { t } = useTranslation('auth');
   const controller = useAuthController();
   const [busy, setBusy] = useState(false);
 
   return (
-    <Stack spacing={3}>
+    <Stack spacing={2}>
       <Button
         variant="outlined"
         size="large"
@@ -31,7 +31,9 @@ export function GoogleSignIn({ onError }: { onError: (error: unknown) => void })
       >
         {t('google.button')}
       </Button>
-      <Divider>{t('google.divider')}</Divider>
+      <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+        {t('google.divider')}
+      </Typography>
     </Stack>
   );
 }
