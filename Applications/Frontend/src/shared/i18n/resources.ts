@@ -11,7 +11,6 @@ import auth from '../../locales/en/auth.json';
 import catalog from '../../locales/en/catalog.json';
 import common from '../../locales/en/common.json';
 import courses from '../../locales/en/courses.json';
-import design from '../../locales/en/design.json';
 import editor from '../../locales/en/editor.json';
 import errors from '../../locales/en/errors.json';
 import exam from '../../locales/en/exam.json';
@@ -35,7 +34,6 @@ export const resources = {
     editor,
     account,
     admin,
-    design,
   },
 } as const;
 

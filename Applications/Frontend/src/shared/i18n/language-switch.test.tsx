@@ -39,7 +39,7 @@ describe('language switching', () => {
     expect(document.documentElement.lang).toBe('am');
     expect(document.title).toBe('ሚድሮክ ትምህርት');
     expect(i18n.t('status.published', { ns: 'common' })).toBe('የታተመ');
-    expect(i18n.t('title', { ns: 'design' })).toBe('የዲዛይን ሥርዓት');
+    expect(i18n.t('google.button', { ns: 'auth' })).toBe('በGoogle ይቀጥሉ');
     expect(localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe('am');
   });
 

@@ -28,6 +28,19 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).toString();
 
+/**
+ * pdf.js's run-time files (image decoders, color profiles, character maps, standard fonts),
+ * copied into the build by vite.config.ts under the same versioned path. A constant object:
+ * react-pdf reloads the document when `options` changes identity.
+ */
+const PDFJS_ASSETS = `${import.meta.env.BASE_URL}assets/pdfjs-${pdfjs.version}`;
+const PDF_OPTIONS = {
+  wasmUrl: `${PDFJS_ASSETS}/wasm/`,
+  iccUrl: `${PDFJS_ASSETS}/iccs/`,
+  cMapUrl: `${PDFJS_ASSETS}/cmaps/`,
+  standardFontDataUrl: `${PDFJS_ASSETS}/standard_fonts/`,
+};
+
 const ZOOM_LEVELS = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
 const FIT_WIDTH = 2; // index of 1 (100 % = the page fills the width)
 
@@ -198,6 +211,7 @@ export default function PdfItem({ courseId, itemId, title, completed }: PdfItemP
       >
         <Document
           file={pdf.data}
+          options={PDF_OPTIONS}
           onLoadSuccess={({ numPages }) => {
             setPageCount(numPages);
           }}

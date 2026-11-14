@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as PublicRouteImport } from './routes/_public'
-import { Route as DesignRouteImport } from './routes/design'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated.index'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated.account'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
@@ -42,11 +41,6 @@ const AuthenticatedRoute = AuthenticatedRouteImport.update({
 } as any)
 const PublicRoute = PublicRouteImport.update({
   id: '/_public',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DesignRoute = DesignRouteImport.update({
-  id: '/design',
-  path: '/design',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
@@ -181,7 +175,6 @@ const AuthenticatedAdminModerationRevisionsRevisionIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
-  '/design': typeof DesignRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/forgot-password': typeof PublicForgotPasswordRoute
@@ -207,7 +200,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
-  '/design': typeof DesignRoute
   '/account': typeof AuthenticatedAccountRoute
   '/forgot-password': typeof PublicForgotPasswordRoute
   '/login': typeof PublicLoginRoute
@@ -234,7 +226,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/_public': typeof PublicRouteWithChildren
-  '/design': typeof DesignRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_public/forgot-password': typeof PublicForgotPasswordRoute
@@ -263,7 +254,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/design'
     | '/account'
     | '/admin'
     | '/forgot-password'
@@ -289,7 +279,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/design'
     | '/account'
     | '/forgot-password'
     | '/login'
@@ -315,7 +304,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_authenticated'
     | '/_public'
-    | '/design'
     | '/_authenticated/account'
     | '/_authenticated/admin'
     | '/_public/forgot-password'
@@ -344,7 +332,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   PublicRoute: typeof PublicRouteWithChildren
-  DesignRoute: typeof DesignRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -361,13 +348,6 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof PublicRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/design': {
-      id: '/design'
-      path: '/design'
-      fullPath: '/design'
-      preLoaderRoute: typeof DesignRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/': {
@@ -616,7 +596,6 @@ const PublicRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   PublicRoute: PublicRouteWithChildren,
-  DesignRoute: DesignRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

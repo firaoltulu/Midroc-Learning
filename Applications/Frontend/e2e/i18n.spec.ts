@@ -17,8 +17,8 @@ async function noHorizontalOverflow(page: Page) {
 
 test('English never downloads the Ethiopic font', async ({ page }) => {
   const ethiopic = trackEthiopicFont(page);
-  await page.goto('/design');
-  await expect(page.getByRole('heading', { level: 1, name: 'Design system' })).toBeVisible();
+  await page.goto('/login');
+  await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible();
   await page.waitForLoadState('networkidle');
   expect(ethiopic).toEqual([]);
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
@@ -64,26 +64,34 @@ test.describe('browser language', () => {
 });
 
 test.describe('long Amharic strings', () => {
+  // Signed-in pages (catalog, player, editor, admin) are checked in the emulator suite.
+  const PAGES = [
+    { path: '/login', h1: 'ይግቡ' },
+    { path: '/signup', h1: null },
+    { path: '/forgot-password', h1: null },
+  ];
   for (const viewport of [
     { width: 1280, height: 900 },
     { width: 390, height: 844 },
   ]) {
-    test(`the design page does not overflow at ${viewport.width}px`, async ({ page }) => {
+    test(`the signed-out pages do not overflow at ${viewport.width}px`, async ({ page }) => {
       await page.setViewportSize(viewport);
       await page.addInitScript(() => {
         localStorage.setItem('midroc.language', 'am');
       });
-      await page.goto('/design');
-      await expect(page.getByRole('heading', { level: 1, name: 'የዲዛይን ሥርዓት' })).toBeVisible();
-      expect(await noHorizontalOverflow(page)).toBe(true);
-
-      // Ethiopian calendar dates on the design page, with Latin digits.
-      await expect(page.getByText('4 ኅዳር 2019 ዓ.ም.', { exact: true })).toBeVisible();
-
-      // The long button label wraps inside its panel instead of being clipped.
-      const button = page.getByRole('button', { name: 'ሁሉንም ለውጦች ለአስተዳዳሪ ግምገማ አስገባ' }).first();
-      const fits = await button.evaluate((element) => element.scrollWidth <= element.clientWidth);
-      expect(fits).toBe(true);
+      for (const { path, h1 } of PAGES) {
+        await page.goto(path);
+        const heading = page.getByRole('heading', { level: 1, ...(h1 ? { name: h1 } : {}) });
+        await expect(heading).toBeVisible();
+        await expect(page.locator('html')).toHaveAttribute('lang', 'am');
+        expect(await noHorizontalOverflow(page), `${path} overflows`).toBe(true);
+        // Buttons wrap their (longer) Amharic labels instead of clipping them.
+        for (const button of await page.getByRole('main').getByRole('button').all()) {
+          expect(
+            await button.evaluate((element) => element.scrollWidth <= element.clientWidth),
+          ).toBe(true);
+        }
+      }
     });
   }
 });

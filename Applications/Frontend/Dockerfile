@@ -1,7 +1,10 @@
 # syntax=docker/dockerfile:1
+# check=skip=SecretsUsedInArgOrEnv
+# (Parser directives above. The Firebase web config is public by design: it identifies the
+# project and grants nothing, so the secret-name lint does not apply to its build arguments.)
 
 # ---- Build: type-check and bundle the SPA ---------------------------------------------------
-FROM node:22-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -26,7 +29,7 @@ RUN : "${VITE_FIREBASE_API_KEY:?set --build-arg VITE_FIREBASE_API_KEY}" \
   && npm run build \
   # Pre-compress text assets once, for nginx's gzip_static.
   && find dist -type f \( -name '*.js' -o -name '*.mjs' -o -name '*.css' -o -name '*.html' \
-       -o -name '*.svg' -o -name '*.json' \) -size +1k -exec gzip -9 -k {} +
+       -o -name '*.svg' -o -name '*.json' -o -name '*.wasm' \) -size +1k -exec gzip -9 -k {} +
 
 # ---- Serve: static files + /api proxy -------------------------------------------------------
 FROM nginx:1.27-alpine

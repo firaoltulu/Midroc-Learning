@@ -71,6 +71,19 @@ test('enroll, continue, find it in My learning, unenroll', async ({ page }) => {
 test.describe('mobile width, both themes and both languages', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
+  test('navigation lives in a drawer and the header shows the mark', async ({ page }) => {
+    const banner = page.getByRole('banner');
+    await expect(banner.locator('img[data-variant="mark"]')).toBeVisible();
+    await expect(banner.getByRole('link', { name: 'My learning' })).toBeHidden();
+
+    await page.getByRole('button', { name: 'Open navigation' }).click();
+    const drawer = page.locator('#mobile-navigation');
+    await drawer.getByRole('link', { name: 'My learning' }).click();
+    await expect(page).toHaveURL(/\/learn$/);
+    await expect(drawer).toBeHidden();
+    await expect(page.getByRole('heading', { level: 1, name: 'My learning' })).toBeVisible();
+  });
+
   for (const scheme of ['light', 'dark'] as const) {
     for (const language of ['en', 'am'] as const) {
       test(`${scheme}, ${language}: catalog, course and My learning fit the screen`, async ({

@@ -34,6 +34,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const signedIn = auth.status === 'signedIn' && isVerified(auth.user);
   const { data: me } = useMe({ enabled: signedIn });
   const navItems = visibleNavItems(signedIn, signedIn && me?.role === 'admin');
+  // Signed-out visitors have no destinations: no menu button, nav or drawer at all.
+  const hasNav = navItems.length > 0;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const closeDrawer = () => {
     setDrawerOpen(false);
@@ -47,17 +49,19 @@ export function AppShell({ children }: { children: ReactNode }) {
       <AppBar position="sticky">
         <Container maxWidth="lg" disableGutters>
           <Toolbar sx={{ gap: 1, minHeight: { xs: 56, sm: 64 }, px: { xs: 1, sm: 2 } }}>
-            <IconButton
-              aria-label={t('shell.openNavigation')}
-              aria-controls={drawerOpen ? 'mobile-navigation' : undefined}
-              aria-expanded={drawerOpen}
-              onClick={() => {
-                setDrawerOpen(true);
-              }}
-              sx={{ display: { md: 'none' } }}
-            >
-              <MenuOutlined />
-            </IconButton>
+            {hasNav ? (
+              <IconButton
+                aria-label={t('shell.openNavigation')}
+                aria-controls={drawerOpen ? 'mobile-navigation' : undefined}
+                aria-expanded={drawerOpen}
+                onClick={() => {
+                  setDrawerOpen(true);
+                }}
+                sx={{ display: { md: 'none' } }}
+              >
+                <MenuOutlined />
+              </IconButton>
+            ) : null}
 
             <RouterLink
               to="/"
@@ -72,36 +76,38 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Box>
             </RouterLink>
 
-            <Box
-              component="nav"
-              aria-label={t('shell.primaryNavigation')}
-              sx={{ display: { xs: 'none', md: 'block' } }}
-            >
-              <Stack
-                component="ul"
-                direction="row"
-                spacing={0.5}
-                sx={{ listStyle: 'none', m: 0, p: 0 }}
+            {hasNav ? (
+              <Box
+                component="nav"
+                aria-label={t('shell.primaryNavigation')}
+                sx={{ display: { xs: 'none', md: 'block' } }}
               >
-                {navItems.map((item) => (
-                  <li key={item.to}>
-                    <ButtonLink
-                      to={item.to}
-                      color="inherit"
-                      sx={{
-                        color: 'text.secondary',
-                        '&[data-status="active"]': {
-                          color: 'primary.main',
-                          bgcolor: 'surfaceMuted',
-                        },
-                      }}
-                    >
-                      {t(item.labelKey)}
-                    </ButtonLink>
-                  </li>
-                ))}
-              </Stack>
-            </Box>
+                <Stack
+                  component="ul"
+                  direction="row"
+                  spacing={0.5}
+                  sx={{ listStyle: 'none', m: 0, p: 0 }}
+                >
+                  {navItems.map((item) => (
+                    <li key={item.to}>
+                      <ButtonLink
+                        to={item.to}
+                        color="inherit"
+                        sx={{
+                          color: 'text.secondary',
+                          '&[data-status="active"]': {
+                            color: 'primary.main',
+                            bgcolor: 'surfaceMuted',
+                          },
+                        }}
+                      >
+                        {t(item.labelKey)}
+                      </ButtonLink>
+                    </li>
+                  ))}
+                </Stack>
+              </Box>
+            ) : null}
 
             <Box sx={{ flex: 1 }} />
             <LanguageSwitcher />
@@ -111,38 +117,40 @@ export function AppShell({ children }: { children: ReactNode }) {
         </Container>
       </AppBar>
 
-      <Drawer
-        id="mobile-navigation"
-        open={drawerOpen}
-        onClose={closeDrawer}
-        sx={{ display: { md: 'none' }, '& .MuiDrawer-paper': { width: drawerWidth } }}
-      >
-        <Box sx={{ p: 2 }}>
-          <BrandLogo variant="full" height={32} />
-        </Box>
-        <Box component="nav" aria-label={t('shell.primaryNavigation')}>
-          <List>
-            {navItems.map(({ to, labelKey, Icon }) => (
-              <li key={to}>
-                <ListItemLink
-                  to={to}
-                  onClick={closeDrawer}
-                  sx={{
-                    minHeight: 48,
-                    '&[data-status="active"]': { color: 'primary.main', bgcolor: 'surfaceMuted' },
-                    '&[data-status="active"] .MuiListItemIcon-root': { color: 'primary.main' },
-                  }}
-                >
-                  <ListItemIcon>
-                    <Icon />
-                  </ListItemIcon>
-                  <ListItemText primary={t(labelKey)} />
-                </ListItemLink>
-              </li>
-            ))}
-          </List>
-        </Box>
-      </Drawer>
+      {hasNav ? (
+        <Drawer
+          id="mobile-navigation"
+          open={drawerOpen}
+          onClose={closeDrawer}
+          sx={{ display: { md: 'none' }, '& .MuiDrawer-paper': { width: drawerWidth } }}
+        >
+          <Box sx={{ p: 2 }}>
+            <BrandLogo variant="full" height={32} />
+          </Box>
+          <Box component="nav" aria-label={t('shell.primaryNavigation')}>
+            <List>
+              {navItems.map(({ to, labelKey, Icon }) => (
+                <li key={to}>
+                  <ListItemLink
+                    to={to}
+                    onClick={closeDrawer}
+                    sx={{
+                      minHeight: 48,
+                      '&[data-status="active"]': { color: 'primary.main', bgcolor: 'surfaceMuted' },
+                      '&[data-status="active"] .MuiListItemIcon-root': { color: 'primary.main' },
+                    }}
+                  >
+                    <ListItemIcon>
+                      <Icon />
+                    </ListItemIcon>
+                    <ListItemText primary={t(labelKey)} />
+                  </ListItemLink>
+                </li>
+              ))}
+            </List>
+          </Box>
+        </Drawer>
+      ) : null}
 
       <Box
         component="main"

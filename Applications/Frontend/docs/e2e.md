@@ -96,7 +96,8 @@ On Windows (PowerShell), set the variables with `$env:NAME = 'value'` before eac
 
 `e2e/csp.emulator.spec.ts` checks the Content-Security-Policy from
 `deploy/nginx.conf.example` with real third-party traffic: the YouTube IFrame API and player,
-an https thumbnail (`i.ytimg.com`), the pdf.js worker and a `blob:` download link, plus the
+an https thumbnail (`i.ytimg.com`), the pdf.js worker, its WebAssembly decoder (fetched with
+the wasm MIME type and compiled) and a `blob:` download link, plus the
 inline color-mode script in `index.html` (allowed by its hash). Any CSP violation fails it.
 Only the API is mocked. It needs the internet, so it is opt-in:
 

@@ -28,7 +28,8 @@ only), react-hook-form + zod, i18next. The REST API is `Applications/Backend`; i
 
 ## Getting started
 
-Requirements: Node.js 20.19+ (22 recommended) and npm. For the emulator: Java 11+.
+Requirements: Node.js 24 LTS (the Firebase SDK declares Node 24.12+; 22 also builds, with engine
+warnings) and npm. For the emulator: Java 11+.
 
 ```sh
 cd Applications/Frontend
@@ -235,7 +236,7 @@ docker build -t midroc-frontend \
 docker run -p 8080:80 -e API_UPSTREAM=http://api:3000 midroc-frontend
 ```
 
-- **Build stage** (`node:22-alpine`): `npm ci`, `npm run build` (type-check included), then
+- **Build stage** (`node:24-alpine`): `npm ci`, `npm run build` (type-check included), then
   pre-compresses text assets with gzip. Missing Firebase build arguments fail the build.
 - **Serve stage** (`nginx:1.27-alpine`): `deploy/nginx.conf.example` is installed as an nginx
   template. Runtime settings:
@@ -270,17 +271,17 @@ docker run -p 8080:80 -e API_UPSTREAM=http://api:3000 midroc-frontend
 
 ### Content-Security-Policy
 
-| Directive                                                  | Allows                                                                                   | Why                                                                                                                                 |
-| ---------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `default-src`                                              | `'self'`                                                                                 | everything else same-origin only                                                                                                    |
-| `script-src`                                               | `'self'`, one `sha256-…` hash, `https://www.youtube.com`, `https://apis.google.com`      | the inline color-mode script in `index.html`; the YouTube IFrame API; Google's loader that Firebase uses for popup/redirect sign-in |
-| `style-src`                                                | `'self' 'unsafe-inline'`                                                                 | MUI (Emotion) injects style elements at run time                                                                                    |
-| `img-src`                                                  | `'self' data: blob: https:`                                                              | course thumbnails are any https URL                                                                                                 |
-| `font-src`                                                 | `'self'`                                                                                 | Inter and Noto Sans Ethiopic are bundled                                                                                            |
-| `connect-src`                                              | `'self'`, `https://identitytoolkit.googleapis.com`, `https://securetoken.googleapis.com` | the API (same origin) and Firebase Auth                                                                                             |
-| `frame-src`                                                | `https://www.youtube-nocookie.com`, `https://<FIREBASE_AUTH_DOMAIN>`                     | video players; Firebase's auth iframe                                                                                               |
-| `worker-src`                                               | `'self' blob:`                                                                           | the pdf.js worker                                                                                                                   |
-| `object-src`, `base-uri`, `form-action`, `frame-ancestors` | `'none'`, `'self'`, `'self'`, `'none'`                                                   | hardening                                                                                                                           |
+| Directive                                                  | Allows                                                                                                    | Why                                                                                                                                                                                          |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `default-src`                                              | `'self'`                                                                                                  | everything else same-origin only                                                                                                                                                             |
+| `script-src`                                               | `'self'`, `'wasm-unsafe-eval'`, one `sha256-…` hash, `https://www.youtube.com`, `https://apis.google.com` | the inline color-mode script in `index.html`; pdf.js WebAssembly (compiling wasm only, not JS `eval`); the YouTube IFrame API; Google's loader that Firebase uses for popup/redirect sign-in |
+| `style-src`                                                | `'self' 'unsafe-inline'`                                                                                  | MUI (Emotion) injects style elements at run time                                                                                                                                             |
+| `img-src`                                                  | `'self' data: blob: https:`                                                                               | course thumbnails are any https URL                                                                                                                                                          |
+| `font-src`                                                 | `'self'`                                                                                                  | Inter and Noto Sans Ethiopic are bundled                                                                                                                                                     |
+| `connect-src`                                              | `'self'`, `https://identitytoolkit.googleapis.com`, `https://securetoken.googleapis.com`                  | the API (same origin) and Firebase Auth                                                                                                                                                      |
+| `frame-src`                                                | `https://www.youtube-nocookie.com`, `https://<FIREBASE_AUTH_DOMAIN>`                                      | video players; Firebase's auth iframe                                                                                                                                                        |
+| `worker-src`                                               | `'self' blob:`                                                                                            | the pdf.js worker                                                                                                                                                                            |
+| `object-src`, `base-uri`, `form-action`, `frame-ancestors` | `'none'`, `'self'`, `'self'`, `'none'`                                                                    | hardening                                                                                                                                                                                    |
 
 **After editing the inline script in `index.html`,** update its hash in the CSP: `node
 scripts/csp-hash.mjs` prints it, and `npm test` fails until the two match.
@@ -291,6 +292,22 @@ nginx headers) and loads the real YouTube IFrame API and player, a real external
 the PDF viewer, and fails on any CSP violation; see [docs/e2e.md](docs/e2e.md#csp-against-the-docker-image).
 Google sign-in was checked by hand against a real Firebase project (popup and its iframe).
 Re-check the browser console after adding any third-party resource.
+
+### PDF viewer files
+
+pdf.js loads extra files at run time: WebAssembly decoders for JPEG 2000 and JBIG2 images
+(common in scanned PDFs), color profiles, character maps and the standard fonts. The build
+copies them from `pdfjs-dist` into `dist/assets/pdfjs-<version>/` (`vite.config.ts`), so they
+are same-origin, versioned and cached as immutable. They add about 4 MB to the image but
+are downloaded only when a PDF needs them.
+
+### Dependency audit
+
+`npm audit` reports high-severity findings in `@grpc/grpc-js`, reached through the
+`firebase` package's Firestore module. This app uses only Firebase Auth: Firestore and gRPC
+are never imported, so they are not in the bundle (the browser never runs that code). npm's
+suggested "fix" is a downgrade to Firebase 9. Accepted; re-check when Firebase updates its
+Firestore dependency. The remaining moderate findings are in lint tooling (dev only).
 
 ### Sign-in and the auth domain
 

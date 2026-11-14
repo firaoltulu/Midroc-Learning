@@ -8,8 +8,9 @@ test('signed-out visitors are sent from a protected page to sign in, with a retu
   await expect(page.getByRole('heading', { level: 1, name: 'Sign in' })).toBeVisible();
   await expect(page.getByRole('main')).toBeVisible();
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  // No navigation or user menu for signed-out visitors (only the public design page).
+  // No navigation or user menu for signed-out visitors.
   await expect(page.getByRole('button', { name: /Account menu/ })).toHaveCount(0);
+  await expect(page.getByRole('navigation', { name: 'Main navigation' })).toHaveCount(0);
 });
 
 test('the auth pages link to each other and keep the return path', async ({ page }) => {

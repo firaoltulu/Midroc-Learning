@@ -35,7 +35,7 @@ server {
   gzip_min_length 1024;
   gzip_proxied any;
   gzip_types text/css text/plain application/javascript application/json image/svg+xml
-    application/manifest+json;
+    application/manifest+json application/wasm;
 
   # ---- Headers -----------------------------------------------------------------------------
   add_header Cache-Control $cache_control always;
@@ -43,14 +43,15 @@ server {
   # Content-Security-Policy (verified against real traffic: see the README, "Deployment").
   #   script-src   the inline color-mode script in index.html (hash; update it when that
   #                script changes), the YouTube IFrame API, Google's API loader that Firebase
-  #                uses for the sign-in popup/redirect.
+  #                uses for the sign-in popup/redirect. 'wasm-unsafe-eval' lets pdf.js compile
+  #                WebAssembly (image decoders, PDF math functions); it does not allow JS eval.
   #   style-src    'unsafe-inline': MUI (Emotion) injects <style> elements at run time.
   #   img-src      course thumbnails are any https URL the owner entered.
   #   connect-src  same-origin API plus Firebase Auth's REST endpoints.
   #   frame-src    YouTube players (privacy-enhanced domain) and Firebase's auth iframe.
   #   worker-src   pdf.js runs its worker from our own assets.
   # Add `upgrade-insecure-requests` once the site is served over HTTPS only.
-  add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-bEGlakZuegcfI0KthQAP2v6++He4jiusHMZBAbzX4bI=' https://www.youtube.com https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; frame-src https://www.youtube-nocookie.com https://${FIREBASE_AUTH_DOMAIN}; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" always;
+  add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'sha256-bEGlakZuegcfI0KthQAP2v6++He4jiusHMZBAbzX4bI=' https://www.youtube.com https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; frame-src https://www.youtube-nocookie.com https://${FIREBASE_AUTH_DOMAIN}; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" always;
   add_header X-Content-Type-Options "nosniff" always;
   add_header X-Frame-Options "DENY" always;
   # YouTube refuses to play embeds that arrive without a referrer, so don't use no-referrer.
@@ -89,6 +90,14 @@ server {
   # ---- The app -----------------------------------------------------------------------------
   # A missing hashed file is a real 404 (never index.html, which would load as broken JS).
   location /assets/ {
+    try_files $uri =404;
+  }
+
+  # nginx's stock mime.types has no .mjs (the pdf.js worker). Served as octet-stream, the
+  # browser refuses it as a module worker (nosniff), so PDFs would never render.
+  location ~* \.mjs$ {
+    types {}
+    default_type application/javascript;
     try_files $uri =404;
   }
 

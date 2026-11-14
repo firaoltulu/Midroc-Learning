@@ -38,6 +38,12 @@ function policyFromNginxConf(): string {
   return policy.replaceAll('${FIREBASE_AUTH_DOMAIN}', AUTH_DOMAIN);
 }
 
+const PDFJS_VERSION = (
+  JSON.parse(
+    readFileSync(new URL('../node_modules/pdfjs-dist/package.json', import.meta.url), 'utf8'),
+  ) as { version: string }
+).version;
+
 // YouTube's own IFrame API sample video (embeddable, stable).
 const VIDEO_ID = 'M7lc1UVf-VE';
 const THUMBNAIL = `https://i.ytimg.com/vi/${VIDEO_ID}/hqdefault.jpg`;
@@ -124,6 +130,18 @@ test('the served CSP allows the app, YouTube, thumbnails and the PDF viewer', as
   await worker;
   await expect(page.locator('.react-pdf__Page canvas')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Download' })).toHaveAttribute('href', /^blob:/);
+
+  // pdf.js's WebAssembly decoders (JPEG 2000 here) are served by us, with the wasm MIME type,
+  // and the policy lets them compile ('wasm-unsafe-eval').
+  const compiled = await page.evaluate(async (url) => {
+    try {
+      await WebAssembly.compileStreaming(fetch(url));
+      return 'ok';
+    } catch (error) {
+      return String(error);
+    }
+  }, `/assets/pdfjs-${PDFJS_VERSION}/wasm/openjpeg.wasm`);
+  expect(compiled).toBe('ok');
 
   expect(csp.violations).toEqual([]);
 });
