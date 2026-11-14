@@ -60,11 +60,13 @@ export async function unavailableYoutubeVideos(db: Queryable): Promise<unknown[]
   const { rows } = await db.query(
     `SELECT v.item_id AS "itemId", i.title AS "itemTitle",
        v.youtube_title AS "youtubeTitle", v.last_checked_at AS "lastCheckedAt",
-       c.id AS "courseId", c.title AS "courseTitle"
+       c.id AS "courseId", c.title AS "courseTitle",
+       u.id AS "ownerId", u.name AS "ownerName", u.email AS "ownerEmail"
      FROM video_items v
      JOIN module_items i ON i.id = v.item_id
      JOIN modules m ON m.id = i.module_id
      JOIN courses c ON c.id = m.course_id
+     JOIN users u ON u.id = c.owner_id
      WHERE NOT v.is_available AND c.status IN ('published', 'pending_review')
      ORDER BY v.last_checked_at DESC`
   );

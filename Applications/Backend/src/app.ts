@@ -12,7 +12,7 @@ import { logger } from './core/logger.js';
 import { authenticate, requireAdmin } from './modules/auth/index.js';
 import { meRoutes, usersAdminRoutes } from './modules/users/index.js';
 import { coursesRoutes } from './modules/courses/index.js';
-import { enrollmentsRoutes } from './modules/enrollments/index.js';
+import { enrollmentsAdminRoutes, enrollmentsRoutes } from './modules/enrollments/index.js';
 import { contentAdminRoutes, contentRoutes } from './modules/content/index.js';
 import { learningRoutes } from './modules/learning/index.js';
 import { coursesAdminRoutes } from './modules/courses/index.js';
@@ -66,7 +66,13 @@ export function buildApp(authentication: RequestHandler = authenticate): express
 
   const adminRoutes = express.Router();
   adminRoutes.use(usersAdminRoutes);
-  adminRoutes.use(coursesAdminRoutes, moderationAdminRoutes, contentAdminRoutes, analyticsAdminRoutes);
+  adminRoutes.use(
+    coursesAdminRoutes,
+    enrollmentsAdminRoutes,
+    moderationAdminRoutes,
+    contentAdminRoutes,
+    analyticsAdminRoutes
+  );
   app.use('/api/admin', requireAdmin, adminRoutes);
   app.use((_req, res) => {
     res.status(404).json({ error: 'Not found', code: 'NOT_FOUND' });

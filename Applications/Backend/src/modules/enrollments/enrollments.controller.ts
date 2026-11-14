@@ -1,7 +1,9 @@
 import type { Request, Response } from 'express';
+import { z } from 'zod';
+import { paginationSchema } from '../../core/http/pagination.js';
 import { isUuid } from '../../core/ids.js';
 import { invalidParameter } from '../../core/http/app-error.js';
-import { parseEmptyBody, routeParam } from '../../core/http/validate.js';
+import { parseEmptyBody, parseInput, routeParam } from '../../core/http/validate.js';
 import * as service from './enrollments.service.js';
 
 function courseId(req: Request): string {
@@ -24,4 +26,21 @@ export async function unenroll(req: Request, res: Response): Promise<void> {
 
 export async function mine(req: Request, res: Response): Promise<void> {
   res.json(await service.listMine(req.user));
+}
+
+const courseEnrollmentsQuery = paginationSchema
+  .extend({ q: z.string().trim().min(1).max(200).optional() })
+  .strict();
+
+export async function courseEnrollments(req: Request, res: Response): Promise<void> {
+  const input = parseInput(courseEnrollmentsQuery, req.query);
+  res.json(await service.listCourseEnrollments(courseId(req), input));
+}
+
+export async function removeCourseEnrollment(req: Request, res: Response): Promise<void> {
+  parseEmptyBody(req);
+  const userId = routeParam(req, 'userId');
+  if (!isUuid(userId)) throw invalidParameter('userId');
+  await service.removeCourseEnrollment(courseId(req), userId);
+  res.status(204).end();
 }

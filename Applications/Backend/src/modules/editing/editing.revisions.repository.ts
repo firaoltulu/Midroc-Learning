@@ -117,6 +117,7 @@ export async function pendingRevisions(db: Queryable): Promise<Array<{
   courseId: string;
   courseTitle: string;
   ownerId: string;
+  ownerName: string | null;
   submittedBy: string;
   submittedAt: Date;
 }>> {
@@ -125,13 +126,15 @@ export async function pendingRevisions(db: Queryable): Promise<Array<{
     courseId: string;
     courseTitle: string;
     ownerId: string;
+    ownerName: string | null;
     submittedBy: string;
     submittedAt: Date;
   }>(
     `SELECT r.id, r.course_id AS "courseId", c.title AS "courseTitle",
-       c.owner_id AS "ownerId", r.submitted_by AS "submittedBy",
+       c.owner_id AS "ownerId", u.name AS "ownerName", r.submitted_by AS "submittedBy",
        r.submitted_at AS "submittedAt"
      FROM course_revisions r JOIN courses c ON c.id = r.course_id
+     JOIN users u ON u.id = c.owner_id
      WHERE r.status = 'pending' ORDER BY r.submitted_at, r.id`
   );
   return rows;

@@ -1,4 +1,5 @@
 import type { Queryable } from '../../core/db/pool.js';
+import { toPage } from '../../core/db/sql.js';
 
 export async function insertEnrollment(
   db: Queryable,
@@ -100,4 +101,61 @@ export async function markComplete(
        completed_at = COALESCE(item_progress.completed_at, EXCLUDED.completed_at)`,
     [userId, itemId]
   );
+}
+
+export type CourseEnrollment = {
+  userId: string;
+  email: string;
+  name: string | null;
+  enrolledAt: Date;
+  itemCount: number;
+  completedItemCount: number;
+  progressPercent: number;
+  lastActivityAt: Date | null;
+};
+
+/** A course's enrollments with each learner's progress, newest first (administrators). */
+export async function listForCourse(
+  db: Queryable,
+  courseId: string,
+  input: { q?: string | undefined; limit: number; offset: number }
+): Promise<{ items: CourseEnrollment[]; total: number }> {
+  const { rows } = await db.query<CourseEnrollment & { total: string }>(
+    `WITH course_items AS (
+       SELECT i.id FROM module_items i JOIN modules m ON m.id = i.module_id WHERE m.course_id = $1
+     )
+     SELECT u.id AS "userId", u.email, u.name, e.enrolled_at AS "enrolledAt",
+       (SELECT count(*)::int FROM course_items) AS "itemCount",
+       stats.completed AS "completedItemCount",
+       CASE WHEN (SELECT count(*) FROM course_items) = 0 THEN 0
+         ELSE round(100.0 * stats.completed / (SELECT count(*) FROM course_items))::int
+       END AS "progressPercent",
+       stats.last_activity AS "lastActivityAt",
+       count(*) OVER () AS total
+     FROM enrollments e
+     JOIN users u ON u.id = e.user_id
+     LEFT JOIN LATERAL (
+       SELECT count(*) FILTER (WHERE p.completed_at IS NOT NULL)::int AS completed,
+         max(p.updated_at) AS last_activity
+       FROM item_progress p WHERE p.user_id = e.user_id AND p.item_id IN (SELECT id FROM course_items)
+     ) stats ON true
+     WHERE e.course_id = $1
+       AND ($2::text IS NULL OR u.email ILIKE '%' || $2 || '%' OR u.name ILIKE '%' || $2 || '%')
+     ORDER BY e.enrolled_at DESC, u.id
+     LIMIT $3 OFFSET $4`,
+    [courseId, input.q ?? null, input.limit, input.offset]
+  );
+  return toPage(rows);
+}
+
+export async function removeEnrollment(
+  db: Queryable,
+  userId: string,
+  courseId: string
+): Promise<boolean> {
+  const { rows } = await db.query(
+    'DELETE FROM enrollments WHERE user_id = $1 AND course_id = $2 RETURNING user_id',
+    [userId, courseId]
+  );
+  return rows.length === 1;
 }

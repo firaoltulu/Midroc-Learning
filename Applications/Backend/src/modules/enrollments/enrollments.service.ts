@@ -50,3 +50,24 @@ export async function markItemComplete(
 ): Promise<void> {
   await repository.markComplete(queryable, userId, itemId);
 }
+
+/** Administrators: a course's enrollments with progress (search by email or name). */
+export async function listCourseEnrollments(
+  courseId: string,
+  input: { q?: string | undefined; page: number; pageSize: number }
+) {
+  const course = await coursesApi.getCourseForUpdate(db, courseId);
+  if (!course) throw new NotFound('Course not found');
+  const result = await repository.listForCourse(db, courseId, {
+    q: input.q,
+    limit: input.pageSize,
+    offset: (input.page - 1) * input.pageSize
+  });
+  return { ...result, page: input.page, pageSize: input.pageSize };
+}
+
+/** Administrators: removes a learner from a course. Progress and attempts are kept. */
+export async function removeCourseEnrollment(courseId: string, userId: string): Promise<void> {
+  const removed = await repository.removeEnrollment(db, userId, courseId);
+  if (!removed) throw new NotFound('Enrollment not found');
+}

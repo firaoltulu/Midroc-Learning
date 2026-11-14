@@ -36,7 +36,10 @@ function ensureNoQuestionIds(questions: ExamQuestionInput[] | undefined): void {
   }
 }
 
+/** The full tree with media references and exam answers: owner and administrators only. */
 export async function authoringTree(courseId: string, actor: Actor) {
+  // getCourse alone admits anyone to a published course; the authoring view must not.
+  await resolveCourseContext(db, 'course', courseId, actor);
   const course = await getCourse(courseId, actor);
   const modules = await repository.listModules(db, courseId);
   const result = [];

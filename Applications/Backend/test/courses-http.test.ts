@@ -187,5 +187,41 @@ describe('course HTTP behavior', () => {
       headers: asUser(viewerId).headers
     });
     expect(repeatEnroll.status).toBe(200);
+
+    // The authoring view (exam answers) is for the owner and administrators only.
+    const learnerAuthoring = await fetch(`${base}/courses/${course.id}/authoring`, {
+      headers: asUser(viewerId).headers
+    });
+    expect(learnerAuthoring.status).toBe(404);
+    expect(await learnerAuthoring.text()).not.toContain('isCorrect');
+    const adminAuthoring = await fetch(`${base}/courses/${course.id}/authoring`, {
+      headers: asUser(adminId, 'admin').headers
+    });
+    expect(adminAuthoring.status).toBe(200);
+
+    // Administrators list a course's enrollments and remove one (progress is kept).
+    const enrollments = await fetch(`${base}/admin/courses/${course.id}/enrollments`, {
+      headers: asUser(adminId, 'admin').headers
+    });
+    expect(enrollments.status).toBe(200);
+    expect(await enrollments.json()).toMatchObject({
+      page: 1,
+      total: 1,
+      items: [{ userId: viewerId, email: 'viewer@example.test', progressPercent: 0, itemCount: 1 }]
+    });
+    const forbidden = await fetch(`${base}/admin/courses/${course.id}/enrollments`, {
+      headers: asUser(viewerId).headers
+    });
+    expect(forbidden.status).toBe(403);
+    const removed = await fetch(`${base}/admin/courses/${course.id}/enrollments/${viewerId}`, {
+      method: 'DELETE',
+      headers: asUser(adminId, 'admin').headers
+    });
+    expect(removed.status).toBe(204);
+    const missing = await fetch(`${base}/admin/courses/${course.id}/enrollments/${viewerId}`, {
+      method: 'DELETE',
+      headers: asUser(adminId, 'admin').headers
+    });
+    expect(missing.status).toBe(404);
   });
 });
