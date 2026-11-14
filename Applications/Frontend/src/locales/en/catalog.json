@@ -10,7 +10,10 @@
     "allCategories": "All categories",
     "language": "Language",
     "allLanguages": "All languages",
-    "clear": "Clear filters"
+    "clear": "Clear filters",
+    "sort": "Sort by",
+    "sortNewest": "Newest",
+    "sortPopular": "Most popular"
   },
   "empty": {
     "filtered": {
@@ -25,9 +28,7 @@
   },
   "card": {
     "byOwner": "By {{name}}",
-    "enrolled": "Enrolled",
-    "learners_one": "{{count}} learner",
-    "learners_other": "{{count}} learners"
+    "enrolled": "Enrolled"
   },
   "pagination": {
     "label": "Pages",
@@ -37,5 +38,30 @@
     "last": "Last page",
     "next": "Next page",
     "previous": "Previous page"
+  },
+  "home": {
+    "title": "Build skills that move your career forward",
+    "subtitle": "Practical courses in English and Amharic, created by Midroc experts.",
+    "browse": "Browse courses",
+    "continue": {
+      "label": "Continue learning",
+      "progress": "Module {{module}} of {{total}} · {{percent}}%",
+      "percent": "{{percent}}% complete",
+      "resume": "Resume"
+    },
+    "shelf": {
+      "title": "New and popular",
+      "label": "Show courses",
+      "popular": "Most popular",
+      "newest": "New",
+      "amharic": "Amharic",
+      "seeAll": "See all",
+      "empty": "No courses here yet."
+    },
+    "categories": {
+      "title": "Explore categories",
+      "count_one": "{{count}} course",
+      "count_other": "{{count}} courses"
+    }
   }
 }

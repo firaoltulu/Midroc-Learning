@@ -16,7 +16,7 @@ import { CourseThumbnail } from '../../../shared/ui/course-thumbnail';
 import { FormTextField } from '../../../shared/ui/form-text-field';
 import { useToast } from '../../../shared/ui/toast/toast-context';
 import { useDeleteCourse, useUpdateCourse } from '../api/authoring';
-import type { AuthoringView, CoursePatch } from '../api/schemas';
+import type { AuthoringView, CourseLevel, CoursePatch } from '../api/schemas';
 import { useAutosave } from '../hooks/use-autosave';
 import { useKeyText } from '../lib/key-text';
 import { useSaveErrorText } from '../lib/save-error';
@@ -36,12 +36,28 @@ const requiredWithin = (max: number) => (value: string) =>
 const durationProblem = (value: string) =>
   value.trim() === '' || /^\d+$/.test(value.trim()) ? null : 'editor:details.errors.duration';
 
+/** "What you'll learn": one outcome per line; empty lines are dropped. */
+const toOutcomes = (value: string) =>
+  value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+const outcomesProblem = (value: string) => {
+  const outcomes = toOutcomes(value);
+  if (outcomes.length > COURSE_LIMITS.outcomes) return 'editor:details.errors.tooManyOutcomes';
+  if (outcomes.some((outcome) => outcome.length > COURSE_LIMITS.outcome)) {
+    return 'editor:details.errors.outcomeTooLong';
+  }
+  return null;
+};
+
 const thumbnailProblem = (value: string) =>
   value.trim() === '' || isHttpUrl(value.trim()) ? null : 'validation:HTTP_URL_REQUIRED.default';
 
 /**
- * Details: title, description (plain text, counter), category, language, tags, duration and
- * thumbnail URL. Draft and rejected courses: each field saves itself (text debounced, choices
+ * Details: title, description (plain text, counter), category, language, level, duration,
+ * outcomes ("What you'll learn"), skills, tags and thumbnail URL. Draft and rejected courses: each field saves itself (text debounced, choices
  * at once). Published courses (`published`): the major fields (title, description, category,
  * language) edit the working copy and go to review; the others still apply right away. Each
  * field says which.
@@ -71,22 +87,67 @@ export function DetailsTab({
       ) : (
         <DraftMajorFields view={view} readOnly={readOnly} save={save} />
       )}
+      <Box
+        sx={{
+          display: 'grid',
+          gap: 3,
+          gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+          alignItems: 'start',
+        }}
+      >
+        <LevelField
+          savedValue={course.level}
+          save={(level) => save({ level })}
+          readOnly={readOnly}
+          hint={minor(t('details.levelHint'))}
+        />
+        <AutosaveTextField
+          slot="course.duration"
+          label={t('details.duration')}
+          hint={minor(t('details.durationHint'))}
+          savedValue={
+            course.estimatedDurationMinutes === null ? '' : String(course.estimatedDurationMinutes)
+          }
+          save={(value) =>
+            save({ estimatedDurationMinutes: value.trim() === '' ? null : Number(value.trim()) })
+          }
+          validate={durationProblem}
+          readOnly={readOnly}
+          slotProps={{ htmlInput: { inputMode: 'numeric' } }}
+        />
+      </Box>
       <AutosaveTextField
-        slot="course.duration"
-        label={t('details.duration')}
-        hint={minor(t('details.durationHint'))}
-        savedValue={
-          course.estimatedDurationMinutes === null ? '' : String(course.estimatedDurationMinutes)
-        }
-        save={(value) =>
-          save({ estimatedDurationMinutes: value.trim() === '' ? null : Number(value.trim()) })
-        }
-        validate={durationProblem}
+        slot="course.outcomes"
+        label={t('details.outcomes')}
+        hint={minor(t('details.outcomesHint', { max: COURSE_LIMITS.outcomes }))}
+        savedValue={course.outcomes.join('\n')}
+        save={(value) => save({ outcomes: toOutcomes(value) })}
+        validate={outcomesProblem}
         readOnly={readOnly}
-        slotProps={{ htmlInput: { inputMode: 'numeric' } }}
-        sx={{ maxWidth: { sm: 'calc(50% - 12px)' } }}
+        multiline
+        minRows={4}
       />
-      <TagsField
+      <ChipListField
+        slot="course.skills"
+        label={t('details.skills')}
+        hint={t('details.skillsHint', { max: COURSE_LIMITS.skills })}
+        maxCount={COURSE_LIMITS.skills}
+        maxLength={COURSE_LIMITS.skill}
+        tooManyKey="editor:details.errors.tooManySkills"
+        tooLongKey="editor:details.errors.skillTooLong"
+        savedValue={course.skills}
+        save={(skills) => save({ skills })}
+        readOnly={readOnly}
+        effect={published ? fieldEffect('course', 'skills') : undefined}
+      />
+      <ChipListField
+        slot="course.tags"
+        label={t('details.tags')}
+        hint={t('details.tagsHint', { max: COURSE_LIMITS.tags })}
+        maxCount={COURSE_LIMITS.tags}
+        maxLength={COURSE_LIMITS.tag}
+        tooManyKey="editor:details.errors.tooManyTags"
+        tooLongKey="editor:details.errors.tagTooLong"
         savedValue={course.tags}
         save={(tags) => save({ tags })}
         readOnly={readOnly}
@@ -385,21 +446,84 @@ function LanguageField({
   );
 }
 
-const sameTags = (a: string[], b: string[]) =>
-  a.length === b.length && a.every((tag, index) => tag === b[index]);
+const LEVELS = ['beginner', 'intermediate', 'advanced'] as const;
 
-function TagsField({
+function LevelField({
+  savedValue,
+  save,
+  readOnly,
+  hint,
+}: {
+  savedValue: CourseLevel | null;
+  save: (value: CourseLevel | null) => Promise<unknown>;
+  readOnly: boolean;
+  hint: string | undefined;
+}) {
+  const { t } = useTranslation(['editor', 'common']);
+  const saveErrorText = useSaveErrorText();
+  const [value, setValue] = useState<CourseLevel | null>(savedValue);
+  const { serverError } = useAutosave({
+    slot: 'course.level',
+    value,
+    savedValue,
+    save,
+    delay: 0,
+    disabled: readOnly,
+  });
+  const error = saveErrorText(serverError);
+  return (
+    <TextField
+      select
+      fullWidth
+      label={t('details.level')}
+      value={value ?? ''}
+      disabled={readOnly}
+      onChange={(event) => {
+        setValue(LEVELS.find((level) => level === event.target.value) ?? null);
+      }}
+      error={Boolean(error)}
+      helperText={error ?? hint}
+      slotProps={{ inputLabel: { shrink: true }, select: { displayEmpty: true } }}
+    >
+      <MenuItem value="">{t('details.levelNone')}</MenuItem>
+      {LEVELS.map((level) => (
+        <MenuItem key={level} value={level}>
+          {t(`common:levels.${level}`)}
+        </MenuItem>
+      ))}
+    </TextField>
+  );
+}
+
+const sameList = (a: string[], b: string[]) =>
+  a.length === b.length && a.every((entry, index) => entry === b[index]);
+
+/** Short labels entered as chips (tags, skills); saves on every change. */
+function ChipListField({
+  slot,
+  label,
+  hint,
+  maxCount,
+  maxLength,
+  tooManyKey,
+  tooLongKey,
   savedValue,
   save,
   readOnly,
   effect,
 }: {
+  slot: string;
+  label: string;
+  hint: string;
+  maxCount: number;
+  maxLength: number;
+  tooManyKey: string;
+  tooLongKey: string;
   savedValue: string[];
   save: (value: string[]) => Promise<unknown>;
   readOnly: boolean;
   effect: FieldEffect | undefined;
 }) {
-  const { t } = useTranslation('editor');
   const effectHint = useEffectHint();
   const saveErrorText = useSaveErrorText();
   const keyText = useKeyText();
@@ -407,13 +531,12 @@ function TagsField({
   const [input, setInput] = useState('');
   const [inputProblem, setInputProblem] = useState<string | null>(null);
   const { problem, serverError } = useAutosave({
-    slot: 'course.tags',
+    slot,
     value: tags,
     savedValue,
     save,
-    isEqual: sameTags,
-    validate: (value) =>
-      value.length > COURSE_LIMITS.tags ? 'editor:details.errors.tooManyTags' : null,
+    isEqual: sameList,
+    validate: (value) => (value.length > maxCount ? tooManyKey : null),
     delay: 0,
     disabled: readOnly,
   });
@@ -434,8 +557,8 @@ function TagsField({
       }}
       onChange={(_event, next) => {
         const cleaned = next.map((tag) => tag.trim()).filter(Boolean);
-        if (cleaned.some((tag) => tag.length > COURSE_LIMITS.tag)) {
-          setInputProblem('editor:details.errors.tagTooLong');
+        if (cleaned.some((tag) => tag.length > maxLength)) {
+          setInputProblem(tooLongKey);
           return;
         }
         setTags([...new Set(cleaned)]);
@@ -449,11 +572,9 @@ function TagsField({
       renderInput={(params) => (
         <TextField
           {...params}
-          label={t('details.tags')}
+          label={label}
           error={Boolean(error)}
-          helperText={
-            error ?? effectHint(effect, t('details.tagsHint', { max: COURSE_LIMITS.tags }))
-          }
+          helperText={error ?? effectHint(effect, hint)}
         />
       )}
     />

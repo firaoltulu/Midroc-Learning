@@ -10,7 +10,10 @@
     "allCategories": "ሁሉም ምድቦች",
     "language": "ቋንቋ",
     "allLanguages": "ሁሉም ቋንቋዎች",
-    "clear": "ማጣሪያዎችን ያጽዱ"
+    "clear": "ማጣሪያዎችን ያጽዱ",
+    "sort": "ቅደም ተከተል",
+    "sortNewest": "አዲስ",
+    "sortPopular": "በጣም ተወዳጅ"
   },
   "empty": {
     "filtered": {
@@ -25,9 +28,7 @@
   },
   "card": {
     "byOwner": "አዘጋጅ፦ {{name}}",
-    "enrolled": "ተመዝግበዋል",
-    "learners_one": "{{count}} ተማሪ",
-    "learners_other": "{{count}} ተማሪዎች"
+    "enrolled": "ተመዝግበዋል"
   },
   "pagination": {
     "label": "ገጾች",
@@ -37,5 +38,30 @@
     "last": "የመጨረሻ ገጽ",
     "next": "ቀጣይ ገጽ",
     "previous": "ቀዳሚ ገጽ"
+  },
+  "home": {
+    "title": "ሙያዎን ወደፊት የሚያራምዱ ክህሎቶችን ይገንቡ",
+    "subtitle": "በሚድሮክ ባለሙያዎች የተዘጋጁ ተግባራዊ ኮርሶች፣ በእንግሊዝኛና በአማርኛ።",
+    "browse": "ኮርሶችን ያስሱ",
+    "continue": {
+      "label": "መማርዎን ይቀጥሉ",
+      "progress": "ሞጁል {{module}} ከ{{total}} · {{percent}}%",
+      "percent": "{{percent}}% ተጠናቋል",
+      "resume": "ቀጥል"
+    },
+    "shelf": {
+      "title": "አዲስና ተወዳጅ",
+      "label": "ኮርሶችን አሳይ",
+      "popular": "በጣም ተወዳጅ",
+      "newest": "አዲስ",
+      "amharic": "አማርኛ",
+      "seeAll": "ሁሉንም ይመልከቱ",
+      "empty": "እዚህ እስካሁን ኮርስ የለም።"
+    },
+    "categories": {
+      "title": "ምድቦችን ያስሱ",
+      "count_one": "{{count}} ኮርስ",
+      "count_other": "{{count}} ኮርሶች"
+    }
   }
 }

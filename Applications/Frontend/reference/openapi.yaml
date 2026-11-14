@@ -97,6 +97,10 @@ paths:
         - in: query
           name: language
           schema: { $ref: "#/components/schemas/CourseLanguage" }
+        - in: query
+          name: sort
+          description: "`newest` (default): most recently published first. `popular`: most enrollments first."
+          schema: { type: string, enum: [newest, popular], default: newest }
       responses:
         "200":
           description: A page of published courses.
@@ -124,16 +128,25 @@ paths:
       summary: Categories used by published courses
       responses:
         "200":
-          description: Category names, sorted.
+          description: Category names, sorted, with the number of published courses in each.
           content:
             application/json:
               schema:
                 type: object
-                required: [items]
+                required: [items, categories]
                 properties:
                   items:
                     type: array
+                    description: The names only (same order as `categories`).
                     items: { type: string }
+                  categories:
+                    type: array
+                    items:
+                      type: object
+                      required: [name, courseCount]
+                      properties:
+                        name: { type: string }
+                        courseCount: { type: integer, minimum: 1 }
         default: { $ref: "#/components/responses/Error" }
 
   /courses/{id}:
@@ -156,7 +169,8 @@ paths:
       summary: Edit course fields
       description: >-
         Draft and rejected courses: any field. Published courses: only minor fields
-        (`thumbnailUrl`, `tags`, `estimatedDurationMinutes`) for the owner; major fields need a
+        (`thumbnailUrl`, `tags`, `estimatedDurationMinutes`, `level`, `outcomes`, `skills`) for the
+        owner; major fields need a
         revision (`REVISION_REQUIRED`). Administrators may edit any field.
       requestBody:
         required: true
@@ -1199,7 +1213,7 @@ components:
             `invalid_value`, `unrecognized_keys`, ...) or a rule of our own:
             `CORRECT_CHOICE_REQUIRED`, `SINGLE_CORRECT_CHOICE_REQUIRED`, `DUPLICATE_ID`,
             `HTTP_URL_REQUIRED`, `VIDEO_LINK_REQUIRED`, `INVALID_DATE`.
-        message: { type: string, description: English, for developers. }
+        message: { type: string, description: "English, for developers." }
         params:
           type: object
           additionalProperties: true
@@ -1209,6 +1223,17 @@ components:
     AccountStatus: { type: string, enum: [active, suspended] }
     CourseStatus: { type: string, enum: [draft, pending_review, published, rejected, archived] }
     CourseLanguage: { type: string, enum: [en, am] }
+    CourseLevel: { type: string, enum: [beginner, intermediate, advanced] }
+    CourseOutcomes:
+      type: array
+      description: "\"What you'll learn\": short sentences."
+      maxItems: 12
+      items: { type: string, minLength: 1, maxLength: 200 }
+    CourseSkills:
+      type: array
+      description: "\"Skills you'll gain\": short labels."
+      maxItems: 20
+      items: { type: string, minLength: 1, maxLength: 40 }
     ItemType: { type: string, enum: [video, pdf, exam] }
     UniqueIds:
       type: array
@@ -1256,6 +1281,9 @@ components:
         - thumbnailUrl
         - tags
         - estimatedDurationMinutes
+        - level
+        - outcomes
+        - skills
         - status
         - rejectionReason
         - createdAt
@@ -1270,6 +1298,12 @@ components:
         thumbnailUrl: { type: [string, "null"] }
         tags: { type: array, items: { type: string } }
         estimatedDurationMinutes: { type: [integer, "null"] }
+        level:
+          oneOf:
+            - { $ref: "#/components/schemas/CourseLevel" }
+            - { type: "null" }
+        outcomes: { type: array, items: { type: string } }
+        skills: { type: array, items: { type: string } }
         status: { $ref: "#/components/schemas/CourseStatus" }
         rejectionReason: { type: [string, "null"] }
         createdAt: { type: string, format: date-time }
@@ -1380,6 +1414,12 @@ components:
           maxItems: 30
           items: { type: string, minLength: 1, maxLength: 40 }
         estimatedDurationMinutes: { type: [integer, "null"], minimum: 0 }
+        level:
+          oneOf:
+            - { $ref: "#/components/schemas/CourseLevel" }
+            - { type: "null" }
+        outcomes: { $ref: "#/components/schemas/CourseOutcomes" }
+        skills: { $ref: "#/components/schemas/CourseSkills" }
     CoursePatch:
       type: object
       additionalProperties: false
@@ -1395,10 +1435,27 @@ components:
           maxItems: 30
           items: { type: string, minLength: 1, maxLength: 40 }
         estimatedDurationMinutes: { type: [integer, "null"], minimum: 0 }
+        level:
+          oneOf:
+            - { $ref: "#/components/schemas/CourseLevel" }
+            - { type: "null" }
+        outcomes: { $ref: "#/components/schemas/CourseOutcomes" }
+        skills: { $ref: "#/components/schemas/CourseSkills" }
 
     Enrollment:
       type: object
-      required: [id, title, description, category, language, thumbnailUrl, enrolledAt, progressPercent]
+      required:
+        - id
+        - title
+        - description
+        - category
+        - language
+        - thumbnailUrl
+        - enrolledAt
+        - progressPercent
+        - moduleCount
+        - currentModule
+        - lastActivityAt
       properties:
         id: { type: string, format: uuid, description: The course id. }
         title: { type: string }
@@ -1408,6 +1465,15 @@ components:
         thumbnailUrl: { type: [string, "null"] }
         enrolledAt: { type: string, format: date-time }
         progressPercent: { type: integer, minimum: 0, maximum: 100 }
+        moduleCount: { type: integer, minimum: 0 }
+        currentModule:
+          type: [integer, "null"]
+          minimum: 1
+          description: 1-based number of the module with the first unfinished item; null when all are done or the course is empty.
+        lastActivityAt:
+          type: string
+          format: date-time
+          description: The latest progress on this course, or the enrollment time.
     EnrollResult:
       type: object
       required: [enrolled]

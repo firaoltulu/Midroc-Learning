@@ -12,6 +12,7 @@ export const catalogQueryOptions = (search: CatalogSearch) => {
     q: search.q,
     category: search.category,
     language: search.language,
+    sort: search.sort ?? 'newest',
     page: search.page ?? 1,
     pageSize: CATALOG_PAGE_SIZE,
   };
@@ -24,13 +25,36 @@ export const catalogQueryOptions = (search: CatalogSearch) => {
   });
 };
 
-/** GET /courses/categories: categories in use by published courses. */
+const categoriesSchema = z.object({
+  categories: z.array(z.object({ name: z.string(), courseCount: z.number().int() })),
+});
+
+export type Category = z.infer<typeof categoriesSchema>['categories'][number];
+
+/** GET /courses/categories: categories of published courses (by name) with course counts. */
 export const categoriesQueryOptions = () =>
   queryOptions({
     queryKey: courseKeys.categories(),
     queryFn: async ({ signal }) =>
-      z
-        .object({ items: z.array(z.string()) })
-        .parse(await apiRequest('/courses/categories', { signal })).items,
+      categoriesSchema.parse(await apiRequest('/courses/categories', { signal })).categories,
     staleTime: 5 * 60_000,
   });
+
+export const SHELF_SIZE = 4;
+
+/** A short row of courses for the home page (first page only). */
+export const courseShelfQueryOptions = (filters: Pick<CatalogSearch, 'language' | 'sort'>) => {
+  const query = {
+    language: filters.language,
+    sort: filters.sort ?? 'newest',
+    page: 1,
+    pageSize: SHELF_SIZE,
+  };
+  return queryOptions({
+    queryKey: courseKeys.list(query),
+    queryFn: async ({ signal }) =>
+      catalogPageSchema.parse(await apiRequest('/courses', { query, signal })),
+    placeholderData: keepPreviousData,
+    ...listQuery,
+  });
+};

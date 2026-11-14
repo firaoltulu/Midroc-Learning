@@ -8,6 +8,10 @@ export const COURSE_LIMITS = {
   category: 100,
   tags: 30,
   tag: 40,
+  outcomes: 12,
+  outcome: 200,
+  skills: 20,
+  skill: 40,
 } as const;
 
 export const TITLE_MAX = 200;

@@ -26,7 +26,8 @@ describe('course HTTP behavior', () => {
       '001_init.sql',
       '002_course_content.sql',
       '003_youtube_video.sql',
-      '004_course_language.sql'
+      '004_course_language.sql',
+      '005_course_details.sql'
     ]) {
       const { readFile } = await import('node:fs/promises');
       await pglite.engine.exec(await readFile(`migrations/${migration}`, 'utf8'));
@@ -132,7 +133,10 @@ describe('course HTTP behavior', () => {
     const categoriesResponse = await fetch(`${base}/courses/categories`, {
       headers: asUser(viewerId).headers
     });
-    expect(await categoriesResponse.json()).toEqual({ items: ['Technology'] });
+    expect(await categoriesResponse.json()).toEqual({
+      items: ['Technology'],
+      categories: [{ name: 'Technology', courseCount: 1 }]
+    });
     const filteredCatalogResponse = await fetch(
       `${base}/courses?category=Technology&language=am`,
       { headers: asUser(viewerId).headers }

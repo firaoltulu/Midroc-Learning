@@ -9,7 +9,11 @@ export const catalogSearchSchema = z.object({
   category: z.string().trim().max(100).optional().catch(undefined),
   language: z.enum(['en', 'am']).optional().catch(undefined),
   page: z.number().int().min(1).max(10_000).optional().catch(undefined),
+  /** Order, not a filter: newest (the default, left out of the URL) or popular. */
+  sort: z.enum(['newest', 'popular']).optional().catch(undefined),
 });
+
+export type CatalogSort = 'newest' | 'popular';
 
 export type CatalogSearch = z.infer<typeof catalogSearchSchema>;
 

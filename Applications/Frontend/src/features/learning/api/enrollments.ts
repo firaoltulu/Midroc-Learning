@@ -15,6 +15,11 @@ export const enrollmentSchema = z.object({
   thumbnailUrl: z.string().nullable(),
   enrolledAt: z.string(),
   progressPercent: z.number().int().min(0).max(100),
+  moduleCount: z.number().int().min(0),
+  /** 1-based module with the first unfinished item; null when all are done. */
+  currentModule: z.number().int().min(1).nullable(),
+  /** Latest progress, or the enrollment time. */
+  lastActivityAt: z.string(),
 });
 
 export type Enrollment = z.infer<typeof enrollmentSchema>;

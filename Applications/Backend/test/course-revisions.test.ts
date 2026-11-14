@@ -63,7 +63,8 @@ describe('published course revisions', () => {
       '001_init.sql',
       '002_course_content.sql',
       '003_youtube_video.sql',
-      '004_course_language.sql'
+      '004_course_language.sql',
+      '005_course_details.sql'
     ]) {
       await pglite.engine.exec(await readFile(`migrations/${migration}`, 'utf8'));
     }

@@ -1,6 +1,11 @@
 export { coursesRoutes } from './courses.routes.js';
 export { coursesAdminRoutes } from './courses.admin.routes.js';
-export { courseLanguageSchema } from './courses.schemas.js';
+export {
+  courseLanguageSchema,
+  courseLevelSchema,
+  courseOutcomesSchema,
+  courseSkillsSchema
+} from './courses.schemas.js';
 export {
   FIELD_POLICY,
   applyFields,
@@ -12,4 +17,10 @@ export {
   reviewCourse
 } from './courses.service.js';
 export * as coursesApi from './courses.service.js';
-export type { Course, CourseFields, CourseLanguage, CourseStatus } from './courses.types.js';
+export type {
+  Course,
+  CourseFields,
+  CourseLanguage,
+  CourseLevel,
+  CourseStatus
+} from './courses.types.js';

@@ -6,7 +6,7 @@ import { toPage, updateRow } from '../../core/db/sql.js';
 const courseColumns = `
   id, owner_id AS "ownerId", title, description, category, language,
   thumbnail_url AS "thumbnailUrl", tags,
-  estimated_duration_minutes AS "estimatedDurationMinutes",
+  estimated_duration_minutes AS "estimatedDurationMinutes", level, outcomes, skills,
   status, rejection_reason AS "rejectionReason",
   created_at AS "createdAt", published_at AS "publishedAt"
 `;
@@ -15,7 +15,7 @@ const courseColumns = `
 const joinedCourseColumns = `
   c.id, c.owner_id AS "ownerId", c.title, c.description, c.category, c.language,
   c.thumbnail_url AS "thumbnailUrl", c.tags,
-  c.estimated_duration_minutes AS "estimatedDurationMinutes",
+  c.estimated_duration_minutes AS "estimatedDurationMinutes", c.level, c.outcomes, c.skills,
   c.status, c.rejection_reason AS "rejectionReason",
   c.created_at AS "createdAt", c.published_at AS "publishedAt"
 `;
@@ -56,8 +56,9 @@ export async function insertCourse(
 ): Promise<Course> {
   const { rows } = await db.query<Course>(
     `INSERT INTO courses
-      (owner_id, title, description, category, language, thumbnail_url, tags, estimated_duration_minutes)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      (owner_id, title, description, category, language, thumbnail_url, tags,
+       estimated_duration_minutes, level, outcomes, skills)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
      RETURNING ${courseColumns}`,
     [
       ownerId,
@@ -67,7 +68,10 @@ export async function insertCourse(
       input.language,
       input.thumbnailUrl ?? null,
       input.tags,
-      input.estimatedDurationMinutes ?? null
+      input.estimatedDurationMinutes ?? null,
+      input.level ?? null,
+      input.outcomes,
+      input.skills
     ]
   );
   return rows[0]!;
@@ -99,8 +103,19 @@ export async function resolveContext(
 export async function listCatalog(
   db: Queryable,
   actorId: string,
-  input: { q?: string; category?: string; language?: string; limit: number; offset: number }
+  input: {
+    q?: string;
+    category?: string;
+    language?: string;
+    sort: 'newest' | 'popular';
+    limit: number;
+    offset: number;
+  }
 ): Promise<{ items: CatalogCourse[]; total: number }> {
+  // Fixed SQL per option (never interpolated input).
+  const order = input.sort === 'popular'
+    ? `"enrollmentCount" DESC, c.published_at DESC NULLS LAST, c.id`
+    : 'c.published_at DESC NULLS LAST, c.id';
   const { rows } = await db.query<CatalogCourse & { total: string }>(
     `SELECT ${joinedCourseColumns}, ${listingColumns},
        count(*) OVER() AS total
@@ -109,21 +124,25 @@ export async function listCatalog(
        AND ($2::text IS NULL OR c.title ILIKE '%' || $2 || '%' ESCAPE E'\\\\')
        AND ($3::text IS NULL OR c.category = $3)
        AND ($4::text IS NULL OR c.language = $4)
-     ORDER BY c.published_at DESC NULLS LAST, c.id
+     ORDER BY ${order}
      LIMIT $5 OFFSET $6`,
     [actorId, input.q ?? null, input.category ?? null, input.language ?? null, input.limit, input.offset]
   );
   return toPage(rows);
 }
 
-export async function listCategories(db: Queryable): Promise<string[]> {
-  const { rows } = await db.query<{ category: string }>(
-    `SELECT DISTINCT category
+/** Categories of published courses, sorted by name, with how many courses each has. */
+export async function listCategories(
+  db: Queryable
+): Promise<Array<{ name: string; courseCount: number }>> {
+  const { rows } = await db.query<{ name: string; courseCount: number }>(
+    `SELECT category AS name, count(*)::int AS "courseCount"
      FROM courses
      WHERE status = 'published' AND category IS NOT NULL AND category <> ''
+     GROUP BY category
      ORDER BY category`
   );
-  return rows.map(({ category }) => category);
+  return rows;
 }
 
 /** A course in its owner's list: when it last changed, its size, and any pending revision. */
@@ -307,7 +326,10 @@ const editableColumns: Readonly<Record<string, string>> = {
   language: 'language',
   thumbnailUrl: 'thumbnail_url',
   tags: 'tags',
-  estimatedDurationMinutes: 'estimated_duration_minutes'
+  estimatedDurationMinutes: 'estimated_duration_minutes',
+  level: 'level',
+  outcomes: 'outcomes',
+  skills: 'skills'
 } as const;
 
 export async function updateFields(

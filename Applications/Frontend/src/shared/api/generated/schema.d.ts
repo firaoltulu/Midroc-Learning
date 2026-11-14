@@ -175,6 +175,8 @@ export interface paths {
                     q?: string;
                     category?: string;
                     language?: components["schemas"]["CourseLanguage"];
+                    /** @description `newest` (default): most recently published first. `popular`: most enrollments first. */
+                    sort?: "newest" | "popular";
                 };
                 header?: never;
                 path?: never;
@@ -244,14 +246,19 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Category names, sorted. */
+                /** @description Category names, sorted, with the number of published courses in each. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
                         "application/json": {
+                            /** @description The names only (same order as `categories`). */
                             items: string[];
+                            categories: {
+                                name: string;
+                                courseCount: number;
+                            }[];
                         };
                     };
                 };
@@ -332,7 +339,7 @@ export interface paths {
         head?: never;
         /**
          * Edit course fields
-         * @description Draft and rejected courses: any field. Published courses: only minor fields (`thumbnailUrl`, `tags`, `estimatedDurationMinutes`) for the owner; major fields need a revision (`REVISION_REQUIRED`). Administrators may edit any field.
+         * @description Draft and rejected courses: any field. Published courses: only minor fields (`thumbnailUrl`, `tags`, `estimatedDurationMinutes`, `level`, `outcomes`, `skills`) for the owner; major fields need a revision (`REVISION_REQUIRED`). Administrators may edit any field.
          */
         patch: {
             parameters: {
@@ -2444,7 +2451,7 @@ export interface components {
             path: (string | number)[];
             /** @description A zod issue code (`too_small`, `too_big`, `invalid_type`, `invalid_format`, `invalid_value`, `unrecognized_keys`, ...) or a rule of our own: `CORRECT_CHOICE_REQUIRED`, `SINGLE_CORRECT_CHOICE_REQUIRED`, `DUPLICATE_ID`, `HTTP_URL_REQUIRED`, `VIDEO_LINK_REQUIRED`, `INVALID_DATE`. */
             code: string;
-            /** @description English */
+            /** @description English, for developers. */
             message: string;
             /** @description Issue values, e.g. `{ "origin": "string", "minimum": 3 }`. */
             params: {
@@ -2459,6 +2466,12 @@ export interface components {
         CourseStatus: "draft" | "pending_review" | "published" | "rejected" | "archived";
         /** @enum {string} */
         CourseLanguage: "en" | "am";
+        /** @enum {string} */
+        CourseLevel: "beginner" | "intermediate" | "advanced";
+        /** @description "What you'll learn": short sentences. */
+        CourseOutcomes: string[];
+        /** @description "Skills you'll gain": short labels. */
+        CourseSkills: string[];
         /** @enum {string} */
         ItemType: "video" | "pdf" | "exam";
         UniqueIds: string[];
@@ -2492,6 +2505,9 @@ export interface components {
             thumbnailUrl: string | null;
             tags: string[];
             estimatedDurationMinutes: number | null;
+            level: components["schemas"]["CourseLevel"] | null;
+            outcomes: string[];
+            skills: string[];
             status: components["schemas"]["CourseStatus"];
             rejectionReason: string | null;
             /** Format: date-time */
@@ -2562,6 +2578,9 @@ export interface components {
             thumbnailUrl?: string | null;
             tags?: string[];
             estimatedDurationMinutes?: number | null;
+            level?: components["schemas"]["CourseLevel"] | null;
+            outcomes?: components["schemas"]["CourseOutcomes"];
+            skills?: components["schemas"]["CourseSkills"];
         };
         CoursePatch: {
             title?: string;
@@ -2572,6 +2591,9 @@ export interface components {
             thumbnailUrl?: string | null;
             tags?: string[];
             estimatedDurationMinutes?: number | null;
+            level?: components["schemas"]["CourseLevel"] | null;
+            outcomes?: components["schemas"]["CourseOutcomes"];
+            skills?: components["schemas"]["CourseSkills"];
         };
         Enrollment: {
             /**
@@ -2587,6 +2609,14 @@ export interface components {
             /** Format: date-time */
             enrolledAt: string;
             progressPercent: number;
+            moduleCount: number;
+            /** @description 1-based number of the module with the first unfinished item; null when all are done or the course is empty. */
+            currentModule: number | null;
+            /**
+             * Format: date-time
+             * @description The latest progress on this course, or the enrollment time.
+             */
+            lastActivityAt: string;
         };
         EnrollResult: {
             /** @constant */

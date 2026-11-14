@@ -9,7 +9,7 @@ vi.setConfig({ testTimeout: 30_000 });
 beforeEach(() => {
   server.use(
     http.get(api('/courses'), () => HttpResponse.json({ ...pageOf([]), pageSize: 12 })),
-    http.get(api('/courses/categories'), () => HttpResponse.json({ items: [] })),
+    http.get(api('/courses/categories'), () => HttpResponse.json({ items: [], categories: [] })),
   );
 });
 

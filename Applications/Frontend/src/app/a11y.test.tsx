@@ -67,7 +67,9 @@ describe('screens', () => {
           pageSize: 12,
         }),
       ),
-      http.get(api('/courses/categories'), () => HttpResponse.json({ items: ['Safety'] })),
+      http.get(api('/courses/categories'), () =>
+        HttpResponse.json({ items: ['Safety'], categories: [{ name: 'Safety', courseCount: 1 }] }),
+      ),
     );
     await renderRoute('/courses');
     await screen.findByRole('heading', { level: 2, name: 'Workplace safety basics' });

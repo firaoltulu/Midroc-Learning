@@ -47,8 +47,19 @@
       "titleRequired": "Enter a course title.",
       "duration": "Enter the number of minutes as a whole number.",
       "tooManyTags": "Use 30 tags or fewer.",
-      "tagTooLong": "Keep each tag to 40 characters or fewer."
-    }
+      "tagTooLong": "Keep each tag to 40 characters or fewer.",
+      "tooManyOutcomes": "Use 12 outcomes or fewer.",
+      "outcomeTooLong": "Keep each outcome to 200 characters or fewer.",
+      "tooManySkills": "Use 20 skills or fewer.",
+      "skillTooLong": "Keep each skill to 40 characters or fewer."
+    },
+    "level": "Level",
+    "levelNone": "Not set",
+    "levelHint": "Who the course is for.",
+    "outcomes": "What you'll learn",
+    "outcomesHint": "One outcome per line, up to {{max}}. Shown on the course page.",
+    "skills": "Skills you'll gain",
+    "skillsHint": "Press Enter after each skill. Up to {{max}}."
   },
   "content": {
     "treeLabel": "Course content",

@@ -13,6 +13,7 @@ export const courseStatusSchema = z.enum([
   'archived',
 ]);
 export const courseLanguageSchema = z.enum(['en', 'am']);
+export const courseLevelSchema = z.enum(['beginner', 'intermediate', 'advanced']);
 export const itemTypeSchema = z.enum(['video', 'pdf', 'exam']);
 
 export const courseSchema = z.object({
@@ -25,6 +26,11 @@ export const courseSchema = z.object({
   thumbnailUrl: z.string().nullable(),
   tags: z.array(z.string()),
   estimatedDurationMinutes: z.number().int().nullable(),
+  level: courseLevelSchema.nullable(),
+  /** "What you'll learn". */
+  outcomes: z.array(z.string()),
+  /** "Skills you'll gain". */
+  skills: z.array(z.string()),
   status: courseStatusSchema,
   rejectionReason: z.string().nullable(),
   createdAt: z.string(),
@@ -61,6 +67,7 @@ export const courseDetailSchema = catalogCourseSchema.extend({
 
 export type CourseStatus = z.infer<typeof courseStatusSchema>;
 export type CourseLanguage = z.infer<typeof courseLanguageSchema>;
+export type CourseLevel = z.infer<typeof courseLevelSchema>;
 export type ItemType = z.infer<typeof itemTypeSchema>;
 export type Course = z.infer<typeof courseSchema>;
 export type CatalogCourse = z.infer<typeof catalogCourseSchema>;

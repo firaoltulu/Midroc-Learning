@@ -36,6 +36,9 @@ export const course = (id: string, overrides: Record<string, unknown> = {}) => (
   thumbnailUrl: null,
   tags: [],
   estimatedDurationMinutes: 90,
+  level: 'beginner',
+  outcomes: [],
+  skills: [],
   status: 'published',
   rejectionReason: null,
   createdAt: '2026-10-01T08:00:00.000Z',
@@ -187,7 +190,14 @@ export async function mockApi(
     const json = (body: unknown, status = 200) => route.fulfill({ status, json: body });
 
     if (path === '/me') return json(me);
-    if (path === '/courses/categories') return json({ items: ['Leadership', 'Safety'] });
+    if (path === '/courses/categories')
+      return json({
+        items: ['Leadership', 'Safety'],
+        categories: [
+          { name: 'Leadership', courseCount: 1 },
+          { name: 'Safety', courseCount: 1 },
+        ],
+      });
     if (path === '/courses' && method === 'GET') {
       const q = url.searchParams.get('q')?.toLowerCase();
       const language = url.searchParams.get('language');
@@ -323,6 +333,9 @@ export async function mockApi(
             thumbnailUrl: c.thumbnailUrl,
             enrolledAt: '2026-11-12T08:00:00.000Z',
             progressPercent: 0,
+            moduleCount: c.moduleCount,
+            currentModule: 1,
+            lastActivityAt: '2026-11-12T08:00:00.000Z',
           })),
       );
     }

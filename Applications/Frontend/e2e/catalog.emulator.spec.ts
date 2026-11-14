@@ -86,7 +86,7 @@ test.describe('mobile width, both themes and both languages', () => {
 
   for (const scheme of ['light', 'dark'] as const) {
     for (const language of ['en', 'am'] as const) {
-      test(`${scheme}, ${language}: catalog, course and My learning fit the screen`, async ({
+      test(`${scheme}, ${language}: home, catalog, course and My learning fit the screen`, async ({
         page,
       }) => {
         await page.emulateMedia({ colorScheme: scheme });
@@ -95,6 +95,10 @@ test.describe('mobile width, both themes and both languages', () => {
         }, language);
 
         const pages = [
+          {
+            path: '/',
+            h1: language === 'en' ? 'Build skills that move your career forward' : /ክህሎቶችን/,
+          },
           { path: '/courses', h1: language === 'en' ? 'Courses' : 'ኮርሶች' },
           { path: '/courses/course-2', h1: 'የሥራ ቦታ ደህንነት መሠረታዊ ነገሮች' },
           { path: '/courses/course-3', h1: /Leading a team through change/ },

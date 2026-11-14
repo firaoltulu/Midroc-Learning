@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { signUp, uniqueEmail, verifyEmailInEmulator } from './support/emulator';
+import { HOME_TITLE, signUp, uniqueEmail, verifyEmailInEmulator } from './support/emulator';
 
 /**
  * Real sign-up / verification / sign-in against the Firebase Auth emulator.
@@ -31,12 +31,13 @@ async function mockMe(page: Page, email: string, override: MeMock = {}) {
   return authorizations;
 }
 
-/** The catalog the user lands on after signing in: empty is enough here. */
+/** The home page the user lands on after signing in: no courses, no enrollments. */
 async function mockEmptyCatalog(page: Page) {
+  await page.route('**/api/me/enrollments', (route) => route.fulfill({ json: [] }));
   await page.route('**/api/courses**', (route) =>
     route.fulfill({
       json: route.request().url().includes('/categories')
-        ? { items: [] }
+        ? { items: [], categories: [] }
         : { page: 1, pageSize: 12, total: 0, items: [] },
     }),
   );
@@ -87,16 +88,16 @@ test('sign up, verify the email, return to the requested page, sign out and sign
   await page.getByRole('button', { name: 'Sign in' }).click();
   await expect(page.getByRole('alert')).toContainText("That email and password don't match");
 
-  // Right password: in, to the home page (the catalog).
+  // Right password: in, to the home page.
   await page.getByLabel(/^Password/).fill('correct-horse-9');
   await page.getByRole('button', { name: 'Sign in' }).click();
-  await expect(page).toHaveURL(/\/courses$/);
-  await expect(page.getByRole('heading', { level: 1, name: 'Courses' })).toBeVisible();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('heading', { level: 1, name: HOME_TITLE })).toBeVisible();
 
   // The session survives a reload (local persistence), with no flash of the login page.
   await page.reload();
-  await expect(page.getByRole('heading', { level: 1, name: 'Courses' })).toBeVisible();
-  await expect(page).toHaveURL(/\/courses$/);
+  await expect(page.getByRole('heading', { level: 1, name: HOME_TITLE })).toBeVisible();
+  await expect(page).toHaveURL(/\/$/);
 });
 
 test('a suspended account is signed out and told why', async ({ page }) => {
@@ -120,7 +121,7 @@ test('a non-admin sees the "not allowed" screen in the admin area', async ({ pag
   await signUp(page, email);
   await verifyEmailInEmulator(page, email);
   await page.getByRole('button', { name: "I've verified my email" }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Courses' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: HOME_TITLE })).toBeVisible();
 
   await page.goto('/admin');
   await expect(

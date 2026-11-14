@@ -88,7 +88,12 @@ export interface CoursePatch {
   thumbnailUrl?: string | null;
   tags?: string[];
   estimatedDurationMinutes?: number | null;
+  level?: CourseLevel | null;
+  outcomes?: string[];
+  skills?: string[];
 }
+
+export type CourseLevel = 'beginner' | 'intermediate' | 'advanced';
 
 /** PATCH /items/:id body (ItemPatch). */
 export interface ItemPatch {

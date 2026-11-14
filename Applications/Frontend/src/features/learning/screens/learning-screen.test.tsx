@@ -12,6 +12,9 @@ const enrollment = (overrides: Record<string, unknown> = {}) => ({
   thumbnailUrl: null,
   enrolledAt: '2026-11-02T08:00:00.000Z',
   progressPercent: 40,
+  moduleCount: 2,
+  currentModule: 1,
+  lastActivityAt: '2026-11-02T08:00:00.000Z',
   ...overrides,
 });
 

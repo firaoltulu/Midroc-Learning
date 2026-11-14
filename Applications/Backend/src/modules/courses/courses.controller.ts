@@ -16,7 +16,9 @@ export async function catalog(req: Request, res: Response): Promise<void> {
 }
 
 export async function categories(_req: Request, res: Response): Promise<void> {
-  res.json({ items: await service.listCategories() });
+  const categories = await service.listCategories();
+  // `items` (names only) stays for existing clients; `categories` adds the course counts.
+  res.json({ items: categories.map((category) => category.name), categories });
 }
 
 export async function detail(req: Request, res: Response): Promise<void> {

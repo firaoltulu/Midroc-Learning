@@ -20,7 +20,7 @@ export interface CatalogFiltersProps {
 
 const ALL = '';
 
-/** Search (debounced), category and language. Any change goes back to page 1. */
+/** Search (debounced), category, language and order. Any change goes back to page 1. */
 export function CatalogFilters({ search, onChange }: CatalogFiltersProps) {
   const { t } = useTranslation(['catalog', 'common']);
   const categories = useQuery(categoriesQueryOptions());
@@ -55,7 +55,7 @@ export function CatalogFilters({ search, onChange }: CatalogFiltersProps) {
     };
   }, [text]);
 
-  const categoryOptions = [...(categories.data ?? [])];
+  const categoryOptions = (categories.data ?? []).map((category) => category.name);
   // Keep a category from the URL selectable even if it's no longer in the list.
   if (search.category && !categoryOptions.includes(search.category)) {
     categoryOptions.push(search.category);
@@ -125,6 +125,23 @@ export function CatalogFilters({ search, onChange }: CatalogFiltersProps) {
         <MenuItem value="am" lang="am">
           {t('common:languages.am')}
         </MenuItem>
+      </TextField>
+      <TextField
+        select
+        label={t('catalog:filters.sort')}
+        value={search.sort ?? 'newest'}
+        onChange={(event) => {
+          onChange({
+            ...search,
+            // The default stays out of the URL.
+            sort: event.target.value === 'popular' ? 'popular' : undefined,
+            page: undefined,
+          });
+        }}
+        sx={{ flex: { md: 1 }, minWidth: { md: 160 } }}
+      >
+        <MenuItem value="newest">{t('catalog:filters.sortNewest')}</MenuItem>
+        <MenuItem value="popular">{t('catalog:filters.sortPopular')}</MenuItem>
       </TextField>
       {hasFilters(search) ? (
         <Button

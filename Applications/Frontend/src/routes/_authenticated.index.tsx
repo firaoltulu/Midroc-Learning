@@ -1,8 +1,8 @@
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
+import { HomeScreen } from '../features/catalog';
 
-// The catalog is the home page.
+// The home page: hero with "Continue learning", new and popular courses, categories.
 export const Route = createFileRoute('/_authenticated/')({
-  beforeLoad: () => {
-    throw redirect({ to: '/courses', replace: true });
-  },
+  staticData: { layout: 'fullBleed' },
+  component: HomeScreen,
 });

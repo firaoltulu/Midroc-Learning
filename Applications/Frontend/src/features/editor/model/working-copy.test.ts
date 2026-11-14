@@ -38,6 +38,9 @@ describe('field effects (one constant)', () => {
       thumbnailUrl: 'immediate',
       tags: 'immediate',
       estimatedDurationMinutes: 'immediate',
+      level: 'immediate',
+      outcomes: 'immediate',
+      skills: 'immediate',
     });
     expect(fieldEffect('module', 'title')).toBe('immediate');
     expect(fieldEffect('item', 'title')).toBe('immediate');

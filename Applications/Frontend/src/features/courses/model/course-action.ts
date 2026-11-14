@@ -30,6 +30,12 @@ export function courseProgress(course: CourseDetail): CourseProgress {
   return { completed: items.filter((id) => done.has(id)).length, total: items.length };
 }
 
+/** Where a learner picks up: the first item not completed yet (undefined when all are done). */
+export function nextItemId(course: CourseDetail): string | undefined {
+  const done = new Set(course.completedItemIds);
+  return itemsInOrder(course).find((id) => !done.has(id));
+}
+
 export function courseAction(course: CourseDetail, viewerId: string): CourseAction {
   if (course.ownerId === viewerId) return { kind: 'edit' };
   if (course.enrolled) {

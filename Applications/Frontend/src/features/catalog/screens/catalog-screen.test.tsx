@@ -29,7 +29,13 @@ function mockCatalog(total = 30) {
       );
     }),
     http.get(api('/courses/categories'), () =>
-      HttpResponse.json({ items: ['Leadership', 'Safety'] }),
+      HttpResponse.json({
+        items: ['Leadership', 'Safety'],
+        categories: [
+          { name: 'Leadership', courseCount: 1 },
+          { name: 'Safety', courseCount: 1 },
+        ],
+      }),
     ),
   );
   return requests;
@@ -38,6 +44,20 @@ function mockCatalog(total = 30) {
 const lastRequest = (requests: URLSearchParams[]) => Object.fromEntries(requests.at(-1) ?? []);
 
 describe('catalog: filters live in the URL', () => {
+  it('sorts by popularity from the URL and the "Sort by" menu; newest stays out of the URL', async () => {
+    const requests = mockCatalog();
+    const { router, user } = await renderRoute('/courses?sort=%22popular%22');
+    await screen.findByRole('heading', { level: 2, name: 'Course on page 1' });
+    expect(lastRequest(requests)).toMatchObject({ sort: 'popular' });
+
+    await user.click(screen.getByRole('combobox', { name: 'Sort by' }));
+    await user.click(screen.getByRole('option', { name: 'Newest' }));
+    await waitFor(() => {
+      expect(lastRequest(requests)).toMatchObject({ sort: 'newest' });
+    });
+    expect(router.state.location.search).toEqual({});
+  });
+
   it('requests what the URL says', async () => {
     const requests = mockCatalog();
     await renderRoute('/courses?q=%22safety%22&language=%22am%22&category=%22Safety%22&page=2');
@@ -48,6 +68,7 @@ describe('catalog: filters live in the URL', () => {
       q: 'safety',
       language: 'am',
       category: 'Safety',
+      sort: 'newest',
       page: '2',
       pageSize: '12',
     });
@@ -59,7 +80,7 @@ describe('catalog: filters live in the URL', () => {
     const { router } = await renderRoute('/courses?language=%22fr%22&page=-3');
     expect(await screen.findByRole('heading', { level: 1, name: 'Courses' })).toBeVisible();
     await waitFor(() => {
-      expect(lastRequest(requests)).toEqual({ page: '1', pageSize: '12' });
+      expect(lastRequest(requests)).toEqual({ sort: 'newest', page: '1', pageSize: '12' });
     });
     expect(router.state.location.search).toEqual({});
   });
@@ -130,7 +151,7 @@ describe('catalog: states', () => {
   it('no results for the filters offers to clear them', async () => {
     server.use(
       http.get(api('/courses'), () => HttpResponse.json(pageOf([]))),
-      http.get(api('/courses/categories'), () => HttpResponse.json({ items: [] })),
+      http.get(api('/courses/categories'), () => HttpResponse.json({ items: [], categories: [] })),
     );
     const { router, user } = await renderRoute('/courses?q=%22zzz%22');
     expect(await screen.findByRole('heading', { name: 'No courses match' })).toBeVisible();
@@ -150,7 +171,7 @@ describe('catalog: states', () => {
   it('a failure shows a translated error with a retry', async () => {
     server.use(
       http.get(api('/courses'), () => apiError(500, { code: 'INTERNAL_ERROR' })),
-      http.get(api('/courses/categories'), () => HttpResponse.json({ items: [] })),
+      http.get(api('/courses/categories'), () => HttpResponse.json({ items: [], categories: [] })),
     );
     await renderRoute('/courses');
     expect(await screen.findByRole('alert')).toHaveTextContent(

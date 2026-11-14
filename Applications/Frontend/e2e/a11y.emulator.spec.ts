@@ -32,6 +32,9 @@ const seed = (id: string, status: string): SeedCourse => ({
     thumbnailUrl: null,
     tags: ['ladders'],
     estimatedDurationMinutes: 30,
+    level: null,
+    outcomes: [],
+    skills: [],
     status,
     rejectionReason: null,
     createdAt: '2026-11-10T10:00:00.000Z',
@@ -115,6 +118,8 @@ for (const scheme of SCHEMES) {
       await expect(page.getByRole('complementary').getByRole('link').first()).toBeVisible();
 
       await check(page, testInfo, scheme, language, [
+        // Home with the "Continue learning" card (enrolled above).
+        '/',
         '/courses',
         '/courses/course-1',
         '/learn',

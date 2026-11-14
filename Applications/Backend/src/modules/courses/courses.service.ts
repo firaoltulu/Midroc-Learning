@@ -9,7 +9,8 @@ import type { Course } from './courses.types.js';
 import type { CourseFields } from './courses.types.js';
 
 export const FIELD_POLICY = {
-  minor: ['thumbnailUrl', 'tags', 'estimatedDurationMinutes'],
+  // Presentation details apply right away; what the course teaches and how it reads needs review.
+  minor: ['thumbnailUrl', 'tags', 'estimatedDurationMinutes', 'level', 'outcomes', 'skills'],
   major: ['title', 'description', 'category', 'language']
 } as const;
 
@@ -23,6 +24,7 @@ export async function listCatalog(
     q?: string | undefined;
     category?: string | undefined;
     language?: string | undefined;
+    sort: 'newest' | 'popular';
     page: number;
     pageSize: number;
   }
@@ -32,13 +34,14 @@ export async function listCatalog(
     ...(q === undefined ? {} : { q }),
     ...(input.category === undefined ? {} : { category: input.category }),
     ...(input.language === undefined ? {} : { language: input.language }),
+    sort: input.sort,
     limit: input.pageSize,
     offset: (input.page - 1) * input.pageSize
   });
   return { ...result, page: input.page, pageSize: input.pageSize };
 }
 
-export async function listCategories(): Promise<string[]> {
+export async function listCategories(): Promise<Array<{ name: string; courseCount: number }>> {
   return repository.listCategories(db);
 }
 

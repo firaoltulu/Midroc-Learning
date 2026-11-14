@@ -38,10 +38,18 @@ export async function signUp(page: Page, email: string, path = '/signup') {
   await expect(page).toHaveURL(/\/verify-email/);
 }
 
-/** Signs up, verifies the email and lands on the catalog: a ready, signed-in learner. */
+/**
+ * Signs up and verifies the email (landing on the home page), then opens the catalog: a ready,
+ * signed-in learner.
+ */
 export async function signInAsLearner(page: Page, email: string) {
   await signUp(page, email);
   await verifyEmailInEmulator(page, email);
   await page.getByRole('button', { name: "I've verified my email" }).click();
-  await expect(page).toHaveURL(/\/courses/);
+  await expect(page.getByRole('heading', { level: 1, name: HOME_TITLE })).toBeVisible();
+  await page.goto('/courses');
+  await expect(page.getByRole('heading', { level: 1, name: 'Courses' })).toBeVisible();
 }
+
+/** The home page's heading (English). */
+export const HOME_TITLE = 'Build skills that move your career forward';

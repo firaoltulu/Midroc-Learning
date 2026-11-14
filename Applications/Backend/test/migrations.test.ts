@@ -11,7 +11,8 @@ describe('reference migrations', () => {
         '001_init.sql',
         '002_course_content.sql',
         '003_youtube_video.sql',
-        '004_course_language.sql'
+        '004_course_language.sql',
+        '005_course_details.sql'
       ]) {
         const sql = await readFile(path.join('migrations', filename), 'utf8');
         await engine.exec(sql);

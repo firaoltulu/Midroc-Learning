@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { courseLanguageSchema } from '../courses/index.js';
+import {
+  courseLanguageSchema,
+  courseLevelSchema,
+  courseOutcomesSchema,
+  courseSkillsSchema
+} from '../courses/index.js';
 import { revisionTreeSchema } from '../content/index.js';
 
 export const coursePatchSchema = z
@@ -18,7 +23,10 @@ export const coursePatchSchema = z
       .nullable()
       .optional(),
     tags: z.array(z.string().trim().min(1).max(40)).max(30).optional(),
-    estimatedDurationMinutes: z.number().int().min(0).nullable().optional()
+    estimatedDurationMinutes: z.number().int().min(0).nullable().optional(),
+    level: courseLevelSchema.nullable().optional(),
+    outcomes: courseOutcomesSchema.optional(),
+    skills: courseSkillsSchema.optional()
   })
   .strict()
   .refine((value) => Object.keys(value).length > 0, 'At least one field is required');

@@ -31,21 +31,43 @@ export async function isEnrolled(db: Queryable, userId: string, courseId: string
   return rows[0]?.enrolled ?? false;
 }
 
+/**
+ * My enrollments, most recent first, with progress. `currentModule` is the 1-based number of
+ * the module holding the first item not yet completed (null when everything is done or the
+ * course is empty); `lastActivityAt` is the latest progress, or the enrollment time.
+ */
 export async function listForUser(db: Queryable, userId: string): Promise<unknown[]> {
   const { rows } = await db.query(
     `SELECT c.id, c.title, c.description, c.category, c.language, c.thumbnail_url AS "thumbnailUrl",
        e.enrolled_at AS "enrolledAt",
        CASE WHEN stats.item_count = 0 THEN 0
-         ELSE round(100.0 * stats.completed_count / stats.item_count)::int END AS "progressPercent"
+         ELSE round(100.0 * stats.completed_count / stats.item_count)::int END AS "progressPercent",
+       stats.module_count AS "moduleCount",
+       next_item.module_number AS "currentModule",
+       GREATEST(e.enrolled_at, stats.last_activity_at) AS "lastActivityAt"
      FROM enrollments e
      JOIN courses c ON c.id = e.course_id
      LEFT JOIN LATERAL (
        SELECT count(i.id)::int AS item_count,
-         count(p.item_id) FILTER (WHERE p.completed_at IS NOT NULL)::int AS completed_count
+         count(p.item_id) FILTER (WHERE p.completed_at IS NOT NULL)::int AS completed_count,
+         count(DISTINCT m.id)::int AS module_count,
+         max(p.updated_at) AS last_activity_at
        FROM modules m LEFT JOIN module_items i ON i.module_id = m.id
        LEFT JOIN item_progress p ON p.item_id = i.id AND p.user_id = e.user_id
        WHERE m.course_id = c.id
      ) stats ON true
+     LEFT JOIN LATERAL (
+       SELECT numbered.module_number
+       FROM (
+         SELECT m.id, (row_number() OVER (ORDER BY m.position))::int AS module_number
+         FROM modules m WHERE m.course_id = c.id
+       ) numbered
+       JOIN module_items i ON i.module_id = numbered.id
+       LEFT JOIN item_progress p ON p.item_id = i.id AND p.user_id = e.user_id
+       WHERE p.completed_at IS NULL
+       ORDER BY numbered.module_number, i.position
+       LIMIT 1
+     ) next_item ON true
      WHERE e.user_id = $1
      ORDER BY e.enrolled_at DESC`,
     [userId]

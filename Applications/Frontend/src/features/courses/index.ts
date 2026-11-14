@@ -9,6 +9,7 @@ export {
   catalogPageSchema,
   courseDetailSchema,
   courseLanguageSchema,
+  courseLevelSchema,
   courseSchema,
   itemTypeSchema,
   type CatalogCourse,
@@ -16,9 +17,11 @@ export {
   type Course,
   type CourseDetail,
   type CourseLanguage,
+  type CourseLevel,
   type CourseStatus,
   type ItemType,
 } from './api/schemas';
 export { courseDetailQueryOptions } from './api/course-detail';
 export { CourseMeta } from './components/course-meta';
+export { nextItemId } from './model/course-action';
 export { ITEM_ICONS } from './components/item-icons';
