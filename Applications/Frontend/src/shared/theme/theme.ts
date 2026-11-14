@@ -36,6 +36,8 @@ declare module '@mui/material/styles' {
     hero: { bg: string; fg: string; fgMuted: string };
     /** Dark band at the bottom of the page (footer), in both schemes. */
     inverse: { bg: string; fg: string; fgMuted: string };
+    /** Rating stars: `main` on page and paper surfaces, `onHero` on the hero band (both >= 3:1). */
+    rating: { main: string; onHero: string };
   }
   interface PaletteOptions {
     status?: Palette['status'];
@@ -45,6 +47,7 @@ declare module '@mui/material/styles' {
     surfaceMuted?: string;
     hero?: Palette['hero'];
     inverse?: Palette['inverse'];
+    rating?: Palette['rating'];
   }
 }
 
@@ -75,6 +78,8 @@ export const theme = createTheme({
         hero: { bg: '#135339', fg: '#FFFFFF', fgMuted: '#DCE9E0' },
         // fg 15.8:1, fgMuted 9.4:1 on the band.
         inverse: { bg: '#0E1311', fg: '#E7EDE9', fgMuted: '#AEBBB4' },
+        // 3.8:1 on white; the brand gold on the band (3.4:1).
+        rating: { main: '#A97A12', onHero: '#CA942F' },
         brand,
         status: {
           draft: { fg: '#4A5560', bg: '#EEF0F1' },
@@ -106,6 +111,8 @@ export const theme = createTheme({
         // A darker brand green so the band doesn't glare in the dark scheme (fg 10.3:1, muted 7.8:1).
         hero: { bg: '#103D2B', fg: '#E7EDE9', fgMuted: '#C2D3C9' },
         inverse: { bg: '#090C0B', fg: '#E7EDE9', fgMuted: '#9FADA6' },
+        // 9.2:1 on the paper color, 6.4:1 on the band.
+        rating: { main: '#E3B55A', onHero: '#E3B55A' },
         brand,
         status: {
           draft: { fg: '#B6C1BB', bg: '#222A27' },

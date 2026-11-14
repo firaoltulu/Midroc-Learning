@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { useContentLang } from '../../../shared/i18n/content-lang';
 import { CourseThumbnail } from '../../../shared/ui/course-thumbnail';
 import { RouterLink } from '../../../shared/ui/router-links';
-import type { CatalogCourse } from '../../courses';
+import { CourseRating, type CatalogCourse } from '../../courses';
 
 const quietChip = {
   bgcolor: 'surfaceMuted',
@@ -88,6 +88,9 @@ export function CourseCard({
           <Typography variant="body2" color="text.secondary">
             {t('catalog:card.byOwner', { name: course.ownerName })}
           </Typography>
+        ) : null}
+        {course.ratingAverage !== null ? (
+          <CourseRating average={course.ratingAverage} count={course.ratingCount} />
         ) : null}
         <Stack
           direction="row"

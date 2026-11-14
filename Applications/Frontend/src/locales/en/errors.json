@@ -36,7 +36,8 @@
     "STALE_REVISION": "This course changed while you were editing. Reload it and try again.",
     "VIDEO_INVALID_LINK": "That isn't a YouTube video link. Copy the link from the video's Share button.",
     "VIDEO_UNAVAILABLE": "That video is private, deleted or can't be embedded. Choose another video.",
-    "YOUTUBE_UNREACHABLE": "We couldn't reach YouTube to check the video. Try again in a moment."
+    "YOUTUBE_UNREACHABLE": "We couldn't reach YouTube to check the video. Try again in a moment.",
+    "REVIEW_NOT_ALLOWED": "Only learners enrolled in this course can rate it."
   },
   "http": {
     "badRequest": "That request wasn't accepted. Check what you entered and try again.",

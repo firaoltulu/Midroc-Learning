@@ -14,22 +14,26 @@
     "exam": "Exam"
   },
   "outline": {
-    "title": "Course content",
+    "title": "Syllabus",
     "summary": "{{modules}} · {{items}}",
     "items_one": "{{count}} item",
     "items_other": "{{count}} items",
     "completed": "Completed",
-    "typePrefix": "{{type}}: "
+    "typePrefix": "{{type}}: ",
+    "moduleNumber": "Module {{number}}"
   },
   "detail": {
-    "byOwner": "By {{name}}",
     "about": "About this course",
     "actionsLabel": "Course actions",
     "notFound": {
       "title": "This course isn't available",
       "body": "It may have been removed, or it isn't published yet.",
       "action": "Browse courses"
-    }
+    },
+    "breadcrumb": "Breadcrumb",
+    "courses": "Courses",
+    "createdBy": "Created by {{name}}",
+    "updated": "Updated {{date}}"
   },
   "actions": {
     "enroll": "Enroll",
@@ -61,5 +65,61 @@
     "reason": "Reviewer's note: {{reason}}",
     "archived": "This course is archived and hidden from the catalog.",
     "pendingRevision": "Changes to this course are waiting for review. Learners see the published version until they're approved."
+  },
+  "rating": {
+    "summary_one": "{{rating}} ({{ratings}} rating)",
+    "summary_other": "{{rating}} ({{ratings}} ratings)",
+    "none": "No ratings yet",
+    "card_one": "Rated {{rating}} out of 5 by {{count}} learner",
+    "card_other": "Rated {{rating}} out of 5 by {{count}} learners"
+  },
+  "facts": {
+    "enrolled_one": "{{formatted}} already enrolled",
+    "enrolled_other": "{{formatted}} already enrolled",
+    "items": {
+      "video_one": "{{count}} video",
+      "video_other": "{{count}} videos",
+      "pdf_one": "{{count}} PDF",
+      "pdf_other": "{{count}} PDFs",
+      "exam_one": "{{count}} exam",
+      "exam_other": "{{count}} exams"
+    },
+    "level": "{{level}} level",
+    "duration": "about {{duration}}",
+    "taughtIn": "Taught in {{language}}"
+  },
+  "learn": {
+    "outcomes": "What you'll learn",
+    "skills": "Skills you'll gain"
+  },
+  "reviews": {
+    "title": "Learner reviews",
+    "count_one": "{{formatted}} rating",
+    "count_other": "{{formatted}} ratings",
+    "distribution": "Ratings by number of stars",
+    "starsCount_one": "{{stars}} stars: {{count}} rating",
+    "starsCount_other": "{{stars}} stars: {{count}} ratings",
+    "empty": "No reviews yet. Learners who take the course can rate it.",
+    "showMore": "Show more reviews",
+    "you": "You",
+    "anonymous": "A learner",
+    "form": {
+      "title": "Rate this course",
+      "editTitle": "Your review",
+      "rating": "Your rating",
+      "stars_one": "{{count}} star",
+      "stars_other": "{{count}} stars",
+      "ratingRequired": "Choose a rating from 1 to 5 stars.",
+      "comment": "Comment (optional)",
+      "commentHint": "What helped you, and what could be better?",
+      "commentTooLong": "Keep your comment to {{max}} characters or fewer.",
+      "submit": "Post review",
+      "update": "Update review",
+      "delete": "Delete review",
+      "saved": "Thanks. Your review is saved.",
+      "deleted": "Your review was deleted.",
+      "deleteTitle": "Delete your review?",
+      "deleteBody": "Your rating and comment will be removed from this course."
+    }
   }
 }

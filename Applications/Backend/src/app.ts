@@ -20,6 +20,7 @@ import { moderationAdminRoutes } from './modules/moderation/index.js';
 import { examsRoutes } from './modules/exams/index.js';
 import { analyticsAdminRoutes } from './modules/analytics/index.js';
 import { editingRoutes } from './modules/editing/index.js';
+import { reviewsRoutes } from './modules/reviews/index.js';
 
 export function buildApp(authentication: RequestHandler = authenticate): express.Express {
   const app = express();
@@ -62,7 +63,17 @@ export function buildApp(authentication: RequestHandler = authenticate): express
     })
   );
   app.use('/api', authentication);
-  app.use('/api', meRoutes, coursesRoutes, enrollmentsRoutes, editingRoutes, contentRoutes, learningRoutes, examsRoutes);
+  app.use(
+    '/api',
+    meRoutes,
+    coursesRoutes,
+    enrollmentsRoutes,
+    reviewsRoutes,
+    editingRoutes,
+    contentRoutes,
+    learningRoutes,
+    examsRoutes
+  );
 
   const adminRoutes = express.Router();
   adminRoutes.use(usersAdminRoutes);

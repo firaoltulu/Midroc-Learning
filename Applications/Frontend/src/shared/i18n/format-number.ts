@@ -12,9 +12,15 @@ export function useNumberFormat() {
     const integer = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 });
     const decimal = new Intl.NumberFormat(locale, { maximumFractionDigits: 1 });
     const percent = new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 1 });
+    const compact = new Intl.NumberFormat(locale, {
+      notation: 'compact',
+      maximumFractionDigits: 1,
+    });
     return {
       formatNumber: (value: number) => integer.format(value),
       formatDecimal: (value: number) => decimal.format(value),
+      /** Short counts for tight spaces: 860, 1.2K. */
+      formatCompact: (value: number) => compact.format(value),
       /** `value` in percent (0–100), as the API sends it. */
       formatPercent: (value: number) => percent.format(value / 100),
     };

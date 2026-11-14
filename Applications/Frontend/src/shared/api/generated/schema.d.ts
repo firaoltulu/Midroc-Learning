@@ -519,6 +519,140 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/courses/{id}/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        /** Learner reviews of a course, comments first, then the newest */
+        get: {
+            parameters: {
+                query?: {
+                    page?: components["parameters"]["Page"];
+                    pageSize?: components["parameters"]["PageSize"];
+                };
+                header?: never;
+                path: {
+                    id: components["parameters"]["Id"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description A page of reviews. Authors are shown as "First L.", never by email. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReviewPage"];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/courses/{id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["Id"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Rate the course (1-5) with an optional comment; saving again replaces it
+         * @description Enrolled learners of a published course only; owners don't review their own course.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["Id"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ReviewInput"];
+                };
+            };
+            responses: {
+                /** @description Review replaced. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OwnReview"];
+                    };
+                };
+                /** @description Review created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["OwnReview"];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                /** @description `REVIEW_NOT_ALLOWED` (owner, or not enrolled) or `NOT_PUBLISHED`. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                default: components["responses"]["Error"];
+            };
+        };
+        post?: never;
+        /** Delete my review */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["Id"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Review deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                404: components["responses"]["NotFound"];
+                default: components["responses"]["Error"];
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/courses/{courseId}/authoring": {
         parameters: {
             query?: never;
@@ -2521,6 +2655,9 @@ export interface components {
             enrolled: boolean;
             moduleCount: number;
             enrollmentCount: number;
+            /** @description Average learner rating (1-5, one decimal); null without ratings. */
+            ratingAverage: number | null;
+            ratingCount: number;
         };
         /** @description A course in its owner's list (`GET /me/courses`). */
         OwnedCourse: components["schemas"]["Course"] & {
@@ -2543,6 +2680,21 @@ export interface components {
         };
         /** @description `rejectionReason` and `pendingRevision` are null unless the viewer is the owner or an administrator. */
         CourseDetail: components["schemas"]["CatalogCourse"] & {
+            /**
+             * Format: date-time
+             * @description When the course last changed.
+             */
+            updatedAt: string;
+            /** @description Number of ratings with 1 to 5 stars. */
+            ratingDistribution: {
+                1: number;
+                2: number;
+                3: number;
+                4: number;
+                5: number;
+            };
+            /** @description The viewer's own review. */
+            myReview: components["schemas"]["OwnReview"] | null;
             /** @description Items of this course the viewer has completed. */
             completedItemIds: string[];
             pendingRevision: {
@@ -2564,6 +2716,32 @@ export interface components {
                     title: string;
                 }[];
             }[];
+        };
+        ReviewInput: {
+            rating: number;
+            /** @default  */
+            comment: string;
+        };
+        OwnReview: {
+            rating: number;
+            comment: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        Review: {
+            /** @description First name and last initial ("Sara T."); null when the author has no name. */
+            authorName: string | null;
+            rating: number;
+            comment: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description The viewer's own review. */
+            mine: boolean;
+        };
+        ReviewPage: components["schemas"]["PageInfo"] & {
+            items: components["schemas"]["Review"][];
         };
         CourseCreate: {
             title: string;

@@ -10,7 +10,8 @@ const MIGRATIONS = [
   '002_course_content.sql',
   '003_youtube_video.sql',
   '004_course_language.sql',
-  '005_course_details.sql'
+  '005_course_details.sql',
+  '006_course_reviews.sql'
 ];
 
 const ownerId = '0b6a4f0e-7f61-4d1c-9a35-2b8a1c3e5d01';

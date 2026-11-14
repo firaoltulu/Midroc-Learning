@@ -23,5 +23,6 @@ export {
 } from './api/schemas';
 export { courseDetailQueryOptions } from './api/course-detail';
 export { CourseMeta } from './components/course-meta';
+export { CourseRating } from './components/course-rating';
 export { nextItemId } from './model/course-action';
 export { ITEM_ICONS } from './components/item-icons';

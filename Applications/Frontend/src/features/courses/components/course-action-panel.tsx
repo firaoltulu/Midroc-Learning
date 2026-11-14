@@ -57,6 +57,7 @@ export function CourseActionPanel({
         <Button
           variant="contained"
           size="large"
+          fullWidth
           disabled={enroll.isPending}
           onClick={() => {
             unenroll.reset();
@@ -74,6 +75,7 @@ export function CourseActionPanel({
         <ButtonLink
           variant="contained"
           size="large"
+          fullWidth
           to="/learn/$courseId/$itemId"
           params={{ courseId: course.id, itemId: action.itemId }}
         >
@@ -84,6 +86,7 @@ export function CourseActionPanel({
         <ButtonLink
           variant="contained"
           size="large"
+          fullWidth
           to="/my-courses/$courseId/edit"
           params={{ courseId: course.id }}
         >

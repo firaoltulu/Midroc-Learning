@@ -47,6 +47,8 @@ export const course = (id: string, overrides: Record<string, unknown> = {}) => (
   enrolled: false,
   moduleCount: 2,
   enrollmentCount: 14,
+  ratingAverage: 4.5,
+  ratingCount: 12,
   ...overrides,
 });
 
@@ -168,6 +170,8 @@ export async function mockApi(
   const requests: string[] = [];
   const progress: MockApi['progress'] = [];
   const completedItems = new Set<string>();
+  /** The learner's own review per course. */
+  const myReviews = new Map<string, { rating: number; comment: string; updatedAt: string }>();
   const attempts: {
     id: string;
     startedAt: string;
@@ -215,6 +219,44 @@ export async function mockApi(
       else enrolled.delete(enrollMatch[1]);
       return method === 'POST' ? json({ enrolled: true }, 201) : route.fulfill({ status: 204 });
     }
+    if (/^\/courses\/[^/]+\/reviews$/.test(path)) {
+      return json({
+        page: 1,
+        pageSize: 5,
+        total: 2,
+        items: [
+          {
+            authorName: 'Sara T.',
+            rating: 5,
+            comment: 'Clear and practical. The exam questions matched real situations.',
+            createdAt: '2026-11-01T08:00:00.000Z',
+            updatedAt: '2026-11-01T08:00:00.000Z',
+            mine: false,
+          },
+          {
+            authorName: null,
+            rating: 4,
+            comment: '',
+            createdAt: '2026-10-20T08:00:00.000Z',
+            updatedAt: '2026-10-20T08:00:00.000Z',
+            mine: false,
+          },
+        ],
+      });
+    }
+    const reviewMatch = /^\/courses\/([^/]+)\/review$/.exec(path);
+    if (reviewMatch?.[1]) {
+      if (method === 'DELETE') {
+        myReviews.delete(reviewMatch[1]);
+        return route.fulfill({ status: 204 });
+      }
+      const review = {
+        ...(request.postDataJSON() as { rating: number; comment: string }),
+        updatedAt: '2026-11-14T08:00:00.000Z',
+      };
+      myReviews.set(reviewMatch[1], review);
+      return json(review, 201);
+    }
     const detailMatch = /^\/courses\/([^/]+)$/.exec(path);
     if (detailMatch?.[1]) {
       const found = sampleCourses.find((c) => c.id === detailMatch[1]);
@@ -224,6 +266,9 @@ export async function mockApi(
         modules: outline,
         completedItemIds: [...completedItems],
         pendingRevision: null,
+        updatedAt: '2026-11-10T08:00:00.000Z',
+        ratingDistribution: { '1': 0, '2': 0, '3': 1, '4': 3, '5': 8 },
+        myReview: myReviews.get(found.id) ?? null,
       });
     }
     if (path === '/exams/item-3' && method === 'GET') {

@@ -23,7 +23,10 @@ export interface CourseOutlineProps {
   linkItems: boolean;
 }
 
-/** Modules as accordions (the first open), items with type icons and completion. */
+/**
+ * The syllabus: one outlined box of modules ("Module 1 · Foundations", item count), the first
+ * open; items show their type ("Video · Welcome"), an icon and completion.
+ */
 export function CourseOutline({ course, linkItems }: CourseOutlineProps) {
   const { t } = useTranslation('courses');
   const contentLang = useContentLang(course.language);
@@ -44,19 +47,45 @@ export function CourseOutline({ course, linkItems }: CourseOutlineProps) {
         </Typography>
       </Stack>
 
-      <Box>
+      {/* One outlined box; modules are separated by thin lines (no shadows). */}
+      <Box
+        sx={{
+          border: 1,
+          borderColor: 'divider',
+          borderRadius: '14px',
+          overflow: 'hidden',
+          bgcolor: 'background.paper',
+          '& .MuiAccordion-root': { boxShadow: 'none', borderRadius: 0, bgcolor: 'transparent' },
+          '& .MuiAccordion-root::before': { display: 'none' },
+          '& .MuiAccordion-root + .MuiAccordion-root': { borderTop: 1, borderColor: 'divider' },
+        }}
+      >
         {course.modules.map((module, index) => (
           <Accordion key={module.id} defaultExpanded={index === 0} disableGutters>
-            <AccordionSummary expandIcon={<ExpandMoreOutlined />}>
-              <Stack sx={{ minWidth: 0 }}>
+            <AccordionSummary expandIcon={<ExpandMoreOutlined />} sx={{ px: 2 }}>
+              <Stack
+                direction="row"
+                spacing={2}
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  alignItems: 'baseline',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <Typography component="span" sx={{ fontWeight: 600, overflowWrap: 'anywhere' }}>
+                  {t('outline.moduleNumber', { number: index + 1 })}
+                  <Box component="span" aria-hidden sx={{ mx: 0.75 }}>
+                    ·
+                  </Box>
+                  <span {...contentLang}>{module.title}</span>
+                </Typography>
                 <Typography
                   component="span"
-                  sx={{ fontWeight: 600, overflowWrap: 'anywhere' }}
-                  {...contentLang}
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ flexShrink: 0 }}
                 >
-                  {module.title}
-                </Typography>
-                <Typography component="span" variant="body2" color="text.secondary">
                   {t('outline.items', { count: module.items.length })}
                 </Typography>
               </Stack>
@@ -83,8 +112,14 @@ export function CourseOutline({ course, linkItems }: CourseOutlineProps) {
                       <ListItemText
                         primary={
                           <>
-                            <Box component="span" sx={visuallyHidden}>
-                              {t('outline.typePrefix', { type: t(`itemType.${item.type}`) })}
+                            <Box component="span" sx={{ color: 'text.secondary' }}>
+                              {t(`itemType.${item.type}`)}
+                              <Box component="span" aria-hidden sx={{ mx: 0.75 }}>
+                                ·
+                              </Box>
+                              <Box component="span" sx={visuallyHidden}>
+                                {': '}
+                              </Box>
                             </Box>
                             <span {...contentLang}>{item.title}</span>
                           </>

@@ -55,6 +55,8 @@ export const courseFixture = (overrides: Record<string, unknown> = {}) => ({
   enrolled: false,
   moduleCount: 2,
   enrollmentCount: 14,
+  ratingAverage: 4.5,
+  ratingCount: 12,
   ...overrides,
 });
 
@@ -82,6 +84,9 @@ export const courseDetailFixture = (overrides: Record<string, unknown> = {}) => 
   ],
   completedItemIds: [],
   pendingRevision: null,
+  updatedAt: '2026-11-10T08:00:00.000Z',
+  ratingDistribution: { '1': 0, '2': 0, '3': 1, '4': 3, '5': 8 },
+  myReview: null,
   ...overrides,
 });
 

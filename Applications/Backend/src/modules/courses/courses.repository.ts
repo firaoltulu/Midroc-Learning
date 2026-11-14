@@ -25,7 +25,10 @@ const listingColumns = `
   u.name AS "ownerName",
   EXISTS (SELECT 1 FROM enrollments e WHERE e.course_id = c.id AND e.user_id = $1) AS enrolled,
   (SELECT count(*)::int FROM modules m WHERE m.course_id = c.id) AS "moduleCount",
-  (SELECT count(*)::int FROM enrollments e WHERE e.course_id = c.id) AS "enrollmentCount"
+  (SELECT count(*)::int FROM enrollments e WHERE e.course_id = c.id) AS "enrollmentCount",
+  (SELECT round(avg(r.rating)::numeric, 1)::float8 FROM course_reviews r WHERE r.course_id = c.id)
+    AS "ratingAverage",
+  (SELECT count(*)::int FROM course_reviews r WHERE r.course_id = c.id) AS "ratingCount"
 `;
 
 export type CatalogCourse = Course & {
@@ -33,9 +36,18 @@ export type CatalogCourse = Course & {
   enrolled: boolean;
   moduleCount: number;
   enrollmentCount: number;
+  /** Average of the learner ratings, one decimal; null without ratings. */
+  ratingAverage: number | null;
+  ratingCount: number;
 };
 
 export type CourseDetail = CatalogCourse & {
+  /** When the course last changed. */
+  updatedAt: Date;
+  /** How many ratings gave 1 to 5 stars (keys "1" to "5"). */
+  ratingDistribution: Record<'1' | '2' | '3' | '4' | '5', number>;
+  /** The viewer's own rating and comment. */
+  myReview: { rating: number; comment: string; updatedAt: Date } | null;
   modules: Array<{
     id: string;
     title: string;
@@ -171,10 +183,21 @@ export async function getDetail(
   id: string,
   viewer: { id: string; canManage: boolean }
 ): Promise<CourseDetail | undefined> {
-  const { rows } = await db.query<CatalogCourse & { pendingRevision: CourseDetail['pendingRevision'] }>(
+  const { rows } = await db.query<
+    CatalogCourse &
+      Pick<CourseDetail, 'pendingRevision' | 'updatedAt' | 'ratingDistribution' | 'myReview'>
+  >(
     `SELECT ${joinedCourseColumns}, ${listingColumns},
+       c.updated_at AS "updatedAt",
        (SELECT json_build_object('id', r.id, 'submittedAt', r.submitted_at)
-          FROM course_revisions r WHERE r.course_id = c.id AND r.status = 'pending') AS "pendingRevision"
+          FROM course_revisions r WHERE r.course_id = c.id AND r.status = 'pending') AS "pendingRevision",
+       (SELECT json_build_object(
+           '1', count(*) FILTER (WHERE rv.rating = 1), '2', count(*) FILTER (WHERE rv.rating = 2),
+           '3', count(*) FILTER (WHERE rv.rating = 3), '4', count(*) FILTER (WHERE rv.rating = 4),
+           '5', count(*) FILTER (WHERE rv.rating = 5))
+          FROM course_reviews rv WHERE rv.course_id = c.id) AS "ratingDistribution",
+       (SELECT json_build_object('rating', rv.rating, 'comment', rv.comment, 'updatedAt', rv.updated_at)
+          FROM course_reviews rv WHERE rv.course_id = c.id AND rv.user_id = $1) AS "myReview"
      FROM courses c JOIN users u ON u.id = c.owner_id
      WHERE c.id = $2`,
     [viewer.id, id]

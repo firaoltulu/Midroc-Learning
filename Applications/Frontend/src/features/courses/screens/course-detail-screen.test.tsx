@@ -4,12 +4,56 @@ import { courseDetailFixture } from '../../../test/fixtures';
 import { api, apiError, server } from '../../../test/msw';
 import { renderRoute } from '../../../test/render';
 
-/** A course whose server state changes with enroll/unenroll, like the real API. */
-function mockCourse(overrides: Record<string, unknown> = {}) {
-  let detail = courseDetailFixture(overrides);
+const review = (overrides: Record<string, unknown> = {}) => ({
+  authorName: 'Sara T.',
+  rating: 5,
+  comment: 'Clear and practical.',
+  createdAt: '2026-11-01T08:00:00.000Z',
+  updatedAt: '2026-11-02T08:00:00.000Z',
+  mine: false,
+  ...overrides,
+});
+
+/**
+ * A course whose server state changes with enroll/unenroll and the viewer's review, like the
+ * real API. Reviews come 5 to a page (`reviewCount` in all).
+ */
+/** Bodies of PUT /courses/course-1/review in the current test. */
+let reviewBodies: unknown[] = [];
+
+function mockCourse(overrides: Record<string, unknown> = {}, { reviewCount = 2 } = {}) {
+  let detail: Record<string, unknown> = courseDetailFixture(overrides);
   const calls: string[] = [];
+  reviewBodies = [];
+  const allReviews = Array.from({ length: reviewCount }, (_, index) =>
+    review({
+      authorName: index === 0 ? 'Sara T.' : `Learner ${String(index)}`,
+      createdAt: `2026-10-${String(10 + index).padStart(2, '0')}T08:00:00.000Z`,
+    }),
+  );
   server.use(
     http.get(api('/courses/course-1'), () => HttpResponse.json(detail)),
+    http.get(api('/courses/course-1/reviews'), ({ request }) => {
+      const page = Number(new URL(request.url).searchParams.get('page') ?? '1');
+      return HttpResponse.json({
+        page,
+        pageSize: 5,
+        total: allReviews.length,
+        items: allReviews.slice((page - 1) * 5, page * 5),
+      });
+    }),
+    http.put(api('/courses/course-1/review'), async ({ request }) => {
+      const body = (await request.json()) as { rating: number; comment: string };
+      reviewBodies.push(body);
+      const mine = { ...body, updatedAt: '2026-11-14T08:00:00.000Z' };
+      detail = { ...detail, myReview: mine };
+      return HttpResponse.json(mine, { status: 201 });
+    }),
+    http.delete(api('/courses/course-1/review'), () => {
+      calls.push('deleteReview');
+      detail = { ...detail, myReview: null };
+      return new HttpResponse(null, { status: 204 });
+    }),
     http.post(api('/courses/course-1/enroll'), () => {
       calls.push('enroll');
       detail = { ...detail, enrolled: true, enrollmentCount: 15 };
@@ -27,22 +71,127 @@ function mockCourse(overrides: Record<string, unknown> = {}) {
 const actions = () => screen.getByRole('complementary', { name: 'Course actions' });
 
 describe('course detail', () => {
-  it('shows the header, description and outline with item types', async () => {
-    mockCourse();
+  it('shows the hero, the enroll card facts, what you learn and the syllabus', async () => {
+    mockCourse({
+      category: 'Safety',
+      outcomes: ['Spot hazards', 'Report an incident'],
+      skills: ['First aid'],
+    });
     await renderRoute('/courses/course-1');
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Workplace safety basics' }),
     ).toBeVisible();
-    expect(screen.getByText('By Selam Tesfaye')).toBeVisible();
-    expect(screen.getByText('1 h 30 min')).toBeVisible();
+    const breadcrumb = screen.getByRole('navigation', { name: 'Breadcrumb' });
+    expect(within(breadcrumb).getByRole('link', { name: 'Courses' })).toHaveAttribute(
+      'href',
+      '/courses',
+    );
+    expect(within(breadcrumb).getByRole('link', { name: 'Safety' })).toHaveAttribute(
+      'href',
+      '/courses?category=Safety',
+    );
     expect(
       screen.getByText('Hazards, protective equipment and what to do in an emergency.'),
     ).toBeVisible();
-    // The first module is open; items announce their type.
-    expect(screen.getByText('Video:', { exact: false })).toBeInTheDocument();
-    expect(screen.getByText('Welcome')).toBeVisible();
+    expect(screen.getByText('4.5 (12 ratings)')).toBeVisible();
+    expect(screen.getByText('Created by Selam Tesfaye · Updated Nov 10, 2026')).toBeVisible();
+
+    // The enroll card.
+    expect(within(actions()).getByText('14 already enrolled')).toBeVisible();
+    expect(within(actions()).getByText('1 video · 1 PDF · 1 exam')).toBeVisible();
+    expect(within(actions()).getByText('Beginner level · about 1 h 30 min')).toBeVisible();
+    expect(within(actions()).getByText('Taught in English')).toBeVisible();
+
+    const outcomes = screen.getByRole('region', { name: "What you'll learn" });
+    expect(
+      within(outcomes)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent),
+    ).toEqual(['Spot hazards', 'Report an incident']);
+    expect(screen.getByRole('region', { name: "Skills you'll gain" })).toHaveTextContent(
+      'First aid',
+    );
+
+    // The syllabus: numbered modules, the first open; items say their type.
+    const syllabus = screen.getByRole('region', { name: 'Syllabus' });
+    expect(
+      within(syllabus).getByRole('button', { name: /Module 1.*Getting started/ }),
+    ).toBeVisible();
+    expect(within(syllabus).getByText('2 items')).toBeVisible();
+    expect(within(syllabus).getByText('Welcome')).toBeVisible();
+    expect(within(syllabus).getAllByText('Video', { exact: false })[0]).toBeInTheDocument();
     // Not enrolled: items are not links yet.
     expect(screen.queryByRole('link', { name: /Welcome/ })).not.toBeInTheDocument();
+  });
+
+  it('shows the rating summary and reviews, a page at a time', async () => {
+    mockCourse({}, { reviewCount: 7 });
+    const { user } = await renderRoute('/courses/course-1');
+    const reviews = await screen.findByRole('region', { name: 'Learner reviews' });
+    expect(within(reviews).getByText('12 ratings')).toBeVisible();
+    const bars = within(reviews).getByRole('list', { name: 'Ratings by number of stars' });
+    expect(within(bars).getByRole('progressbar', { name: '5 stars: 8 ratings' })).toHaveAttribute(
+      'aria-valuenow',
+      '67',
+    );
+    expect(within(bars).getByRole('progressbar', { name: '1 stars: 0 ratings' })).toBeVisible();
+
+    expect(await within(reviews).findByText('Sara T.')).toBeVisible();
+    expect(within(reviews).getAllByText('Clear and practical.')).toHaveLength(5);
+    // Only enrolled learners rate.
+    expect(within(reviews).queryByRole('heading', { name: 'Rate this course' })).toBeNull();
+
+    await user.click(within(reviews).getByRole('button', { name: 'Show more reviews' }));
+    await waitFor(() => {
+      expect(within(reviews).getAllByText('Clear and practical.')).toHaveLength(7);
+    });
+    expect(within(reviews).queryByRole('button', { name: 'Show more reviews' })).toBeNull();
+  });
+
+  it('an enrolled learner rates the course, then updates or deletes the review', async () => {
+    const calls = mockCourse({ enrolled: true });
+    const { user } = await renderRoute('/courses/course-1');
+    const form = await screen.findByRole('region', { name: 'Rate this course' });
+
+    // A rating is required.
+    await user.click(within(form).getByRole('button', { name: 'Post review' }));
+    expect(within(form).getByText('Choose a rating from 1 to 5 stars.')).toBeVisible();
+    expect(reviewBodies).toEqual([]);
+
+    await user.click(within(form).getByRole('radio', { name: '4 stars' }));
+    await user.type(within(form).getByRole('textbox', { name: 'Comment (optional)' }), ' Useful. ');
+    await user.click(within(form).getByRole('button', { name: 'Post review' }));
+    await waitFor(() => {
+      expect(reviewBodies).toEqual([{ rating: 4, comment: 'Useful.' }]);
+    });
+    const mine = await screen.findByRole('region', { name: 'Your review' });
+    expect(within(mine).getByRole('button', { name: 'Update review' })).toBeVisible();
+
+    await user.click(within(mine).getByRole('button', { name: 'Delete review' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Delete your review?' });
+    await user.click(within(dialog).getByRole('button', { name: 'Delete review' }));
+    await waitFor(() => {
+      expect(calls).toContain('deleteReview');
+    });
+    expect(await screen.findByRole('region', { name: 'Rate this course' })).toBeVisible();
+  });
+
+  it('without ratings the hero says so and there is no summary', async () => {
+    mockCourse(
+      {
+        ratingAverage: null,
+        ratingCount: 0,
+        ratingDistribution: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 },
+      },
+      { reviewCount: 0 },
+    );
+    await renderRoute('/courses/course-1');
+    expect(await screen.findByText('No ratings yet')).toBeVisible();
+    const reviews = screen.getByRole('region', { name: 'Learner reviews' });
+    expect(
+      await within(reviews).findByText('No reviews yet. Learners who take the course can rate it.'),
+    ).toBeVisible();
+    expect(within(reviews).queryByRole('list', { name: 'Ratings by number of stars' })).toBeNull();
   });
 
   it('enroll → Continue at the first item', async () => {

@@ -19,17 +19,21 @@
     "items_one": "{{count}} ንጥል",
     "items_other": "{{count}} ንጥሎች",
     "completed": "ተጠናቋል",
-    "typePrefix": "{{type}}፦ "
+    "typePrefix": "{{type}}፦ ",
+    "moduleNumber": "ሞጁል {{number}}"
   },
   "detail": {
-    "byOwner": "አዘጋጅ፦ {{name}}",
     "about": "ስለዚህ ኮርስ",
     "actionsLabel": "የኮርስ ተግባራት",
     "notFound": {
       "title": "ይህ ኮርስ አይገኝም",
       "body": "ተወግዶ ወይም ገና ያልታተመ ሊሆን ይችላል።",
       "action": "ኮርሶችን ያስሱ"
-    }
+    },
+    "breadcrumb": "የገጽ መንገድ",
+    "courses": "ኮርሶች",
+    "createdBy": "ያዘጋጀው፦ {{name}}",
+    "updated": "የተሻሻለው፦ {{date}}"
   },
   "actions": {
     "enroll": "ይመዝገቡ",
@@ -61,5 +65,61 @@
     "reason": "የገምጋሚው ማስታወሻ፦ {{reason}}",
     "archived": "ይህ ኮርስ ተደብቋል፤ በኮርሶች ዝርዝር ውስጥ አይታይም።",
     "pendingRevision": "በዚህ ኮርስ ላይ የተደረጉ ለውጦች ግምገማ እየጠበቁ ነው። እስኪጸድቁ ድረስ ተማሪዎች የታተመውን ስሪት ያያሉ።"
+  },
+  "rating": {
+    "summary_one": "{{rating}} ({{ratings}} ደረጃ)",
+    "summary_other": "{{rating}} ({{ratings}} ደረጃዎች)",
+    "none": "እስካሁን ደረጃ አልተሰጠም",
+    "card_one": "{{count}} ተማሪ ከ5 {{rating}} ሰጥቷል",
+    "card_other": "{{count}} ተማሪዎች በአማካይ ከ5 {{rating}} ሰጥተዋል"
+  },
+  "facts": {
+    "enrolled_one": "{{formatted}} ሰው ተመዝግቧል",
+    "enrolled_other": "{{formatted}} ሰዎች ተመዝግበዋል",
+    "items": {
+      "video_one": "{{count}} ቪዲዮ",
+      "video_other": "{{count}} ቪዲዮዎች",
+      "pdf_one": "{{count}} PDF",
+      "pdf_other": "{{count}} PDFዎች",
+      "exam_one": "{{count}} ፈተና",
+      "exam_other": "{{count}} ፈተናዎች"
+    },
+    "level": "ደረጃ፦ {{level}}",
+    "duration": "በግምት {{duration}}",
+    "taughtIn": "የሚሰጠው በ{{language}}"
+  },
+  "learn": {
+    "outcomes": "የሚማሩት",
+    "skills": "የሚያገኟቸው ክህሎቶች"
+  },
+  "reviews": {
+    "title": "የተማሪዎች አስተያየት",
+    "count_one": "{{formatted}} ደረጃ",
+    "count_other": "{{formatted}} ደረጃዎች",
+    "distribution": "ደረጃዎች በኮከብ ብዛት",
+    "starsCount_one": "{{stars}} ኮከብ፦ {{count}} ደረጃ",
+    "starsCount_other": "{{stars}} ኮከብ፦ {{count}} ደረጃዎች",
+    "empty": "እስካሁን አስተያየት የለም። ኮርሱን የሚወስዱ ተማሪዎች ደረጃ ሊሰጡት ይችላሉ።",
+    "showMore": "ተጨማሪ አስተያየቶችን አሳይ",
+    "you": "እርስዎ",
+    "anonymous": "አንድ ተማሪ",
+    "form": {
+      "title": "ለዚህ ኮርስ ደረጃ ይስጡ",
+      "editTitle": "የእርስዎ አስተያየት",
+      "rating": "የእርስዎ ደረጃ",
+      "stars_one": "{{count}} ኮከብ",
+      "stars_other": "{{count}} ኮከቦች",
+      "ratingRequired": "ከ1 እስከ 5 ኮከብ ደረጃ ይምረጡ።",
+      "comment": "አስተያየት (አማራጭ)",
+      "commentHint": "ምን ረዳዎት? ምንስ ሊሻሻል ይችላል?",
+      "commentTooLong": "አስተያየትዎን {{max}} ቁምፊ ወይም ከዚያ በታች ያድርጉት።",
+      "submit": "አስተያየት ላክ",
+      "update": "አስተያየቱን አዘምን",
+      "delete": "አስተያየቱን ሰርዝ",
+      "saved": "እናመሰግናለን። አስተያየትዎ ተቀምጧል።",
+      "deleted": "አስተያየትዎ ተሰርዟል።",
+      "deleteTitle": "አስተያየትዎን ይሰርዙ?",
+      "deleteBody": "ደረጃዎና አስተያየትዎ ከዚህ ኮርስ ይወገዳሉ።"
+    }
   }
 }

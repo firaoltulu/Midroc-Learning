@@ -21,6 +21,8 @@ export const courseKeys = {
   categories: () => [...courseKeys.all, 'categories'] as const,
   /** GET /courses/:id (learner-safe detail). */
   detail: (courseId: string) => [...courseKeys.all, courseId] as const,
+  /** GET /courses/:id/reviews (pages of learner reviews). */
+  reviews: (courseId: string) => [...courseKeys.detail(courseId), 'reviews'] as const,
 };
 
 /** Owner/admin authoring data. Kept apart from `courses`: it holds exam answers (short gcTime). */

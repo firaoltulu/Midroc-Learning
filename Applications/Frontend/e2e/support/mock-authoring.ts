@@ -99,6 +99,12 @@ export async function mockAuthoring(
     if (!entry) return null;
     return {
       course: {
+        // Detail fields the seeds leave out (no learner has rated an authoring course).
+        ratingAverage: null,
+        ratingCount: 0,
+        ratingDistribution: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 },
+        myReview: null,
+        updatedAt: '2026-11-13T10:00:00.000Z',
         ...entry.course,
         moduleCount: entry.modules.length,
         modules: entry.modules.map(({ items, ...module }) => ({

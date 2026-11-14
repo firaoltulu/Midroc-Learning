@@ -2,6 +2,8 @@ import { createFileRoute } from '@tanstack/react-router';
 import { CourseDetailScreen } from '../features/courses';
 
 export const Route = createFileRoute('/_authenticated/courses/$courseId')({
+  // The page draws its own green hero band.
+  staticData: { layout: 'fullBleed' },
   component: CourseDetailRoute,
 });
 

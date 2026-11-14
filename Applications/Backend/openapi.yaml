@@ -248,6 +248,59 @@ paths:
         "204": { description: Enrollment removed. }
         default: { $ref: "#/components/responses/Error" }
 
+  /courses/{id}/reviews:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      summary: Learner reviews of a course, comments first, then the newest
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: A page of reviews. Authors are shown as "First L.", never by email.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReviewPage" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /courses/{id}/review:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    put:
+      summary: Rate the course (1-5) with an optional comment; saving again replaces it
+      description: Enrolled learners of a published course only; owners don't review their own course.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ReviewInput" }
+      responses:
+        "201":
+          description: Review created.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OwnReview" }
+        "200":
+          description: Review replaced.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/OwnReview" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: "`REVIEW_NOT_ALLOWED` (owner, or not enrolled) or `NOT_PUBLISHED`."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        default: { $ref: "#/components/responses/Error" }
+    delete:
+      summary: Delete my review
+      responses:
+        "204": { description: Review deleted. }
+        "404": { $ref: "#/components/responses/NotFound" }
+        default: { $ref: "#/components/responses/Error" }
+
   /courses/{courseId}/authoring:
     parameters:
       - $ref: "#/components/parameters/CourseId"
@@ -1312,12 +1365,16 @@ components:
       allOf:
         - $ref: "#/components/schemas/Course"
         - type: object
-          required: [ownerName, enrolled, moduleCount, enrollmentCount]
+          required: [ownerName, enrolled, moduleCount, enrollmentCount, ratingAverage, ratingCount]
           properties:
             ownerName: { type: [string, "null"] }
             enrolled: { type: boolean, description: The current user is enrolled. }
             moduleCount: { type: integer }
             enrollmentCount: { type: integer }
+            ratingAverage:
+              type: [number, "null"]
+              description: Average learner rating (1-5, one decimal); null without ratings.
+            ratingCount: { type: integer, minimum: 0 }
     OwnedCourse:
       description: A course in its owner's list (`GET /me/courses`).
       allOf:
@@ -1361,8 +1418,30 @@ components:
       allOf:
         - $ref: "#/components/schemas/CatalogCourse"
         - type: object
-          required: [modules, completedItemIds, pendingRevision]
+          required:
+            - modules
+            - completedItemIds
+            - pendingRevision
+            - updatedAt
+            - ratingDistribution
+            - myReview
           properties:
+            updatedAt: { type: string, format: date-time, description: When the course last changed. }
+            ratingDistribution:
+              type: object
+              description: Number of ratings with 1 to 5 stars.
+              required: ["1", "2", "3", "4", "5"]
+              properties:
+                "1": { type: integer }
+                "2": { type: integer }
+                "3": { type: integer }
+                "4": { type: integer }
+                "5": { type: integer }
+            myReview:
+              description: The viewer's own review.
+              oneOf:
+                - $ref: "#/components/schemas/OwnReview"
+                - type: "null"
             completedItemIds:
               type: array
               description: Items of this course the viewer has completed.
@@ -1395,6 +1474,42 @@ components:
                         id: { type: string, format: uuid }
                         type: { $ref: "#/components/schemas/ItemType" }
                         title: { type: string }
+
+    ReviewInput:
+      type: object
+      additionalProperties: false
+      required: [rating]
+      properties:
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string, maxLength: 2000, default: "" }
+    OwnReview:
+      type: object
+      required: [rating, comment, updatedAt]
+      properties:
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string }
+        updatedAt: { type: string, format: date-time }
+    Review:
+      type: object
+      required: [authorName, rating, comment, createdAt, updatedAt, mine]
+      properties:
+        authorName:
+          type: [string, "null"]
+          description: First name and last initial ("Sara T."); null when the author has no name.
+        rating: { type: integer, minimum: 1, maximum: 5 }
+        comment: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+        mine: { type: boolean, description: The viewer's own review. }
+    ReviewPage:
+      allOf:
+        - $ref: "#/components/schemas/PageInfo"
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/Review" }
 
     CourseCreate:
       type: object

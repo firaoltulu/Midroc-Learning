@@ -42,6 +42,15 @@ export const catalogCourseSchema = courseSchema.extend({
   enrolled: z.boolean(),
   moduleCount: z.number().int(),
   enrollmentCount: z.number().int(),
+  /** Average learner rating (1-5, one decimal); null without ratings. */
+  ratingAverage: z.number().nullable(),
+  ratingCount: z.number().int(),
+});
+
+export const ownReviewSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+  comment: z.string(),
+  updatedAt: z.string(),
 });
 
 export const catalogPageSchema = z.object({
@@ -63,6 +72,16 @@ export const courseDetailSchema = catalogCourseSchema.extend({
   ),
   completedItemIds: z.array(z.string()),
   pendingRevision: z.object({ id: z.string(), submittedAt: z.string() }).nullable(),
+  updatedAt: z.string(),
+  /** How many ratings gave 1 to 5 stars. */
+  ratingDistribution: z.object({
+    '1': z.number().int(),
+    '2': z.number().int(),
+    '3': z.number().int(),
+    '4': z.number().int(),
+    '5': z.number().int(),
+  }),
+  myReview: ownReviewSchema.nullable(),
 });
 
 export type CourseStatus = z.infer<typeof courseStatusSchema>;
