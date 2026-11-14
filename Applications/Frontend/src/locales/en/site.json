@@ -1,0 +1,114 @@
+{
+  "footer": {
+    "label": "Site information",
+    "about": "About",
+    "help": "Help",
+    "privacy": "Privacy",
+    "terms": "Terms"
+  },
+  "lastUpdated": "Last updated {{date}}",
+  "about": {
+    "title": "About Midroc Learning",
+    "intro": "Midroc Learning is the learning platform of Midroc Investment Group. It offers practical courses in English and Amharic, created by Midroc experts.",
+    "sections": {
+      "learn": {
+        "heading": "Learn at your own pace",
+        "body": "Each course is made of modules with videos, readings (PDF documents) and exams. Your progress is saved as you go, so you can stop and pick up where you left off, on any device."
+      },
+      "teach": {
+        "heading": "Share what you know",
+        "body": "Any signed-in member can create a course. Before a course is published, an administrator reviews it, so learners can rely on what they find. Changes to a published course are reviewed the same way."
+      },
+      "languages": {
+        "heading": "Two languages",
+        "body": "The whole site works in English and Amharic. Each course is taught in one of the two, and the course page says which. Dates can follow the Ethiopian or the Gregorian calendar."
+      }
+    }
+  },
+  "help": {
+    "title": "Help",
+    "intro": "Answers to common questions about using Midroc Learning.",
+    "sections": {
+      "signIn": {
+        "heading": "Signing in",
+        "body": "Sign in with your email and password, or choose “Continue with Google”. If you sign up with an email address, open the link in the verification email before you start.\n\nForgot your password? Choose “Forgot your password?” on the sign-in page and we'll email you a link to set a new one."
+      },
+      "learning": {
+        "heading": "Taking a course",
+        "body": "Open a course and choose “Enroll”. Your courses and your progress appear under “My learning”.\n\nA video counts as complete once you've watched almost all of it, and a PDF when you reach the last page or mark it as complete."
+      },
+      "exams": {
+        "heading": "Exams",
+        "body": "Before you start an exam you see its passing score, its time limit and how many attempts you have. Your answers are kept if the page reloads. When the time runs out, the answers you've given are submitted."
+      },
+      "authoring": {
+        "heading": "Creating a course",
+        "body": "Go to “My courses” and choose “Create course”. Add modules, then videos (YouTube links), PDF documents and exams.\n\nWhen the checklist on the Review tab is complete, submit the course for review. An administrator publishes it or tells you what to change."
+      },
+      "settings": {
+        "heading": "Language, theme and dates",
+        "body": "Switch between English and Amharic with EN · አማ in the header. On your Account page you can also choose a light or dark appearance, and whether dates use the Ethiopian or the Gregorian calendar."
+      },
+      "contact": {
+        "heading": "Still need help?",
+        "body": "Contact a platform administrator at Midroc Investment Group."
+      }
+    }
+  },
+  "privacy": {
+    "title": "Privacy notice",
+    "intro": "This notice explains what Midroc Learning keeps about you and why. The platform is run by Midroc Investment Group.",
+    "sections": {
+      "collect": {
+        "heading": "What we keep",
+        "body": "Your account: your name, your email address and, if you use it, your Google sign-in.\n\nYour learning: the courses you enroll in, your progress through videos and documents, and your exam answers and scores.\n\nWhat you create: the courses you write and the files you upload.\n\nTechnical records, such as the time and network address of requests, to keep the service secure."
+      },
+      "use": {
+        "heading": "How we use it",
+        "body": "Only to run the platform: to sign you in, save your progress, score exams, and show administrators enrollment and completion figures so courses can be improved. We don't sell your information or use it for advertising."
+      },
+      "visibility": {
+        "heading": "Who can see it",
+        "body": "Administrators can see your account, your enrollments and your progress. Other learners can't see your progress or your answers. If you create a course, your name is shown on it."
+      },
+      "providers": {
+        "heading": "Services we rely on",
+        "body": "Sign-in is handled by Google Firebase Authentication, which stores your sign-in details for us. Course videos play from YouTube in its privacy-enhanced mode, so YouTube receives a request when you play a video."
+      },
+      "device": {
+        "heading": "On your device",
+        "body": "Your browser keeps your sign-in session and your language, appearance and date settings. We don't use advertising or tracking cookies."
+      },
+      "choices": {
+        "heading": "Your choices",
+        "body": "To see, correct or delete your information, or to close your account, contact a platform administrator."
+      }
+    }
+  },
+  "terms": {
+    "title": "Terms of use",
+    "intro": "By using Midroc Learning you agree to these terms.",
+    "sections": {
+      "account": {
+        "heading": "Your account",
+        "body": "Keep your sign-in details to yourself; you're responsible for what's done with your account. Administrators may suspend an account that breaks these terms."
+      },
+      "content": {
+        "heading": "Courses you create",
+        "body": "You keep the rights to what you create. By submitting a course, you allow Midroc Investment Group to publish it on the platform for its learners.\n\nOnly upload material you have the right to share. Keep it accurate and respectful, and don't include other people's personal information."
+      },
+      "review": {
+        "heading": "Review and removal",
+        "body": "Administrators review courses and changes before they're published, and may reject, archive or remove content that doesn't meet these terms."
+      },
+      "conduct": {
+        "heading": "Fair use",
+        "body": "Don't try to get into other people's accounts or answers, disrupt the service, or copy courses outside the platform without permission."
+      },
+      "service": {
+        "heading": "The service",
+        "body": "We work to keep the platform available and accurate, but it's provided as it is, and courses are for learning, not professional advice. We may update these terms; the date at the top shows the current version."
+      }
+    }
+  }
+}

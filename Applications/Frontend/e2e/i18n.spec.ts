@@ -64,11 +64,14 @@ test.describe('browser language', () => {
 });
 
 test.describe('long Amharic strings', () => {
-  // Signed-in pages (catalog, player, editor, admin) are checked in the emulator suite.
+  // Signed-in pages (catalog, player, editor, admin) are checked in the emulator suite. The
+  // footer pages are open to everyone, so they're checked here.
   const PAGES = [
     { path: '/login', h1: 'ይግቡ' },
     { path: '/signup', h1: null },
     { path: '/forgot-password', h1: null },
+    { path: '/help', h1: 'እገዛ' },
+    { path: '/privacy', h1: 'የግላዊነት ማስታወቂያ' },
   ];
   for (const viewport of [
     { width: 1280, height: 900 },

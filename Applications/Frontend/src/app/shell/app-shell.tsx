@@ -215,16 +215,70 @@ function HeaderLink({ item }: { item: NavItem }) {
   );
 }
 
-/** Dark band with the company name, on every page that has the header. */
+const FOOTER_LINKS = [
+  { to: '/about', labelKey: 'footer.about' },
+  { to: '/help', labelKey: 'footer.help' },
+  { to: '/privacy', labelKey: 'footer.privacy' },
+  { to: '/terms', labelKey: 'footer.terms' },
+] as const;
+
+/** Dark band with the company name and the About · Help · Privacy · Terms links. */
 function AppFooter() {
   const { t } = useTranslation('common');
+  const { t: tSite } = useTranslation('site');
   return (
     <Box
       component="footer"
-      sx={{ bgcolor: 'inverse.bg', color: 'inverse.fgMuted', py: { xs: 3, sm: 4 } }}
+      sx={(theme) => ({
+        bgcolor: 'inverse.bg',
+        color: 'inverse.fgMuted',
+        py: { xs: 3, sm: 4 },
+        // The primary-colored focus ring would vanish on the dark band.
+        '& a:focus-visible': { outlineColor: (theme.vars ?? theme).palette.inverse.fg },
+      })}
     >
-      <Container maxWidth="lg">
+      <Container
+        maxWidth="lg"
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          justifyContent: 'space-between',
+          gap: 2,
+        }}
+      >
         <Typography variant="body2">{t('footer.copyright')}</Typography>
+        <Box component="nav" aria-label={tSite('footer.label')}>
+          <Box
+            component="ul"
+            sx={{ display: 'flex', flexWrap: 'wrap', listStyle: 'none', m: 0, p: 0, gap: 0.5 }}
+          >
+            {FOOTER_LINKS.map((link, index) => (
+              <Box component="li" key={link.to} sx={{ display: 'flex', alignItems: 'center' }}>
+                {index > 0 ? (
+                  <Box component="span" aria-hidden sx={{ mr: 0.5 }}>
+                    ·
+                  </Box>
+                ) : null}
+                <RouterLink
+                  to={link.to}
+                  variant="body2"
+                  underline="hover"
+                  sx={{
+                    color: 'inherit',
+                    borderRadius: 0.5,
+                    // 24px tall targets (WCAG 2.5.8) without changing the line's look.
+                    display: 'inline-block',
+                    py: 0.25,
+                    '&:hover, &[data-status="active"]': { color: 'inverse.fg' },
+                  }}
+                >
+                  {tSite(link.labelKey)}
+                </RouterLink>
+              </Box>
+            ))}
+          </Box>
+        </Box>
       </Container>
     </Box>
   );

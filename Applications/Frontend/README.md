@@ -12,6 +12,12 @@ only), react-hook-form + zod, i18next. The REST API is `Applications/Backend`; i
 > but have not been checked by a native speaker for tone, terminology and naturalness. Plan
 > that review (and a look at long strings in buttons, tabs and table headers) before going live.
 
+> **The privacy notice and the terms of use need a legal review before launch.** The texts at
+> `/privacy` and `/terms` (in `src/locales/*/site.json`) are drafts that describe what the app
+> actually does, written by an AI assistant. Have them checked, add a contact address for
+> privacy requests, and update `LEGAL_UPDATED_AT` in `src/features/site/screens/site-screens.tsx`
+> whenever the text changes.
+
 ## Contents
 
 - [Getting started](#getting-started)

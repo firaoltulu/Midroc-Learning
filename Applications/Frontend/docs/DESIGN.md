@@ -20,6 +20,11 @@ outcomes, level, category counts) is **added to the backend**, not faked.
 | 8 | Admin users | `/admin/users` | search, role and status filter chips, table with role and status chips and Manage |
 | 9 | Admin revision | `/admin/moderation/revisions/$revisionId` | breadcrumb, Reject / Approve, field diff (− old / + new), content changes with kind chips, reason box |
 
+## Footer pages
+
+The footer links to `/about`, `/help`, `/privacy` and `/terms` (feature `site`, open to everyone,
+signed in or not). The privacy notice and the terms are drafts pending legal review (see README).
+
 ## Shell layouts
 
 Routes pick a frame with `staticData: { layout }` (`src/app/shell/shell-layout.ts`):

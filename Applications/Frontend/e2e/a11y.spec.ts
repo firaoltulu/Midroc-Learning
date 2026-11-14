@@ -1,9 +1,18 @@
 import { test } from '@playwright/test';
 import { expectAccessible, LANGUAGES, SCHEMES, settle, useSchemeAndLanguage } from './support/axe';
 
-/** axe on the signed-out pages, in both color schemes and both languages. */
+/** axe on the signed-out pages (and the footer pages), in both color schemes and both languages. */
 
-const PAGES = ['/login', '/signup', '/forgot-password', '/no-such-page'];
+const PAGES = [
+  '/login',
+  '/signup',
+  '/forgot-password',
+  '/about',
+  '/help',
+  '/privacy',
+  '/terms',
+  '/no-such-page',
+];
 
 for (const scheme of SCHEMES) {
   for (const language of LANGUAGES) {

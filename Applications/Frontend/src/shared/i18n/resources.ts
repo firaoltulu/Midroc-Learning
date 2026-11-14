@@ -16,6 +16,7 @@ import errors from '../../locales/en/errors.json';
 import exam from '../../locales/en/exam.json';
 import learning from '../../locales/en/learning.json';
 import myCourses from '../../locales/en/myCourses.json';
+import site from '../../locales/en/site.json';
 import validation from '../../locales/en/validation.json';
 
 export const defaultNS = 'common';
@@ -34,6 +35,7 @@ export const resources = {
     editor,
     account,
     admin,
+    site,
   },
 } as const;
 
