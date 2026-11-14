@@ -44,6 +44,100 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/public/courses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Published courses for signed-out visitors (the guest home page)
+         * @description No sign-in. Nothing about the viewer and no ids of people; the instructor's name is shortened ("Sara T."). No title search; at most 12 courses a page.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: components["parameters"]["Page"];
+                    pageSize?: number;
+                    category?: string;
+                    language?: components["schemas"]["CourseLanguage"];
+                    sort?: "newest" | "popular";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description A page of published courses. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PageInfo"] & {
+                            items: components["schemas"]["PublicCourse"][];
+                        };
+                    };
+                };
+                default: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/public/courses/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Categories used by published courses, for signed-out visitors
+         * @description Same answer as `GET /courses/categories`, without sign-in.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Category names, sorted, with the number of published courses in each. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: string[];
+                            categories: {
+                                name: string;
+                                courseCount: number;
+                            }[];
+                        };
+                    };
+                };
+                default: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me": {
         parameters: {
             query?: never;
@@ -3058,6 +3152,28 @@ export interface components {
             moduleCount: number;
             enrollmentCount: number;
             /** @description Average learner rating (1-5, one decimal); null without ratings. */
+            ratingAverage: number | null;
+            ratingCount: number;
+        };
+        /** @description A published course as a signed-out visitor sees it (`GET /public/courses`). */
+        PublicCourse: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            description: string;
+            category: string | null;
+            language: components["schemas"]["CourseLanguage"];
+            /** Format: uri */
+            thumbnailUrl: string | null;
+            /** @enum {string|null} */
+            level: "beginner" | "intermediate" | "advanced" | null;
+            estimatedDurationMinutes: number | null;
+            /** Format: date-time */
+            publishedAt: string | null;
+            /** @description First name and last initial ("Sara T."). */
+            ownerName: string | null;
+            moduleCount: number;
+            enrollmentCount: number;
             ratingAverage: number | null;
             ratingCount: number;
         };

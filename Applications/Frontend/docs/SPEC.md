@@ -114,7 +114,7 @@ Status tones (`theme.palette.status.{draft,pending,published,rejected,archived}`
 - Suspended account (`ACCOUNT_SUSPENDED`, HTTP 403): sign out and show a clear message on the login page.
 - **Route guards (TanStack Router `beforeLoad`):**
   - `_public` layout: login, signup, forgot password, verify email. Signed-in users are redirected away.
-  - `_authenticated` layout: requires sign-in (redirect to `/login?redirect=<original>`), verified email for password accounts, and a loaded `/me`.
+  - `_authenticated` layout: requires sign-in (redirect to `/login?redirect=<original>`; a signed-out visit to `/` itself goes to the guest home page `/welcome`), verified email for password accounts, and a loaded `/me`.
   - `admin` layout (inside `_authenticated`): requires `me.role === 'admin'`, otherwise a friendly "not allowed" screen.
   The backend remains the real security boundary. These guards are UX only.
 - **App shell:** slim top bar (logo/mark, primary nav, language switcher, theme switch, user menu), mobile navigation as a drawer, skip-to-content link, route-level error boundary, global toast area (MUI Snackbar), `NotFound` screen.
@@ -138,6 +138,7 @@ Status tones (`theme.palette.status.{draft,pending,published,rejected,archived}`
 | Area | Route | Notes |
 |---|---|---|
 | Public | `/login`, `/signup`, `/forgot-password`, `/verify-email` | calm centered card with the full logo |
+| Guest home | `/welcome` | the home page before sign-in (added 2026-11-14): hero with Join for free and Sign in, real courses and categories from `GET /public/courses`, how it works. Signed-out visitors to `/` land here; signed-in users are sent to `/` |
 | Catalog | `/courses` | search (debounced), category, language, pagination; all filters live in URL search params (`validateSearch` with zod) |
 | Course | `/courses/$courseId` | header, description, outline (accordion with item type icons), enroll / continue / unenroll, owner and admin see status banners |
 | Learning | `/learn` | my enrollments with progress |

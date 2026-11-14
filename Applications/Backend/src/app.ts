@@ -15,7 +15,7 @@ import { coursesRoutes } from './modules/courses/index.js';
 import { enrollmentsAdminRoutes, enrollmentsRoutes } from './modules/enrollments/index.js';
 import { contentAdminRoutes, contentRoutes } from './modules/content/index.js';
 import { learningRoutes } from './modules/learning/index.js';
-import { coursesAdminRoutes } from './modules/courses/index.js';
+import { coursesAdminRoutes, coursesPublicRoutes } from './modules/courses/index.js';
 import { moderationAdminRoutes } from './modules/moderation/index.js';
 import { examsRoutes } from './modules/exams/index.js';
 import { analyticsAdminRoutes } from './modules/analytics/index.js';
@@ -64,6 +64,8 @@ export function buildApp(authentication: RequestHandler = authenticate): express
       message: { error: 'Too many requests', code: 'RATE_LIMITED' }
     })
   );
+  // Read-only and without sign-in: published courses for the guest home page.
+  app.use('/api/public', coursesPublicRoutes);
   app.use('/api', authentication);
   app.use(
     '/api',

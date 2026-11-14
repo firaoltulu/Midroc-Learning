@@ -1,5 +1,6 @@
 export { coursesRoutes } from './courses.routes.js';
 export { coursesAdminRoutes } from './courses.admin.routes.js';
+export { coursesPublicRoutes } from './courses.public.routes.js';
 export {
   courseLanguageSchema,
   courseLevelSchema,

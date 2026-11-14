@@ -227,6 +227,50 @@ describe('course details, catalog sort, category counts and enrollment progress'
     expect(newer.id).toBeTruthy();
   });
 
+  it('shows published courses to signed-out visitors, without anything personal', async () => {
+    const popular = await publishedCourse('Popular', { category: 'Business', publishedDaysAgo: 3 });
+    await publishedCourse('Fresh', { category: 'Data', publishedDaysAgo: 1 });
+    await db.query(
+      `INSERT INTO courses (owner_id, title, description, status) VALUES ($1, 'Draft', '', 'draft')`,
+      [ownerId]
+    );
+    await enroll(learnerId, popular.id);
+
+    // No identity at all: still answered.
+    const newest = await fetch(`${base}/public/courses`);
+    expect(newest.status, await newest.clone().text()).toBe(200);
+    const page = (await newest.json()) as {
+      items: Array<Record<string, unknown>>;
+      total: number;
+      pageSize: number;
+    };
+    expect(page.items.map((item) => item.title)).toEqual(['Fresh', 'Popular']);
+    expect(page).toMatchObject({ total: 2, pageSize: 12 });
+    const item = page.items[1]!;
+    expect(item).toMatchObject({ ownerName: 'Almaz B.', enrollmentCount: 1, ratingCount: 0 });
+    // Nothing about people or the viewer.
+    for (const key of ['ownerId', 'enrolled', 'rejectionReason', 'status', 'tags']) {
+      expect(item).not.toHaveProperty(key);
+    }
+
+    const popularFirst = await fetch(`${base}/public/courses?sort=popular`);
+    expect(
+      ((await popularFirst.json()) as { items: Array<{ title: string }> }).items.map((i) => i.title)
+    ).toEqual(['Popular', 'Fresh']);
+    expect((await fetch(`${base}/public/courses?pageSize=13`)).status).toBe(400);
+    expect((await fetch(`${base}/public/courses?q=x`)).status).toBe(400);
+
+    const categories = await fetch(`${base}/public/courses/categories`);
+    expect(((await categories.json()) as { categories: unknown }).categories).toEqual([
+      { name: 'Business', courseCount: 1 },
+      { name: 'Data', courseCount: 1 }
+    ]);
+
+    // Everything else still needs sign-in.
+    expect((await fetch(`${base}/courses`)).status).toBe(401);
+    expect((await fetch(`${base}/public/courses/${popular.id}`)).status).toBe(401);
+  });
+
   it('my enrollments say which module comes next and when I last studied', async () => {
     const course = await publishedCourse('Three modules', { moduleSizes: [2, 1, 2] });
     const empty = await publishedCourse('Empty course');

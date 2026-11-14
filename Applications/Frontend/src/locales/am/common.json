@@ -18,7 +18,9 @@
     "pageTitle": "{{page}} – {{app}}",
     "searchLabel": "ኮርስ ያግኙ",
     "searchPlaceholder": "ምን መማር ይፈልጋሉ?",
-    "searchSubmit": "ፈልግ"
+    "searchSubmit": "ፈልግ",
+    "signIn": "ይግቡ",
+    "join": "በነፃ ይቀላቀሉ"
   },
   "nav": {
     "explore": "ያስሱ",

@@ -56,4 +56,4 @@ Set `ADMIN_EMAILS`, `CORS_ORIGINS`, and `GOOGLE_APPLICATION_CREDENTIALS` in the 
 
 ## API surface
 
-The current OpenAPI document is [openapi.yaml](./openapi.yaml). All routes except `/api/health` require a Firebase bearer token. Role decisions use the PostgreSQL user row; token role claims are synchronized for client-side route guards only.
+The current OpenAPI document is [openapi.yaml](./openapi.yaml). All routes except `/api/health` and the read-only `/api/public/courses` and `/api/public/courses/categories` (published courses for the guest home page, no personal data) require a Firebase bearer token. Role decisions use the PostgreSQL user row; token role claims are synchronized for client-side route guards only.

@@ -32,6 +32,8 @@ export class NotAllowedError extends Error {
 export async function requireAuthenticated({ context, location }: GuardArgs): Promise<{ me: Me }> {
   const state = await context.auth.ready();
   if (state.status !== 'signedIn') {
+    // A visitor opening the site (no reason to explain) sees the guest home page first.
+    if (!state.reason && isSiteRoot(location.href)) throw redirect({ to: '/welcome' });
     // Carry the reason if the app signed the user out itself (e.g. suspension), so the
     // login page can explain it whichever redirect gets there first.
     throw redirect({
@@ -52,6 +54,10 @@ export async function requireAuthenticated({ context, location }: GuardArgs): Pr
   }
   if (me.status === 'suspended') await signOutSuspended(context);
   return { me };
+}
+
+function isSiteRoot(href: string): boolean {
+  return (href.split(/[?#]/)[0] ?? '') === '/';
 }
 
 async function signOutSuspended(context: GuardContext): Promise<never> {

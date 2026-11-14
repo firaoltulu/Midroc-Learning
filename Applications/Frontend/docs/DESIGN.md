@@ -20,6 +20,15 @@ outcomes, level, category counts) is **added to the backend**, not faked.
 | 8 | Admin users | `/admin/users` | search, role and status filter chips, table with role and status chips and Manage |
 | 9 | Admin revision | `/admin/moderation/revisions/$revisionId` | breadcrumb, Reject / Approve, field diff (− old / + new), content changes with kind chips, reason box |
 
+## Guest home page (`/welcome`)
+
+Not in the design PDF; it follows the Home screen's look. The home page before sign-in: the green
+hero (headline, Join for free as the page's one primary button, Sign in, and "What you get"),
+"New and popular" and "Explore categories" with real data from the public, read-only
+`GET /public/courses` endpoints, "How it works" in three steps, and an invitation to create
+courses. Signed-out visitors to `/` are sent here; course and category links ask for sign-in and
+then return. The header shows Sign in and Join for free to signed-out visitors.
+
 ## Footer pages
 
 The footer links to `/about`, `/help`, `/privacy` and `/terms` (feature `site`, open to everyone,

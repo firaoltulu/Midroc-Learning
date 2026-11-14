@@ -63,5 +63,46 @@
       "count_one": "{{count}} course",
       "count_other": "{{count}} courses"
     }
+  },
+  "guest": {
+    "title": "Learn practical skills, in English and Amharic",
+    "subtitle": "Courses created by Midroc experts and colleagues. Free to join, at your own pace.",
+    "join": "Join for free",
+    "signIn": "Sign in",
+    "highlights": {
+      "title": "What you get",
+      "languages": {
+        "title": "Courses in your language",
+        "body": "Learn in English or Amharic, whichever suits you."
+      },
+      "formats": {
+        "title": "Videos, readings and exams",
+        "body": "Watch, read and check what you know, module by module."
+      },
+      "progress": {
+        "title": "Progress that waits for you",
+        "body": "Pick up where you left off, on any device."
+      }
+    },
+    "steps": {
+      "title": "How it works",
+      "join": {
+        "title": "Create your account",
+        "body": "Sign up with your email or Google account."
+      },
+      "enroll": {
+        "title": "Choose a course",
+        "body": "Browse by category or language and enroll in one click."
+      },
+      "learn": {
+        "title": "Learn and pass the exams",
+        "body": "Work through each module and track your progress as you go."
+      }
+    },
+    "share": {
+      "title": "Share what you know",
+      "body": "Anyone with an account can create a course. Administrators review it before it goes live.",
+      "action": "Create an account"
+    }
   }
 }

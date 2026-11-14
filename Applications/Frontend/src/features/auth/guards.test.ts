@@ -78,6 +78,16 @@ describe('requireAuthenticated (_authenticated layout)', () => {
     });
   });
 
+  it('sends signed-out visitors to the site root to the guest home page instead', async () => {
+    const { fake, context } = setup();
+    fake.signOutNow();
+    for (const href of ['/', '/?ref=mail']) {
+      expect(await outcome(() => requireAuthenticated({ context, location: { href } }))).toEqual({
+        redirect: expect.objectContaining({ to: '/welcome' }),
+      });
+    }
+  });
+
   it('sends unverified password accounts to /verify-email', async () => {
     const { fake, context } = setup();
     fake.signIn(passwordUser({ emailVerified: false }));

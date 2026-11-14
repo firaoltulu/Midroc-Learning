@@ -41,6 +41,24 @@ export async function listCatalog(
   return { ...result, page: input.page, pageSize: input.pageSize };
 }
 
+/** The catalog for signed-out visitors (the guest home page): published courses only. */
+export async function listPublicCatalog(input: {
+  category?: string | undefined;
+  language?: string | undefined;
+  sort: 'newest' | 'popular';
+  page: number;
+  pageSize: number;
+}) {
+  const result = await repository.listPublicCatalog(db, {
+    ...(input.category === undefined ? {} : { category: input.category }),
+    ...(input.language === undefined ? {} : { language: input.language }),
+    sort: input.sort,
+    limit: input.pageSize,
+    offset: (input.page - 1) * input.pageSize
+  });
+  return { ...result, page: input.page, pageSize: input.pageSize };
+}
+
 export async function listCategories(): Promise<Array<{ name: string; courseCount: number }>> {
   return repository.listCategories(db);
 }

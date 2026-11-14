@@ -10,6 +10,20 @@ import { CourseThumbnail } from '../../../shared/ui/course-thumbnail';
 import { RouterLink } from '../../../shared/ui/router-links';
 import { CourseRating, type CatalogCourse } from '../../courses';
 
+/** What a card shows: a catalog course, or a public one (signed out, no `enrolled`). */
+export type CardCourse = Pick<
+  CatalogCourse,
+  | 'id'
+  | 'title'
+  | 'category'
+  | 'language'
+  | 'thumbnailUrl'
+  | 'ownerName'
+  | 'level'
+  | 'ratingAverage'
+  | 'ratingCount'
+> & { enrolled?: boolean };
+
 const quietChip = {
   bgcolor: 'surfaceMuted',
   color: 'text.secondary',
@@ -27,7 +41,7 @@ export function CourseCard({
   course,
   headingLevel = 'h2',
 }: {
-  course: CatalogCourse;
+  course: CardCourse;
   /** h2 in the catalog, h3 under a section heading (home page). */
   headingLevel?: 'h2' | 'h3';
 }) {

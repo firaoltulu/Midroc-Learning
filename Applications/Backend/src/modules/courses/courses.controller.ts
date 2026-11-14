@@ -2,7 +2,11 @@ import type { Request, Response } from 'express';
 import { isUuid } from '../../core/ids.js';
 import { invalidParameter } from '../../core/http/app-error.js';
 import { parseEmptyBody, parseInput, routeParam } from '../../core/http/validate.js';
-import { catalogQuerySchema, courseCreateSchema } from './courses.schemas.js';
+import {
+  catalogQuerySchema,
+  courseCreateSchema,
+  publicCatalogQuerySchema
+} from './courses.schemas.js';
 import * as service from './courses.service.js';
 
 function uuidParam(req: Request, key: string): string {
@@ -13,6 +17,11 @@ function uuidParam(req: Request, key: string): string {
 
 export async function catalog(req: Request, res: Response): Promise<void> {
   res.json(await service.listCatalog(req.user, parseInput(catalogQuerySchema, req.query)));
+}
+
+/** Signed out: published courses, without anything about the viewer. */
+export async function publicCatalog(req: Request, res: Response): Promise<void> {
+  res.json(await service.listPublicCatalog(parseInput(publicCatalogQuerySchema, req.query)));
 }
 
 export async function categories(_req: Request, res: Response): Promise<void> {

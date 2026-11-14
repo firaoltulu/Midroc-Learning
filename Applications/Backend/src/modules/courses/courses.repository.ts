@@ -1,4 +1,5 @@
 import type { Queryable } from '../../core/db/pool.js';
+import { shortNameSql } from '../../core/db/display-name.js';
 import type { Course, CourseFields, CourseStatus } from './courses.types.js';
 import type { CourseCreateInput } from './courses.schemas.js';
 import { toPage, updateRow } from '../../core/db/sql.js';
@@ -139,6 +140,64 @@ export async function listCatalog(
      ORDER BY ${order}
      LIMIT $5 OFFSET $6`,
     [actorId, input.q ?? null, input.category ?? null, input.language ?? null, input.limit, input.offset]
+  );
+  return toPage(rows);
+}
+
+/**
+ * A published course as a signed-out visitor sees it: no ids of people, no viewer state, and
+ * the instructor's short name ("Sara T.").
+ */
+export type PublicCourse = {
+  id: string;
+  title: string;
+  description: string;
+  category: string | null;
+  language: string;
+  thumbnailUrl: string | null;
+  level: string | null;
+  estimatedDurationMinutes: number | null;
+  publishedAt: Date | null;
+  ownerName: string | null;
+  moduleCount: number;
+  enrollmentCount: number;
+  ratingAverage: number | null;
+  ratingCount: number;
+};
+
+export async function listPublicCatalog(
+  db: Queryable,
+  input: {
+    category?: string;
+    language?: string;
+    sort: 'newest' | 'popular';
+    limit: number;
+    offset: number;
+  }
+): Promise<{ items: PublicCourse[]; total: number }> {
+  // Fixed SQL per option (never interpolated input).
+  const order = input.sort === 'popular'
+    ? `"enrollmentCount" DESC, c.published_at DESC NULLS LAST, c.id`
+    : 'c.published_at DESC NULLS LAST, c.id';
+  const { rows } = await db.query<PublicCourse & { total: string }>(
+    `SELECT c.id, c.title, c.description, c.category, c.language,
+       c.thumbnail_url AS "thumbnailUrl", c.level,
+       c.estimated_duration_minutes AS "estimatedDurationMinutes",
+       c.published_at AS "publishedAt",
+       ${shortNameSql('u.name')} AS "ownerName",
+       (SELECT count(*)::int FROM modules m WHERE m.course_id = c.id) AS "moduleCount",
+       (SELECT count(*)::int FROM enrollments e WHERE e.course_id = c.id) AS "enrollmentCount",
+       (SELECT round(avg(r.rating)::numeric, 1)::float8 FROM course_reviews r WHERE r.course_id = c.id)
+         AS "ratingAverage",
+       (SELECT count(*)::int FROM course_reviews r WHERE r.course_id = c.id) AS "ratingCount",
+       count(*) OVER() AS total
+     FROM courses c JOIN users u ON u.id = c.owner_id
+     WHERE c.status = 'published'
+       AND ($1::text IS NULL OR c.category = $1)
+       AND ($2::text IS NULL OR c.language = $2)
+     ORDER BY ${order}
+     LIMIT $3 OFFSET $4`,
+    [input.category ?? null, input.language ?? null, input.limit, input.offset]
   );
   return toPage(rows);
 }

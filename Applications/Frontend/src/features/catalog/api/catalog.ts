@@ -25,7 +25,7 @@ export const catalogQueryOptions = (search: CatalogSearch) => {
   });
 };
 
-const categoriesSchema = z.object({
+export const categoriesSchema = z.object({
   categories: z.array(z.object({ name: z.string(), courseCount: z.number().int() })),
 });
 

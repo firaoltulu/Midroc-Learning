@@ -32,6 +32,14 @@ export const courseCreateSchema = z
   })
   .strict();
 
+/** The signed-out catalog: no title search, at most 12 courses a page. */
+export const publicCatalogQuerySchema = paginationSchema.extend({
+  pageSize: z.coerce.number().int().min(1).max(12).default(12),
+  category: z.string().trim().max(100).optional(),
+  language: courseLanguageSchema.optional(),
+  sort: catalogSortSchema.default('newest')
+});
+
 export const catalogQuerySchema = paginationSchema.extend({
   q: z.string().trim().max(200).optional(),
   category: z.string().trim().max(100).optional(),

@@ -61,7 +61,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 /**
  * Logo, Explore, the course search, My learning / My courses (and Administration for admins),
  * the language and theme switches and the user menu. Below `md` the links and the search move
- * into a drawer. Signed-out visitors have no destinations: only the logo and the switches.
+ * into a drawer. Signed-out visitors have no destinations: the logo, the switches, Sign in and
+ * Join for free (from `sm`).
  */
 function AppHeader() {
   const { t } = useTranslation('common');
@@ -152,6 +153,20 @@ function AppHeader() {
             <LanguageSwitcher />
             <ThemeModeSwitch />
             {signedIn ? <UserMenu /> : null}
+            {auth.status === 'signedOut' ? (
+              <>
+                <ButtonLink to="/login" variant="text" sx={{ flexShrink: 0 }}>
+                  {t('shell.signIn')}
+                </ButtonLink>
+                <ButtonLink
+                  to="/signup"
+                  variant="outlined"
+                  sx={{ flexShrink: 0, display: { xs: 'none', sm: 'inline-flex' } }}
+                >
+                  {t('shell.join')}
+                </ButtonLink>
+              </>
+            ) : null}
           </Toolbar>
         </Container>
       </AppBar>

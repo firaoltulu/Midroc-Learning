@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { mockPublicCatalog } from './support/mock-public';
 
 test('signed-out visitors are sent from a protected page to sign in, with a return path', async ({
   page,
@@ -34,4 +35,17 @@ test('the sign-in form validates before contacting Firebase', async ({ page }) =
 test('/verify-email needs a signed-in user', async ({ page }) => {
   await page.goto('/verify-email');
   await expect(page).toHaveURL(/\/login/);
+});
+
+test('signed-out visitors to / see the guest home page, and a course asks them to sign in', async ({
+  page,
+}) => {
+  await mockPublicCatalog(page);
+  await page.goto('/');
+  await expect(page).toHaveURL(/\/welcome$/);
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Learn practical skills, in English and Amharic' }),
+  ).toBeVisible();
+  await page.getByRole('link', { name: 'Workplace safety basics' }).click();
+  await expect(page).toHaveURL(/\/login\?redirect=%2Fcourses%2Fc1$/);
 });

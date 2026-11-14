@@ -41,6 +41,70 @@ paths:
                   status: { type: string, const: ok }
         default: { $ref: "#/components/responses/Error" }
 
+  /public/courses:
+    get:
+      summary: Published courses for signed-out visitors (the guest home page)
+      description: >-
+        No sign-in. Nothing about the viewer and no ids of people; the instructor's name is
+        shortened ("Sara T."). No title search; at most 12 courses a page.
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - in: query
+          name: pageSize
+          schema: { type: integer, minimum: 1, maximum: 12, default: 12 }
+        - in: query
+          name: category
+          schema: { type: string, maxLength: 100 }
+        - in: query
+          name: language
+          schema: { $ref: "#/components/schemas/CourseLanguage" }
+        - in: query
+          name: sort
+          schema: { type: string, enum: [newest, popular], default: newest }
+      responses:
+        "200":
+          description: A page of published courses.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/PageInfo"
+                  - type: object
+                    required: [items]
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: "#/components/schemas/PublicCourse" }
+        default: { $ref: "#/components/responses/Error" }
+
+  /public/courses/categories:
+    get:
+      summary: Categories used by published courses, for signed-out visitors
+      description: Same answer as `GET /courses/categories`, without sign-in.
+      security: []
+      responses:
+        "200":
+          description: Category names, sorted, with the number of published courses in each.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, categories]
+                properties:
+                  items:
+                    type: array
+                    items: { type: string }
+                  categories:
+                    type: array
+                    items:
+                      type: object
+                      required: [name, courseCount]
+                      properties:
+                        name: { type: string }
+                        courseCount: { type: integer, minimum: 1 }
+        default: { $ref: "#/components/responses/Error" }
+
   /me:
     get:
       summary: The signed-in user's profile (created on first call)
@@ -1572,6 +1636,41 @@ components:
               type: [number, "null"]
               description: Average learner rating (1-5, one decimal); null without ratings.
             ratingCount: { type: integer, minimum: 0 }
+    PublicCourse:
+      description: A published course as a signed-out visitor sees it (`GET /public/courses`).
+      type: object
+      required:
+        - id
+        - title
+        - description
+        - category
+        - language
+        - thumbnailUrl
+        - level
+        - estimatedDurationMinutes
+        - publishedAt
+        - ownerName
+        - moduleCount
+        - enrollmentCount
+        - ratingAverage
+        - ratingCount
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: string }
+        category: { type: [string, "null"] }
+        language: { $ref: "#/components/schemas/CourseLanguage" }
+        thumbnailUrl: { type: [string, "null"], format: uri }
+        level: { type: [string, "null"], enum: [beginner, intermediate, advanced, null] }
+        estimatedDurationMinutes: { type: [integer, "null"] }
+        publishedAt: { type: [string, "null"], format: date-time }
+        ownerName:
+          type: [string, "null"]
+          description: First name and last initial ("Sara T.").
+        moduleCount: { type: integer }
+        enrollmentCount: { type: integer }
+        ratingAverage: { type: [number, "null"] }
+        ratingCount: { type: integer, minimum: 0 }
     OwnedCourse:
       description: A course in its owner's list (`GET /me/courses`).
       allOf:

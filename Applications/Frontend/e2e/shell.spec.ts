@@ -107,8 +107,8 @@ test('unknown routes show the NotFound screen inside the shell', async ({ page }
   await expect(page.getByRole('heading', { level: 1, name: 'Page not found' })).toBeVisible();
   await expect(page.getByRole('banner')).toBeVisible();
   await page.getByRole('link', { name: 'Go to the home page' }).click();
-  // Home needs sign-in, so the link ends on the login page.
-  await expect(page).toHaveURL(/\/login/);
+  // Signed out, home is the guest home page.
+  await expect(page).toHaveURL(/\/welcome$/);
 });
 
 test.describe('mobile', () => {

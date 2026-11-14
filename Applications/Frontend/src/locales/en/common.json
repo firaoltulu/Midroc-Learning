@@ -18,7 +18,9 @@
     "pageTitle": "{{page}} – {{app}}",
     "searchLabel": "Find a course",
     "searchPlaceholder": "What do you want to learn?",
-    "searchSubmit": "Search"
+    "searchSubmit": "Search",
+    "signIn": "Sign in",
+    "join": "Join for free"
   },
   "nav": {
     "explore": "Explore",

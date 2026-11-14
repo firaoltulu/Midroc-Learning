@@ -19,6 +19,10 @@ export const courseKeys = {
   /** GET /courses (catalog) with its filters (search, category, language, page). */
   list: (filters: Filters) => [...courseKeys.lists(), filters] as const,
   categories: () => [...courseKeys.all, 'categories'] as const,
+  /** GET /public/courses (signed out: the guest home page). */
+  publicList: (filters: Filters) => [...courseKeys.all, 'public', filters] as const,
+  /** GET /public/courses/categories. */
+  publicCategories: () => [...courseKeys.all, 'public', 'categories'] as const,
   /** GET /courses/:id (learner-safe detail). */
   detail: (courseId: string) => [...courseKeys.all, courseId] as const,
   /** GET /courses/:id/reviews (pages of learner reviews). */
