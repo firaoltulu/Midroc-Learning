@@ -1,0 +1,6 @@
+# The inline script in index.html is allowed by its hash in the CSP: line endings must not change
+# on checkout. Files that run inside the Linux image stay LF too.
+index.html text eol=lf
+Dockerfile text eol=lf
+.dockerignore text eol=lf
+deploy/** text eol=lf

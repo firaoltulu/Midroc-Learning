@@ -1,0 +1,16 @@
+# Only what `npm run build` needs goes into the build context.
+node_modules
+dist
+coverage
+playwright-report
+test-results
+.tanstack
+.claude
+.vite
+*.tsbuildinfo
+# Local env files: the image is configured with --build-arg, never from a developer's .env.
+.env
+.env.*
+!.env.example
+docs
+*.log

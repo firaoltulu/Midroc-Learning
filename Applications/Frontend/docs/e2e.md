@@ -91,3 +91,47 @@ database. To walk the same six flows by hand (or to point new tests at a real st
    real YouTube links and network access; PDFs are stored under the backend's `PDF_ROOT`.
 
 On Windows (PowerShell), set the variables with `$env:NAME = 'value'` before each `npm run`.
+
+## CSP against real traffic
+
+`e2e/csp.emulator.spec.ts` checks the Content-Security-Policy from
+`deploy/nginx.conf.example` with real third-party traffic: the YouTube IFrame API and player,
+an https thumbnail (`i.ytimg.com`), the pdf.js worker and a `blob:` download link, plus the
+inline color-mode script in `index.html` (allowed by its hash). Any CSP violation fails it.
+Only the API is mocked. It needs the internet, so it is opt-in:
+
+```sh
+E2E_CSP=1 npm run e2e:emulator        # PowerShell: $env:E2E_CSP='1'; npm run e2e:emulator
+```
+
+Against `vite preview` the test applies the policy from `nginx.conf.example` itself. The test
+adds one thing to the policy: the emulator's origin (in `connect-src` and `frame-src`), since
+production signs in through Google's origins instead. It also turns off Chrome's Local
+Network Access checks, which would otherwise block calls from the test-served page to the
+emulator on `127.0.0.1`.
+
+### Against the Docker image
+
+To check the header nginx actually serves, build the image for the emulator and point the
+test at it (`E2E_BASE_URL` skips the local build; the test then requires the header):
+
+```sh
+docker build -t midroc-frontend:e2e \
+  --build-arg VITE_FIREBASE_API_KEY=e2e-api-key \
+  --build-arg VITE_FIREBASE_AUTH_DOMAIN=e2e.firebaseapp.com \
+  --build-arg VITE_FIREBASE_PROJECT_ID=demo-midroc \
+  --build-arg VITE_FIREBASE_APP_ID=e2e-app-id \
+  --build-arg VITE_FIREBASE_EMULATOR=127.0.0.1:9099 .
+docker run --rm -d -p 8080:80 --add-host api:127.0.0.1 --name midroc-e2e midroc-frontend:e2e
+
+E2E_CSP=1 E2E_BASE_URL=http://localhost:8080 \n  npx -y firebase-tools@15 emulators:exec --only auth --project demo-midroc "npx playwright test csp"
+```
+
+The API is mocked by the test, so `api` only has to resolve for nginx to start.
+
+### Google sign-in
+
+The Google popup can't be automated without a real account. It was checked by hand: a build
+with a real Firebase project's config, the policy applied, "Continue with Google" clicked. The
+popup opened (Google's sign-in page), Firebase's auth iframe loaded, and the page reported no
+violations. Repeat this after changing `script-src`, `connect-src` or `frame-src`.

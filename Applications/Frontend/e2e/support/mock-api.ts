@@ -150,6 +150,10 @@ export function makePdf(pages: number): Buffer {
 export interface MockApiOptions {
   /** item-1's video plays (with the fake YouTube API, see youtube-fake.ts). Default: unavailable. */
   videoAvailable?: boolean;
+  /** item-1's YouTube id (default: a placeholder, fine with the fake API). */
+  youtubeVideoId?: string;
+  /** Every course gets this thumbnail (default: none, the branded fallback). */
+  thumbnailUrl?: string;
 }
 
 export async function mockApi(
@@ -168,7 +172,11 @@ export async function mockApi(
     scorePercent: number | null;
     passed: boolean | null;
   }[] = [];
-  const withState = (c: ReturnType<typeof course>) => ({ ...c, enrolled: enrolled.has(c.id) });
+  const withState = (c: ReturnType<typeof course>) => ({
+    ...c,
+    thumbnailUrl: options.thumbnailUrl ?? c.thumbnailUrl,
+    enrolled: enrolled.has(c.id),
+  });
 
   const handle = async (route: Route) => {
     const request = route.request();
@@ -285,7 +293,7 @@ export async function mockApi(
       const saved = progress.filter((entry) => entry.itemId === 'item-1').at(-1)?.body as
         { lastPositionSeconds?: number } | undefined;
       return json({
-        youtubeVideoId: 'abcdefghijk',
+        youtubeVideoId: options.youtubeVideoId ?? 'abcdefghijk',
         youtubeTitle: options.videoAvailable ? 'Welcome to safety' : null,
         isAvailable: Boolean(options.videoAvailable),
         lastPositionSeconds: saved?.lastPositionSeconds ?? 0,

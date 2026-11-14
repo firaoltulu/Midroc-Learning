@@ -1,4 +1,5 @@
-// Validate the environment before anything else runs.
+// zod settings first (the env check below uses zod), then validate the environment.
+import './shared/lib/zod-config';
 import './shared/lib/env';
 
 import { StrictMode } from 'react';

@@ -7,6 +7,25 @@
     <link rel="icon" href="/favicon.png" type="image/png" sizes="any" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>Midroc Learning</title>
+    <!--
+      Applies the saved color mode before the app loads, so dark-mode users don't see a light
+      flash. Mirrors MUI's InitColorSchemeScript (storage key midroc.color-mode, attribute
+      data-light / data-dark). The CSP in deploy/nginx.conf.example allows it by hash: after
+      editing it, update the hash there (src/app/csp.test.ts fails until you do).
+    -->
+    <script>
+      (function () {
+        try {
+          var mode = localStorage.getItem('midroc.color-mode') || 'system';
+          if (mode === 'system') {
+            mode = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          }
+          if (mode === 'light' || mode === 'dark') {
+            document.documentElement.setAttribute('data-' + mode, '');
+          }
+        } catch (error) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

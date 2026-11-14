@@ -52,9 +52,11 @@ export default defineConfig(({ mode }) => {
                 // Framework code every page needs: one cacheable chunk instead of dozens of
                 // small shared ones (better compression, fewer requests). MUI components and
                 // feature code stay split per route.
+                // src/shared/lib/zod-config.ts rides along: zod's settings must apply before
+                // any chunk builds a schema, and this chunk runs before all app code.
                 name: 'framework',
                 test: new RegExp(
-                  `node_modules/(${FRAMEWORK_PACKAGES.map((name) => name.replace('/', '\\/')).join('|')})/`,
+                  `node_modules/(${FRAMEWORK_PACKAGES.map((name) => name.replace('/', '\\/')).join('|')})/|src/shared/lib/zod-config\\.ts$`,
                 ),
               },
             ],

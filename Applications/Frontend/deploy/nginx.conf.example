@@ -1,0 +1,107 @@
+# Midroc Learning frontend: one server block that serves the built SPA (dist/) and proxies the
+# REST API on the same domain (so the browser never needs CORS).
+#
+# In the Docker image this file is an nginx *template* (/etc/nginx/templates/), so these
+# variables are filled from the container environment at start-up:
+#   API_UPSTREAM          where the backend listens, e.g. http://api:3000 (no trailing slash)
+#   FIREBASE_AUTH_DOMAIN  the Firebase authDomain the build uses, e.g. my-project.firebaseapp.com
+# Outside Docker, replace them by hand and include the file inside the `http { }` block.
+#
+# Brotli: the stock nginx image has no brotli module. Assets are pre-compressed with gzip at
+# build time (gzip_static); for brotli use an nginx build with ngx_brotli and add
+# `brotli on; brotli_static on; brotli_types ...;`, or let your CDN / load balancer do it.
+
+# Hashed build output never changes: cache it for a year. index.html must always be revalidated
+# so a deploy is picked up on the next navigation. API responses keep the backend's own headers.
+map $uri $cache_control {
+  ~^/assets/  "public, max-age=31536000, immutable";
+  ~^/api/     "";
+  default     "no-cache";
+}
+
+server {
+  listen 80;
+  server_name _;
+  root /usr/share/nginx/html;
+
+  server_tokens off;
+  charset utf-8;
+
+  # ---- Compression -------------------------------------------------------------------------
+  gzip on;
+  gzip_static on;
+  gzip_vary on;
+  gzip_comp_level 6;
+  gzip_min_length 1024;
+  gzip_proxied any;
+  gzip_types text/css text/plain application/javascript application/json image/svg+xml
+    application/manifest+json;
+
+  # ---- Headers -----------------------------------------------------------------------------
+  add_header Cache-Control $cache_control always;
+
+  # Content-Security-Policy (verified against real traffic: see the README, "Deployment").
+  #   script-src   the inline color-mode script in index.html (hash; update it when that
+  #                script changes), the YouTube IFrame API, Google's API loader that Firebase
+  #                uses for the sign-in popup/redirect.
+  #   style-src    'unsafe-inline': MUI (Emotion) injects <style> elements at run time.
+  #   img-src      course thumbnails are any https URL the owner entered.
+  #   connect-src  same-origin API plus Firebase Auth's REST endpoints.
+  #   frame-src    YouTube players (privacy-enhanced domain) and Firebase's auth iframe.
+  #   worker-src   pdf.js runs its worker from our own assets.
+  # Add `upgrade-insecure-requests` once the site is served over HTTPS only.
+  add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'sha256-bEGlakZuegcfI0KthQAP2v6++He4jiusHMZBAbzX4bI=' https://www.youtube.com https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; frame-src https://www.youtube-nocookie.com https://${FIREBASE_AUTH_DOMAIN}; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'" always;
+  add_header X-Content-Type-Options "nosniff" always;
+  add_header X-Frame-Options "DENY" always;
+  # YouTube refuses to play embeds that arrive without a referrer, so don't use no-referrer.
+  add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+  # Google sign-in (signInWithPopup) talks to its popup window: same-origin would break it.
+  add_header Cross-Origin-Opener-Policy "same-origin-allow-popups" always;
+  add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()" always;
+  # Enable once HTTPS is in place (and only then):
+  # add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+
+  # ---- REST API (same domain) --------------------------------------------------------------
+  # PDF uploads are up to 50 MB (the backend's limit) plus multipart overhead.
+  location = /api/pdf-uploads {
+    client_max_body_size 51m;
+    proxy_pass ${API_UPSTREAM};
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+
+  location /api/ {
+    proxy_pass ${API_UPSTREAM};
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+
+  # With the backend's PDF_DELIVERY=x-accel (its production default) the API answers a PDF
+  # request with X-Accel-Redirect and nginx streams the file from the shared PDF volume.
+  # Mount that volume here read-only, or run the backend with PDF_DELIVERY=stream.
+  location /protected-pdfs/ {
+    internal;
+    alias /var/lib/lms/pdfs/;
+  }
+
+  # ---- The app -----------------------------------------------------------------------------
+  # A missing hashed file is a real 404 (never index.html, which would load as broken JS).
+  location /assets/ {
+    try_files $uri =404;
+  }
+
+  # Every other path is a client-side route.
+  location / {
+    try_files $uri /index.html;
+  }
+
+  # Optional: serve Firebase's auth helper from this domain (set VITE_FIREBASE_AUTH_DOMAIN to
+  # this site's host). Recommended by Firebase so the redirect sign-in keeps working in
+  # browsers that block third-party storage (Safari, Firefox). Needs outbound DNS at start-up.
+  # location /__/auth/ {
+  #   proxy_pass https://<project-id>.firebaseapp.com;
+  #   proxy_ssl_server_name on;
+  # }
+}
