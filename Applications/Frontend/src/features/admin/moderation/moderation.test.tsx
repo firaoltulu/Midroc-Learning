@@ -248,6 +248,47 @@ describe('revision review', () => {
     expect(within(tree).getAllByText('New')).toHaveLength(1);
   });
 
+  it('shows changed outcomes one per line, old and proposed', async () => {
+    server.use(
+      http.get(api('/admin/revisions/revision-1'), () =>
+        HttpResponse.json(
+          reviewBody({
+            changes: [
+              {
+                kind: 'edited',
+                target: 'course',
+                title: 'Workplace safety basics',
+                fields: ['outcomes'],
+              },
+            ],
+            diff: {
+              course: {
+                before: { title: 'Workplace safety basics', outcomes: ['Spot hazards'] },
+                after: {
+                  title: 'Workplace safety basics',
+                  outcomes: ['Spot hazards', 'Report an incident'],
+                },
+              },
+              modules: { before: live, after: live },
+            },
+          }),
+        ),
+      ),
+    );
+    mockQueue();
+    await renderRoute('/admin/moderation/revisions/revision-1', { as: 'admin' });
+    const details = await screen.findByRole('region', { name: 'Course details' });
+    expect(within(details).getByText("What you'll learn")).toBeVisible();
+    const proposed = within(details)
+      .getByText(/Report an incident/)
+      .closest('[data-tone]');
+    expect(proposed).toHaveAttribute('data-tone', 'added');
+    expect(proposed).toHaveTextContent('Spot hazards\nReport an incident', {
+      normalizeWhitespace: false,
+    });
+    expect(within(details).queryByText('Title')).not.toBeInTheDocument();
+  });
+
   it('a stale revision can only be rejected', async () => {
     mockRevision(() => apiError(409, { code: 'STALE_REVISION' }));
     const { user } = await renderRoute('/admin/moderation/revisions/revision-1', { as: 'admin' });

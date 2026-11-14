@@ -279,7 +279,8 @@
       "passingScorePercent": "የማለፊያ ውጤት",
       "maxAttempts": "የተፈቀዱ ሙከራዎች",
       "timeLimitMinutes": "የጊዜ ገደብ",
-      "questions": "ጥያቄዎች"
+      "questions": "ጥያቄዎች",
+      "outcomes": "የሚማሩት"
     },
     "before": "አሁን",
     "after": "የቀረበው",

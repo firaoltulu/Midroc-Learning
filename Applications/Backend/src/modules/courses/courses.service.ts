@@ -9,9 +9,9 @@ import type { Course } from './courses.types.js';
 import type { CourseFields } from './courses.types.js';
 
 export const FIELD_POLICY = {
-  // Presentation details apply right away; what the course teaches and how it reads needs review.
-  minor: ['thumbnailUrl', 'tags', 'estimatedDurationMinutes', 'level', 'outcomes', 'skills'],
-  major: ['title', 'description', 'category', 'language']
+  // Presentation details apply right away; what the course teaches and promises needs review.
+  minor: ['thumbnailUrl', 'tags', 'estimatedDurationMinutes', 'level', 'skills'],
+  major: ['title', 'description', 'category', 'language', 'outcomes']
 } as const;
 
 export async function createCourse(actor: Actor, input: CourseCreateInput): Promise<Course> {

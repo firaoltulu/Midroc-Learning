@@ -62,7 +62,8 @@ interface Revision {
   modules: Module[];
 }
 
-const MAJOR_FIELDS = ['title', 'description', 'category', 'language'] as const;
+/** Mirrors the backend's FIELD_POLICY.major. */
+const MAJOR_FIELDS = ['title', 'description', 'category', 'language', 'outcomes'] as const;
 
 /** A course in the published editor's RevisionInput tree, as sent by the client. */
 interface TreeModule {
@@ -169,7 +170,10 @@ export async function mockAuthoring(
   ) => {
     const changes: Record<string, unknown>[] = [];
     const fields = MAJOR_FIELDS.filter(
-      (field) => field in revision.course && revision.course[field] !== entry.course[field],
+      (field) =>
+        field in revision.course &&
+        JSON.stringify(revision.course[field]) !==
+          JSON.stringify(entry.course[field] ?? (field === 'outcomes' ? [] : null)),
     );
     if (fields.length) {
       changes.push({
@@ -345,7 +349,12 @@ export async function mockAuthoring(
       const revision = revisions.get(match[1]);
       const entry = revision ? courses.get(revision.courseId) : undefined;
       if (!revision || !entry) return json({ error: 'Not found', code: 'NOT_FOUND' }, 404);
-      const before = Object.fromEntries(MAJOR_FIELDS.map((field) => [field, entry.course[field]]));
+      const before = Object.fromEntries(
+        MAJOR_FIELDS.map((field) => [
+          field,
+          entry.course[field] ?? (field === 'outcomes' ? [] : null),
+        ]),
+      );
       return json({
         id: revision.id,
         courseId: revision.courseId,

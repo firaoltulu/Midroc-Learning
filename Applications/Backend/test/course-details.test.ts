@@ -128,18 +128,66 @@ describe('course details, catalog sort, category counts and enrollment progress'
     expect(await plain.json()).toMatchObject({ level: null, outcomes: [], skills: [] });
 
     const live = await publishedCourse('Live course');
+    // Level and skills apply to a published course right away.
     const patched = await fetch(`${base}/courses/${live.id}`, {
       method: 'PATCH',
       headers: json(ownerId),
-      body: JSON.stringify({ level: 'advanced', outcomes: ['Lead a team'], skills: ['Leadership'] })
+      body: JSON.stringify({ level: 'advanced', skills: ['Leadership'] })
     });
     expect(patched.status, await patched.clone().text()).toBe(200);
     const detail = await fetch(`${base}/courses/${live.id}`, { headers: asUser(learnerId).headers });
-    expect(await detail.json()).toMatchObject({
-      level: 'advanced',
-      outcomes: ['Lead a team'],
-      skills: ['Leadership']
+    expect(await detail.json()).toMatchObject({ level: 'advanced', skills: ['Leadership'] });
+  });
+
+  it('outcomes of a published course change only through a reviewed revision', async () => {
+    const live = await publishedCourse('Live course');
+    const direct = await fetch(`${base}/courses/${live.id}`, {
+      method: 'PATCH',
+      headers: json(ownerId),
+      body: JSON.stringify({ outcomes: ['Lead a team'] })
     });
+    expect(direct.status).toBe(409);
+    expect(await direct.json()).toMatchObject({ code: 'REVISION_REQUIRED' });
+
+    // The same list as live: nothing to review.
+    const unchanged = await fetch(`${base}/courses/${live.id}/revision`, {
+      method: 'PUT',
+      headers: json(ownerId),
+      body: JSON.stringify({ course: { outcomes: [] } })
+    });
+    expect(await unchanged.json()).toMatchObject({ saved: false, unchanged: true });
+
+    const saved = await fetch(`${base}/courses/${live.id}/revision`, {
+      method: 'PUT',
+      headers: json(ownerId),
+      body: JSON.stringify({ course: { outcomes: ['Lead a team', 'Run a meeting'] } })
+    });
+    expect(saved.status, await saved.clone().text()).toBe(200);
+    const body = (await saved.json()) as {
+      revision: { id: string };
+      changes: Array<{ kind: string; target: string; fields?: string[] }>;
+    };
+    expect(body.changes).toEqual([
+      expect.objectContaining({ kind: 'edited', target: 'course', fields: ['outcomes'] })
+    ]);
+    // Still the live list until an administrator approves.
+    const before = await fetch(`${base}/courses/${live.id}`, { headers: asUser(learnerId).headers });
+    expect(await before.json()).toMatchObject({ outcomes: [] });
+
+    await db.query(`UPDATE users SET role = 'admin' WHERE id = $1`, [otherId]);
+    const review = await fetch(`${base}/admin/revisions/${body.revision.id}`, {
+      headers: asUser(otherId, 'admin').headers
+    });
+    expect(await review.json()).toMatchObject({
+      diff: { course: { before: { outcomes: [] }, after: { outcomes: ['Lead a team', 'Run a meeting'] } } }
+    });
+    const approved = await fetch(`${base}/admin/revisions/${body.revision.id}/approve`, {
+      method: 'POST',
+      headers: asUser(otherId, 'admin').headers
+    });
+    expect(approved.status, await approved.clone().text()).toBe(204);
+    const after = await fetch(`${base}/courses/${live.id}`, { headers: asUser(learnerId).headers });
+    expect(await after.json()).toMatchObject({ outcomes: ['Lead a team', 'Run a meeting'] });
   });
 
   it('sorts the catalog by newest (default) or by enrollments, and counts courses per category', async () => {

@@ -29,14 +29,21 @@ function assertPublished(status: string): void {
   if (status !== 'published') throw new Conflict('Only published courses can have revisions', 'LOCKED');
 }
 
-function revisionCourse(course: Course): Pick<Course, 'title' | 'description' | 'category' | 'language'> {
+/** The major course fields (see FIELD_POLICY): what a revision may change. */
+function revisionCourse(
+  course: Course
+): Pick<Course, 'title' | 'description' | 'category' | 'language' | 'outcomes'> {
   return {
     title: course.title,
     description: course.description,
     category: course.category,
-    language: course.language
+    language: course.language,
+    outcomes: course.outcomes
   };
 }
+
+/** Equal field values, lists (outcomes) included. */
+const sameValue = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
 
 /**
  * The revision's data as approving it would apply it: module and item titles changed directly
@@ -123,7 +130,7 @@ export async function saveCourseRevision(
       const current = revisionCourse(course);
       for (const [key, value] of Object.entries(input.course)) {
         if (value === undefined) continue;
-        if (value === current[key as keyof typeof current]) delete data.course[key];
+        if (sameValue(value, current[key as keyof typeof current])) delete data.course[key];
         else data.course[key] = value;
       }
     }

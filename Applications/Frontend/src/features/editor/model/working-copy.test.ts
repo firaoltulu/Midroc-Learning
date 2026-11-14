@@ -39,7 +39,7 @@ describe('field effects (one constant)', () => {
       tags: 'immediate',
       estimatedDurationMinutes: 'immediate',
       level: 'immediate',
-      outcomes: 'immediate',
+      outcomes: 'review',
       skills: 'immediate',
     });
     expect(fieldEffect('module', 'title')).toBe('immediate');
@@ -157,6 +157,7 @@ describe('ids', () => {
       description: 'Ready.',
       category: null,
       language: 'en',
+      outcomes: '',
     });
     const input = toRevisionInput(copy);
     expect(input.modules).toEqual([
@@ -215,6 +216,42 @@ describe('change summary', () => {
     ]);
     expect(summarizeCopy(live, live)).toEqual([]);
     expect(sameCopy(live, fromLive(view()))).toBe(true);
+  });
+});
+
+describe('"What you\'ll learn" on a published course', () => {
+  it('is edited as lines, submitted as a list, and restored from a pending revision', () => {
+    const live = view({ outcomes: ['Spot hazards'] });
+    const store = storeFor(live);
+    expect(store.getState().copy.course.outcomes).toBe('Spot hazards');
+
+    store.getState().setCourse({ outcomes: 'Spot hazards\n\n  Report an incident  \n' });
+    const copy = store.getState().copy;
+    expect(toRevisionInput(copy).course.outcomes).toEqual(['Spot hazards', 'Report an incident']);
+    expect(summarizeCopy(copy, fromLive(live))).toEqual([
+      expect.objectContaining({ kind: 'edited', target: 'course' }),
+    ]);
+
+    const revision = courseRevisionSchema.parse({
+      id: 'r1',
+      courseId: 'course-1',
+      status: 'pending',
+      submittedAt: '2026-11-12T09:00:00.000Z',
+      data: { course: { outcomes: ['Spot hazards', 'Use a fire extinguisher'] } },
+    });
+    expect(fromRevision(live, revision).course.outcomes).toBe(
+      'Spot hazards\nUse a fire extinguisher',
+    );
+  });
+
+  it('too many outcomes block submitting', () => {
+    const store = storeFor();
+    store.getState().setCourse({
+      outcomes: Array.from({ length: 13 }, (_, index) => `Outcome ${String(index)}`).join('\n'),
+    });
+    expect(copyProblems(store.getState().copy).map((problem) => problem.message)).toContain(
+      'editor:details.errors.tooManyOutcomes',
+    );
   });
 });
 

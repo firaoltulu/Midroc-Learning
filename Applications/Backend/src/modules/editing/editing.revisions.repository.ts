@@ -1,7 +1,8 @@
 import type { Queryable } from '../../core/db/pool.js';
 
 export type RevisionData = {
-  course: Record<string, string | null>;
+  /** Proposed major course fields (strings; `outcomes` is a list). */
+  course: Record<string, string | string[] | null>;
   modules?: import('../content/index.js').RevisionTree['modules'];
   base?: import('../content/index.js').RevisionBase;
   /** Live module and item titles when the tree was saved (see revision-live-fields). */

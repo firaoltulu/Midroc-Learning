@@ -6,13 +6,15 @@ import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { RevisionReview } from '../api/moderation';
 
-const COURSE_DIFF_FIELDS = ['title', 'description', 'category', 'language'] as const;
+const COURSE_DIFF_FIELDS = ['title', 'description', 'category', 'language', 'outcomes'] as const;
 type DiffField = (typeof COURSE_DIFF_FIELDS)[number];
 type CourseFields = RevisionReview['diff']['course']['before'];
 
 /** The fields whose value the revision changes. */
 function changedCourseFields(before: CourseFields, after: CourseFields): DiffField[] {
-  return COURSE_DIFF_FIELDS.filter((field) => (before[field] ?? null) !== (after[field] ?? null));
+  return COURSE_DIFF_FIELDS.filter(
+    (field) => JSON.stringify(before[field] ?? null) !== JSON.stringify(after[field] ?? null),
+  );
 }
 
 /**
@@ -31,7 +33,9 @@ export function CourseFieldDiff({
   const { t } = useTranslation(['admin', 'common']);
   const fields = changedCourseFields(before, after);
 
-  const display = (field: DiffField, value: string | null | undefined) => {
+  const display = (field: DiffField, value: string | string[] | null | undefined) => {
+    // Outcomes: one per line (the box keeps line breaks).
+    if (Array.isArray(value)) return value.length ? value.join('\n') : t('review.none');
     if (value == null || value === '') return t('review.none');
     if (field === 'language' && (value === 'en' || value === 'am'))
       return t(`common:languages.${value}`);
@@ -44,7 +48,7 @@ export function CourseFieldDiff({
   return (
     <Stack component="dl" spacing={2} sx={{ m: 0 }}>
       {fields.map((field) => {
-        const userText = field === 'title' || field === 'description' || field === 'category';
+        const userText = field !== 'language';
         return (
           <Box key={field}>
             <Typography component="dt" sx={{ fontWeight: 600, mb: 0.5 }}>

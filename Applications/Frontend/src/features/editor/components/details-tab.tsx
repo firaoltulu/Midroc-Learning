@@ -21,6 +21,7 @@ import { useAutosave } from '../hooks/use-autosave';
 import { useKeyText } from '../lib/key-text';
 import { useSaveErrorText } from '../lib/save-error';
 import { COURSE_LIMITS, tooLong } from '../model/limits';
+import { outcomesProblem, outcomesText, toOutcomes } from '../model/outcomes';
 import { useEffectHint } from '../lib/effect-hint';
 import { fieldEffect, type FieldEffect } from '../model/field-effects';
 import { useWorkingCopy } from '../model/working-copy-store';
@@ -35,22 +36,6 @@ const requiredWithin = (max: number) => (value: string) =>
 
 const durationProblem = (value: string) =>
   value.trim() === '' || /^\d+$/.test(value.trim()) ? null : 'editor:details.errors.duration';
-
-/** "What you'll learn": one outcome per line; empty lines are dropped. */
-const toOutcomes = (value: string) =>
-  value
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-const outcomesProblem = (value: string) => {
-  const outcomes = toOutcomes(value);
-  if (outcomes.length > COURSE_LIMITS.outcomes) return 'editor:details.errors.tooManyOutcomes';
-  if (outcomes.some((outcome) => outcome.length > COURSE_LIMITS.outcome)) {
-    return 'editor:details.errors.outcomeTooLong';
-  }
-  return null;
-};
 
 const thumbnailProblem = (value: string) =>
   value.trim() === '' || isHttpUrl(value.trim()) ? null : 'validation:HTTP_URL_REQUIRED.default';
@@ -116,17 +101,21 @@ export function DetailsTab({
           slotProps={{ htmlInput: { inputMode: 'numeric' } }}
         />
       </Box>
-      <AutosaveTextField
-        slot="course.outcomes"
-        label={t('details.outcomes')}
-        hint={minor(t('details.outcomesHint', { max: COURSE_LIMITS.outcomes }))}
-        savedValue={course.outcomes.join('\n')}
-        save={(value) => save({ outcomes: toOutcomes(value) })}
-        validate={outcomesProblem}
-        readOnly={readOnly}
-        multiline
-        minRows={4}
-      />
+      {published ? (
+        <WorkingOutcomes readOnly={readOnly} />
+      ) : (
+        <AutosaveTextField
+          slot="course.outcomes"
+          label={t('details.outcomes')}
+          hint={t('details.outcomesHint', { max: COURSE_LIMITS.outcomes })}
+          savedValue={outcomesText(course.outcomes)}
+          save={(value) => save({ outcomes: toOutcomes(value) })}
+          validate={outcomesProblem}
+          readOnly={readOnly}
+          multiline
+          minRows={4}
+        />
+      )}
       <ChipListField
         slot="course.skills"
         label={t('details.skills')}
@@ -308,6 +297,31 @@ function WorkingMajorFields({ readOnly }: { readOnly: boolean }) {
         </TextField>
       </Box>
     </>
+  );
+}
+
+/** Published courses: "What you'll learn" edits the working copy (sent for review). */
+function WorkingOutcomes({ readOnly }: { readOnly: boolean }) {
+  const { t } = useTranslation('editor');
+  const effectHint = useEffectHint();
+  const outcomes = useWorkingCopy((state) => state.copy.course.outcomes);
+  const setCourse = useWorkingCopy((state) => state.setCourse);
+  return (
+    <FormTextField
+      label={t('details.outcomes')}
+      value={outcomes}
+      disabled={readOnly}
+      multiline
+      minRows={4}
+      onChange={(event) => {
+        setCourse({ outcomes: event.target.value });
+      }}
+      errorKey={outcomesProblem(outcomes) ?? undefined}
+      hint={effectHint(
+        fieldEffect('course', 'outcomes'),
+        t('details.outcomesHint', { max: COURSE_LIMITS.outcomes }),
+      )}
+    />
   );
 }
 

@@ -138,6 +138,7 @@ describe('published course: the revision payload', () => {
       description: 'Hazards and what to do.',
       category: 'Safety',
       language: 'en',
+      outcomes: [],
     });
     expect(body.modules).toEqual([
       {

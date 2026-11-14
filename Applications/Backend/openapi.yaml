@@ -169,8 +169,8 @@ paths:
       summary: Edit course fields
       description: >-
         Draft and rejected courses: any field. Published courses: only minor fields
-        (`thumbnailUrl`, `tags`, `estimatedDurationMinutes`, `level`, `outcomes`, `skills`) for the
-        owner; major fields need a
+        (`thumbnailUrl`, `tags`, `estimatedDurationMinutes`, `level`, `skills`) for the owner;
+        major fields (`title`, `description`, `category`, `language`, `outcomes`) need a
         revision (`REVISION_REQUIRED`). Administrators may edit any field.
       requestBody:
         required: true
@@ -1821,6 +1821,7 @@ components:
             description: { type: string, maxLength: 20000 }
             category: { type: [string, "null"], maxLength: 100 }
             language: { $ref: "#/components/schemas/CourseLanguage" }
+            outcomes: { $ref: "#/components/schemas/CourseOutcomes" }
         modules:
           type: array
           minItems: 1
@@ -1847,7 +1848,7 @@ components:
             course:
               type: object
               additionalProperties: true
-              description: Changed major fields only.
+              description: Changed major fields only (`outcomes` is a list of strings).
             modules:
               type: array
               description: The proposed tree (video items carry the verified youtubeVideoId).

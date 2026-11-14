@@ -13,6 +13,7 @@ import {
   validateQuestions,
   type QuestionDraft,
 } from './questions';
+import { outcomesProblem, outcomesText, toOutcomes } from './outcomes';
 
 /**
  * The working copy of a published course (spec section 8): every edit happens here first and
@@ -29,6 +30,8 @@ export interface WorkingCourse {
   description: string;
   category: string | null;
   language: CourseLanguage;
+  /** "What you'll learn" as edited: one outcome per line (see outcomes.ts). */
+  outcomes: string;
 }
 
 export interface WorkingVideo {
@@ -84,6 +87,7 @@ const majorFields = (view: AuthoringView): WorkingCourse => ({
   description: view.course.description,
   category: view.course.category,
   language: view.course.language,
+  outcomes: outcomesText(view.course.outcomes),
 });
 
 const optional = (value: number | null | undefined) => (value == null ? '' : String(value));
@@ -165,6 +169,11 @@ export function fromRevision(view: AuthoringView, revision: CourseRevision): Wor
       proposed.language === 'en' || proposed.language === 'am'
         ? proposed.language
         : live.course.language,
+    outcomes: Array.isArray(proposed.outcomes)
+      ? outcomesText(
+          proposed.outcomes.filter((entry): entry is string => typeof entry === 'string'),
+        )
+      : live.course.outcomes,
   };
   if (!revision.data.modules) return { course, modules: live.modules };
 
@@ -314,6 +323,7 @@ export function toRevisionInput(copy: WorkingCopy): RevisionInput {
       description: copy.course.description,
       category: copy.course.category?.trim() ? copy.course.category.trim() : null,
       language: copy.course.language,
+      outcomes: toOutcomes(copy.course.outcomes),
     },
     modules: copy.modules.map((module) => ({
       ...withId(module.id),
@@ -352,6 +362,8 @@ export function copyProblems(copy: WorkingCopy): CopyProblem[] {
   if ((copy.course.category ?? '').length > COURSE_LIMITS.category) {
     add('course', 'category', 'editor:field.tooLong');
   }
+  const outcomes = outcomesProblem(copy.course.outcomes);
+  if (outcomes) add('course', 'outcomes', outcomes);
   if (copy.modules.length === 0) add('course', 'modules', 'editor:working.problems.noModules');
 
   for (const module of copy.modules) {

@@ -116,6 +116,7 @@ const courseFieldsSchema = z
     description: z.string().optional(),
     category: z.string().nullable().optional(),
     language: z.string().optional(),
+    outcomes: z.array(z.string()).optional(),
   })
   .loose();
 

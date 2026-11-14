@@ -339,7 +339,7 @@ export interface paths {
         head?: never;
         /**
          * Edit course fields
-         * @description Draft and rejected courses: any field. Published courses: only minor fields (`thumbnailUrl`, `tags`, `estimatedDurationMinutes`, `level`, `outcomes`, `skills`) for the owner; major fields need a revision (`REVISION_REQUIRED`). Administrators may edit any field.
+         * @description Draft and rejected courses: any field. Published courses: only minor fields (`thumbnailUrl`, `tags`, `estimatedDurationMinutes`, `level`, `skills`) for the owner; major fields (`title`, `description`, `category`, `language`, `outcomes`) need a revision (`REVISION_REQUIRED`). Administrators may edit any field.
          */
         patch: {
             parameters: {
@@ -2859,6 +2859,7 @@ export interface components {
                 description?: string;
                 category?: string | null;
                 language?: components["schemas"]["CourseLanguage"];
+                outcomes?: components["schemas"]["CourseOutcomes"];
             };
             modules?: components["schemas"]["RevisionTreeModule"][];
         };
@@ -2868,7 +2869,7 @@ export interface components {
             /** Format: uuid */
             courseId: string;
             data: {
-                /** @description Changed major fields only. */
+                /** @description Changed major fields only (`outcomes` is a list of strings). */
                 course: {
                     [key: string]: unknown;
                 };

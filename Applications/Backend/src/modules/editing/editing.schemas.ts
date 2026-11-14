@@ -35,7 +35,8 @@ const revisionCourseSchema = z.object({
   title: z.string().trim().min(1).max(200).optional(),
   description: z.string().max(20_000).optional(),
   category: z.string().trim().max(100).nullable().optional(),
-  language: courseLanguageSchema.optional()
+  language: courseLanguageSchema.optional(),
+  outcomes: courseOutcomesSchema.optional()
 }).strict();
 
 export const courseRevisionPutSchema = z.object({

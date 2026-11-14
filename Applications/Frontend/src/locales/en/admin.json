@@ -279,7 +279,8 @@
       "passingScorePercent": "Passing score",
       "maxAttempts": "Attempts allowed",
       "timeLimitMinutes": "Time limit",
-      "questions": "Questions"
+      "questions": "Questions",
+      "outcomes": "What you'll learn"
     },
     "before": "Now",
     "after": "Proposed",

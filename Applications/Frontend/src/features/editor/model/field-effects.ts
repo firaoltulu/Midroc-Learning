@@ -16,7 +16,7 @@ export const FIELD_EFFECTS = {
     tags: 'immediate',
     estimatedDurationMinutes: 'immediate',
     level: 'immediate',
-    outcomes: 'immediate',
+    outcomes: 'review',
     skills: 'immediate',
   },
   module: {

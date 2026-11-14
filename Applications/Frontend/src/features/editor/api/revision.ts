@@ -146,6 +146,7 @@ export interface RevisionInput {
     description: string;
     category: string | null;
     language: 'en' | 'am';
+    outcomes: string[];
   };
   modules: RevisionTreeModule[];
 }
