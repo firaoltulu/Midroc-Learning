@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Learning Platform API
-  version: 1.4.0
+  version: 1.4.1
   description: |
     REST API of the learning platform. All endpoints except /health need a Firebase ID token
     (`Authorization: Bearer <token>`).
@@ -642,6 +642,12 @@ paths:
         Merges into the pending revision (creating one if needed). `course` holds major field
         changes; `modules` is the complete proposed tree. Existing modules, items, questions and
         choices keep their `id`; new ones have none.
+
+
+        Module titles and descriptions and item titles of live content can also be edited
+        directly (PATCH) while a revision is pending. A value edited that way after the tree was
+        saved wins over the revision's: the revision as returned, its summary and approving it
+        all use the live value, so approving never reverts such an edit.
       requestBody:
         required: true
         content:

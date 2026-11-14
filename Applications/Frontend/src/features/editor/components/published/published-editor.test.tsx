@@ -3,6 +3,7 @@ import { mockAuthoringApi } from '../../../../test/authoring-api';
 import { authoringFixture } from '../../../../test/fixtures';
 import { apiError } from '../../../../test/msw';
 import { renderRoute } from '../../../../test/render';
+import { readPersisted } from '../../model/working-copy-store';
 
 // Whole-app editor flows with many interactions: slow when every test file runs in parallel.
 vi.setConfig({ testTimeout: 30_000 });
@@ -343,11 +344,14 @@ describe('published course: pending revision and persistence', () => {
     await waitFor(() => {
       expect(mock.writes('DELETE', /revision$/)).toHaveLength(1);
     });
+    // Out of review, but the edits stay (unsubmitted, also after a reload) to resubmit.
     await waitFor(() => {
-      expect(screen.getByRole('textbox', { name: 'Course title' })).toHaveValue(
-        'Workplace safety basics',
-      );
+      expect(screen.queryByText(/You have changes waiting for review/)).not.toBeInTheDocument();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
+    expect(screen.getByRole('textbox', { name: 'Course title' })).toHaveValue('Proposed title 2');
+    expect(within(bar()).getByRole('button', { name: 'Submit changes for review' })).toBeVisible();
+    expect(readPersisted('course-1')?.copy.course.title).toBe('Proposed title 2');
   });
 
   it('keeps unsubmitted edits in this browser, and drops them with a notice when the course changed', async () => {

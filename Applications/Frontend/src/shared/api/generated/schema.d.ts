@@ -1444,6 +1444,8 @@ export interface paths {
         /**
          * Save proposed changes to a published course for review
          * @description Merges into the pending revision (creating one if needed). `course` holds major field changes; `modules` is the complete proposed tree. Existing modules, items, questions and choices keep their `id`; new ones have none.
+         *
+         *     Module titles and descriptions and item titles of live content can also be edited directly (PATCH) while a revision is pending. A value edited that way after the tree was saved wins over the revision's: the revision as returned, its summary and approving it all use the live value, so approving never reverts such an edit.
          */
         put: {
             parameters: {

@@ -255,4 +255,25 @@ describe('live hash and persistence', () => {
     expect(readPersisted('course-1')).toBeNull();
     expect(store.getState().base.course.title).toBe('Saved title');
   });
+
+  it('rebasing (withdrawn changes, keep my edits) keeps the edits, saved under the new hash', () => {
+    const store = storeFor();
+    store.getState().setCourse({ title: 'Proposed' });
+    store.getState().markSubmitted('h2');
+
+    const live = fromLive(view());
+    store.getState().rebase(live, 'h3');
+    expect(store.getState().copy.course.title).toBe('Proposed');
+    expect(store.getState().base).toBe(live);
+    expect(readPersisted('course-1')).toMatchObject({
+      baseHash: 'h3',
+      copy: { course: { title: 'Proposed' } },
+    });
+
+    // Nothing left to keep: the copy follows the base and nothing is stored.
+    store.getState().setCourse({ title: live.course.title });
+    store.getState().rebase(live, 'h4');
+    expect(store.getState().copy).toBe(live);
+    expect(readPersisted('course-1')).toBeNull();
+  });
 });

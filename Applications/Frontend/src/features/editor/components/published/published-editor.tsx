@@ -176,7 +176,7 @@ function WorkingCopyEditor({
   const keepEditing = () => {
     // Keep the copy, now based on the current course (no more prompts for this change).
     const next = baseOf(view, revisionState);
-    store.setState({ base: next.base, baseHash: next.hash });
+    store.getState().rebase(next.base, next.hash);
     setStaleError(false);
   };
 
@@ -333,7 +333,6 @@ function WorkingCopyEditor({
 
         <ConfirmDialog
           open={confirm === 'withdraw'}
-          tone="danger"
           title={t('working.withdrawTitle')}
           description={t('working.withdrawBody')}
           confirmLabel={t('working.withdraw')}
@@ -343,7 +342,8 @@ function WorkingCopyEditor({
           onConfirm={async () => {
             try {
               await withdraw.mutateAsync();
-              store.getState().reset(fromLive(view), liveHash(view, null));
+              // Out of review, but the edits stay in the working copy to change and resubmit.
+              store.getState().rebase(fromLive(view), liveHash(view, null));
               setOutcome(null);
               toast.show({ message: t('working.withdrawn'), severity: 'success' });
             } catch (error) {

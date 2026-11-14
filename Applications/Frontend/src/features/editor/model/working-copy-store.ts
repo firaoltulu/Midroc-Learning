@@ -3,12 +3,13 @@ import { useStore } from 'zustand';
 import { createStore, type StoreApi } from 'zustand/vanilla';
 import { USER_STORAGE_PREFIX } from '../../../shared/lib/user-storage';
 import { move, newKey, type QuestionDraft } from './questions';
-import type {
-  WorkingCopy,
-  WorkingCourse,
-  WorkingExam,
-  WorkingItem,
-  WorkingModule,
+import {
+  sameCopy,
+  type WorkingCopy,
+  type WorkingCourse,
+  type WorkingExam,
+  type WorkingItem,
+  type WorkingModule,
 } from './working-copy';
 
 /**
@@ -78,6 +79,8 @@ export interface WorkingCopyState {
   reset: (base: WorkingCopy, baseHash: string) => void;
   /** After a successful submit: the copy becomes the new base. */
   markSubmitted: (baseHash: string) => void;
+  /** Keeps the edits on top of a new base (withdrawn changes, "Keep my edits"). */
+  rebase: (base: WorkingCopy, baseHash: string) => void;
 
   setCourse: (patch: Partial<WorkingCourse>) => void;
 
@@ -153,6 +156,17 @@ export function createWorkingCopyStore(options: {
       markSubmitted: (baseHash) => {
         clearPersisted(options.courseId);
         set({ base: get().copy, baseHash });
+      },
+      rebase: (base, baseHash) => {
+        const { copy } = get();
+        if (sameCopy(copy, base)) {
+          clearPersisted(options.courseId);
+          set({ base, baseHash, copy: base });
+          return;
+        }
+        // Saved again under the new hash, so a reload keeps the edits.
+        writePersisted(options.courseId, { version: STORAGE_VERSION, baseHash, copy });
+        set({ base, baseHash });
       },
 
       setCourse: (patch) => {

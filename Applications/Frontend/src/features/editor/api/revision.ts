@@ -131,7 +131,10 @@ export function useWithdrawRevision(courseId: string) {
   const refresh = useRefreshRevision(courseId);
   return useMutation({
     mutationFn: () => apiRequest<undefined>(`/courses/${courseId}/revision`, { method: 'DELETE' }),
-    onSettled: refresh,
+    // Not awaited: the editor rebases its working copy before the refreshed revision arrives.
+    onSettled: () => {
+      void refresh();
+    },
     meta: { networkErrorToast: false },
   });
 }
