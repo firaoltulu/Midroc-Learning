@@ -9,6 +9,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
 import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BrandLogo } from '../../shared/ui/brand/brand-logo';
@@ -16,39 +17,70 @@ import { LanguageSwitcher } from '../../shared/ui/language-switcher';
 import { ButtonLink, ListItemLink, RouterLink } from '../../shared/ui/router-links';
 import { ThemeModeSwitch } from '../../shared/ui/theme-mode-switch';
 import { isVerified, useAuth, useMe, UserMenu } from '../../features/auth';
-import { visibleNavItems } from './nav-items';
+import { HeaderSearch } from './header-search';
+import { visibleNavItems, type NavItem } from './nav-items';
 import { PageFocus } from './page-focus';
+import { useShellLayout } from './shell-layout';
 
 export const MAIN_CONTENT_ID = 'main-content';
 
-const drawerWidth = 280;
+const drawerWidth = 300;
 
 /**
- * Slim top bar (logo, primary nav, language switcher, theme switch, user menu), mobile
- * navigation drawer, skip link and the main landmark. Navigation and the user menu appear
- * only once a verified user is signed in; admin entries follow the role from /me.
+ * The frame around every page: skip link, header, main landmark and footer. Routes choose
+ * how much of it they get with `staticData.layout` (see shell-layout.ts): the player, the
+ * exam and the sign-in pages bring their own slim top bar.
  */
 export function AppShell({ children }: { children: ReactNode }) {
+  const layout = useShellLayout();
+
+  return (
+    <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
+      <SkipLink />
+      <PageFocus mainId={MAIN_CONTENT_ID} />
+      {layout === 'focus' ? null : <AppHeader />}
+      <Box
+        component="main"
+        id={MAIN_CONTENT_ID}
+        tabIndex={-1}
+        sx={{
+          flex: 1,
+          outline: 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          ...(layout === 'page' ? { py: { xs: 3, sm: 5 } } : {}),
+        }}
+      >
+        {layout === 'page' ? <Container maxWidth="lg">{children}</Container> : children}
+      </Box>
+      {layout === 'focus' ? null : <AppFooter />}
+    </Box>
+  );
+}
+
+/**
+ * Logo, Explore, the course search, My learning / My courses (and Administration for admins),
+ * the language and theme switches and the user menu. Below `md` the links and the search move
+ * into a drawer. Signed-out visitors have no destinations: only the logo and the switches.
+ */
+function AppHeader() {
   const { t } = useTranslation('common');
   const auth = useAuth();
   const signedIn = auth.status === 'signedIn' && isVerified(auth.user);
   const { data: me } = useMe({ enabled: signedIn });
   const navItems = visibleNavItems(signedIn, signedIn && me?.role === 'admin');
-  // Signed-out visitors have no destinations: no menu button, nav or drawer at all.
   const hasNav = navItems.length > 0;
+  const [explore, ...links] = navItems;
   const [drawerOpen, setDrawerOpen] = useState(false);
   const closeDrawer = () => {
     setDrawerOpen(false);
   };
 
   return (
-    <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column' }}>
-      <SkipLink />
-      <PageFocus mainId={MAIN_CONTENT_ID} />
-
+    <>
       <AppBar position="sticky">
         <Container maxWidth="lg" disableGutters>
-          <Toolbar sx={{ gap: 1, minHeight: { xs: 56, sm: 64 }, px: { xs: 1, sm: 2 } }}>
+          <Toolbar sx={{ gap: 1.5, minHeight: { xs: 56, sm: 64 }, px: { xs: 1, sm: 2 } }}>
             {hasNav ? (
               <IconButton
                 aria-label={t('shell.openNavigation')}
@@ -66,7 +98,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <RouterLink
               to="/"
               aria-label={t('brand.homeLink')}
-              sx={{ display: 'inline-flex', alignItems: 'center', borderRadius: 1, mr: 2 }}
+              sx={{ display: 'inline-flex', alignItems: 'center', borderRadius: 1, flexShrink: 0 }}
             >
               <Box sx={{ display: { xs: 'block', md: 'none' } }}>
                 <BrandLogo variant="mark" height={28} decorative />
@@ -76,40 +108,47 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Box>
             </RouterLink>
 
-            {hasNav ? (
+            {hasNav && explore ? (
               <Box
                 component="nav"
                 aria-label={t('shell.primaryNavigation')}
-                sx={{ display: { xs: 'none', md: 'block' } }}
+                sx={{
+                  display: { xs: 'none', md: 'flex' },
+                  alignItems: 'center',
+                  gap: 1.5,
+                  flex: 1,
+                  minWidth: 0,
+                  ml: 1,
+                }}
               >
+                <ButtonLink
+                  to={explore.to}
+                  variant="outlined"
+                  sx={{ flexShrink: 0, '&[data-status="active"]': { bgcolor: 'surfaceMuted' } }}
+                >
+                  {t(explore.labelKey)}
+                </ButtonLink>
+                <Box sx={{ flex: 1, minWidth: 0, maxWidth: 560 }}>
+                  <HeaderSearch />
+                </Box>
                 <Stack
                   component="ul"
                   direction="row"
                   spacing={0.5}
-                  sx={{ listStyle: 'none', m: 0, p: 0 }}
+                  sx={{ listStyle: 'none', m: 0, p: 0, ml: 'auto', flexShrink: 0 }}
                 >
-                  {navItems.map((item) => (
+                  {links.map((item) => (
                     <li key={item.to}>
-                      <ButtonLink
-                        to={item.to}
-                        color="inherit"
-                        sx={{
-                          color: 'text.secondary',
-                          '&[data-status="active"]': {
-                            color: 'primary.main',
-                            bgcolor: 'surfaceMuted',
-                          },
-                        }}
-                      >
-                        {t(item.labelKey)}
-                      </ButtonLink>
+                      <HeaderLink item={item} />
                     </li>
                   ))}
                 </Stack>
               </Box>
-            ) : null}
+            ) : (
+              <Box sx={{ flex: 1 }} />
+            )}
+            {hasNav ? <Box sx={{ flex: 1, display: { md: 'none' } }} /> : null}
 
-            <Box sx={{ flex: 1 }} />
             <LanguageSwitcher />
             <ThemeModeSwitch />
             {signedIn ? <UserMenu /> : null}
@@ -126,6 +165,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         >
           <Box sx={{ p: 2 }}>
             <BrandLogo variant="full" height={32} />
+          </Box>
+          <Box sx={{ mx: 2, mb: 1 }}>
+            <HeaderSearch onSubmitted={closeDrawer} />
           </Box>
           <Box component="nav" aria-label={t('shell.primaryNavigation')}>
             <List>
@@ -151,15 +193,39 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Box>
         </Drawer>
       ) : null}
+    </>
+  );
+}
 
-      <Box
-        component="main"
-        id={MAIN_CONTENT_ID}
-        tabIndex={-1}
-        sx={{ flex: 1, outline: 'none', py: { xs: 3, sm: 5 } }}
-      >
-        <Container maxWidth="lg">{children}</Container>
-      </Box>
+function HeaderLink({ item }: { item: NavItem }) {
+  const { t } = useTranslation('common');
+  return (
+    <ButtonLink
+      to={item.to}
+      color="inherit"
+      sx={{
+        color: 'text.primary',
+        fontWeight: 500,
+        whiteSpace: 'nowrap',
+        '&[data-status="active"]': { color: 'primary.main', bgcolor: 'surfaceMuted' },
+      }}
+    >
+      {t(item.labelKey)}
+    </ButtonLink>
+  );
+}
+
+/** Dark band with the company name, on every page that has the header. */
+function AppFooter() {
+  const { t } = useTranslation('common');
+  return (
+    <Box
+      component="footer"
+      sx={{ bgcolor: 'inverse.bg', color: 'inverse.fgMuted', py: { xs: 3, sm: 4 } }}
+    >
+      <Container maxWidth="lg">
+        <Typography variant="body2">{t('footer.copyright')}</Typography>
+      </Container>
     </Box>
   );
 }

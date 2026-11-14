@@ -15,10 +15,13 @@
     "skipToContent": "ወደ ዋናው ይዘት ይለፉ",
     "openNavigation": "ማውጫውን ክፈት",
     "primaryNavigation": "ዋና ማውጫ",
-    "pageTitle": "{{page}} – {{app}}"
+    "pageTitle": "{{page}} – {{app}}",
+    "searchLabel": "ኮርስ ያግኙ",
+    "searchPlaceholder": "ምን መማር ይፈልጋሉ?",
+    "searchSubmit": "ፈልግ"
   },
   "nav": {
-    "courses": "ኮርሶች",
+    "explore": "ያስሱ",
     "learning": "የእኔ ትምህርት",
     "myCourses": "የእኔ ኮርሶች",
     "admin": "አስተዳደር"
@@ -38,6 +41,10 @@
   "languages": {
     "en": "English",
     "am": "አማርኛ"
+  },
+  "languagesShort": {
+    "en": "EN",
+    "am": "አማ"
   },
   "status": {
     "draft": "ረቂቅ",
@@ -76,5 +83,8 @@
     "last": "የመጨረሻው ገጽ",
     "next": "የሚቀጥለው ገጽ",
     "previous": "የቀደመው ገጽ"
+  },
+  "footer": {
+    "copyright": "© ሚድሮክ ኢንቨስትመንት ግሩፕ"
   }
 }

@@ -1,10 +1,10 @@
 import CheckOutlined from '@mui/icons-material/CheckOutlined';
-import TranslateOutlined from '@mui/icons-material/TranslateOutlined';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import ListItemText from '@mui/material/ListItemText';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import { visuallyHidden } from '@mui/utils';
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SUPPORTED_LANGUAGES, type Language } from '../i18n/languages';
@@ -12,7 +12,7 @@ import { setLanguage } from '../i18n/setup';
 import { useLanguage } from '../i18n/use-language';
 
 /**
- * Header control for the interface language. Each language is named in its own language
+ * Header control for the interface language, shown as "EN · አማ". Each language is named in its own language
  * (and marked with its `lang`) so people can find theirs whatever is currently shown.
  */
 export function LanguageSwitcher() {
@@ -31,25 +31,31 @@ export function LanguageSwitcher() {
     <>
       <Button
         color="inherit"
-        aria-label={label}
         aria-haspopup="menu"
         aria-controls={anchor ? menuId : undefined}
         aria-expanded={anchor ? 'true' : undefined}
         onClick={(event) => {
           setAnchor(event.currentTarget);
         }}
-        startIcon={<TranslateOutlined />}
-        sx={{
-          color: 'text.secondary',
-          minWidth: 44,
-          minHeight: 44,
-          '& .MuiButton-startIcon': { mr: { xs: 0, sm: 1 }, ml: { xs: 0, sm: -0.5 } },
-        }}
+        sx={{ color: 'text.primary', minWidth: 44, minHeight: 44, fontWeight: 400, px: 1 }}
       >
-        {/* Phones show only the icon; the accessible name still includes the language. */}
-        <Box component="span" lang={current} sx={{ display: { xs: 'none', sm: 'inline' } }}>
-          {t(`languages.${current}`)}
+        {/* The name is "Language: English"; the short "EN · አማ" (current in bold) is only drawn,
+            so screen readers don't read two language codes. */}
+        <Box component="span" sx={visuallyHidden}>
+          {label}
         </Box>
+        {SUPPORTED_LANGUAGES.map((language, index) => (
+          <Box component="span" key={language} aria-hidden sx={{ whiteSpace: 'pre' }}>
+            {index > 0 ? ' · ' : null}
+            <Box
+              component="span"
+              lang={language}
+              sx={{ fontWeight: language === current ? 700 : 400 }}
+            >
+              {t(`languagesShort.${language}`)}
+            </Box>
+          </Box>
+        ))}
       </Button>
       <Menu
         id={menuId}

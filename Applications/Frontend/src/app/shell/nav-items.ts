@@ -1,6 +1,6 @@
 import AdminPanelSettingsOutlined from '@mui/icons-material/AdminPanelSettingsOutlined';
 import EditNoteOutlined from '@mui/icons-material/EditNoteOutlined';
-import MenuBookOutlined from '@mui/icons-material/MenuBookOutlined';
+import ExploreOutlined from '@mui/icons-material/ExploreOutlined';
 import SchoolOutlined from '@mui/icons-material/SchoolOutlined';
 import type { ParseKeys } from 'i18next';
 import type { ComponentType } from 'react';
@@ -15,9 +15,12 @@ export interface NavItem {
   access: NavAccess;
 }
 
-/** Primary navigation (typed `to` keeps links and routes in sync). */
+/**
+ * Primary navigation (typed `to` keeps links and routes in sync). The first entry (Explore) is
+ * drawn as an outlined button next to the logo, the rest as text links after the search box.
+ */
 export const navItems: NavItem[] = [
-  { to: '/courses', labelKey: 'nav.courses', Icon: MenuBookOutlined, access: 'signedIn' },
+  { to: '/courses', labelKey: 'nav.explore', Icon: ExploreOutlined, access: 'signedIn' },
   { to: '/learn', labelKey: 'nav.learning', Icon: SchoolOutlined, access: 'signedIn' },
   { to: '/my-courses', labelKey: 'nav.myCourses', Icon: EditNoteOutlined, access: 'signedIn' },
   { to: '/admin', labelKey: 'nav.admin', Icon: AdminPanelSettingsOutlined, access: 'admin' },

@@ -10,16 +10,13 @@ import ListItemText from '@mui/material/ListItemText';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
+import { visuallyHidden } from '@mui/utils';
 import { useNavigate } from '@tanstack/react-router';
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMe } from '../api/me';
 import { useSignOut } from './auth-context';
-
-function initials(name: string | null, email: string) {
-  const source = name?.trim() || email;
-  return Array.from(source)[0]?.toUpperCase() ?? '?';
-}
+import { initials } from './initials';
 
 /** Avatar button with the signed-in user's name, account and admin links, and sign-out. */
 export function UserMenu() {
@@ -39,7 +36,6 @@ export function UserMenu() {
   return (
     <>
       <IconButton
-        aria-label={t('userMenu.label', { name: displayName })}
         aria-haspopup="menu"
         aria-controls={anchor ? menuId : undefined}
         aria-expanded={anchor ? 'true' : undefined}
@@ -48,17 +44,23 @@ export function UserMenu() {
         }}
       >
         <Avatar
+          aria-hidden
           sx={{
-            width: 32,
-            height: 32,
+            width: 36,
+            height: 36,
             fontSize: '0.875rem',
-            fontWeight: 600,
-            bgcolor: 'primary.main',
-            color: 'primary.contrastText',
+            fontWeight: 700,
+            bgcolor: 'status.published.bg',
+            color: 'status.published.fg',
           }}
         >
           {initials(me.name, me.email)}
         </Avatar>
+        {/* Named by hidden text, not aria-label: the drawn initials would then be visible
+            text missing from the name (WCAG 2.5.3). */}
+        <Box component="span" sx={visuallyHidden}>
+          {t('userMenu.label', { name: displayName })}
+        </Box>
       </IconButton>
       <Menu
         id={menuId}

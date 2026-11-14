@@ -15,10 +15,13 @@
     "skipToContent": "Skip to content",
     "openNavigation": "Open navigation",
     "primaryNavigation": "Main navigation",
-    "pageTitle": "{{page}} – {{app}}"
+    "pageTitle": "{{page}} – {{app}}",
+    "searchLabel": "Find a course",
+    "searchPlaceholder": "What do you want to learn?",
+    "searchSubmit": "Search"
   },
   "nav": {
-    "courses": "Courses",
+    "explore": "Explore",
     "learning": "My learning",
     "myCourses": "My courses",
     "admin": "Administration"
@@ -38,6 +41,10 @@
   "languages": {
     "en": "English",
     "am": "አማርኛ"
+  },
+  "languagesShort": {
+    "en": "EN",
+    "am": "አማ"
   },
   "status": {
     "draft": "Draft",
@@ -76,5 +83,8 @@
     "last": "Last page",
     "next": "Next page",
     "previous": "Previous page"
+  },
+  "footer": {
+    "copyright": "© Midroc Investment Group"
   }
 }

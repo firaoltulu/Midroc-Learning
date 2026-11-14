@@ -57,6 +57,11 @@ Rules (enforce with `dependency-cruiser`, run as `npm run check:deps`):
 
 ## 3. Design system
 
+> **Design refresh (2026-11-14):** the screens follow the design in `docs/DESIGN.md`. Where it differs
+> from this section or section 7 (split-screen sign-in instead of a centered card, header search and
+> Explore button, full-width green hero bands, a dark footer, a slim own top bar for the player, exam
+> and editor), the design wins. The tokens and rules below still apply.
+
 **Direction: minimalistic, clean and calm.** Lots of whitespace, one accent, thin borders instead of shadows, quiet type, restrained motion. Both a **light and a dark theme**, following the system setting with a manual switch (system / light / dark).
 
 ### Tokens (already implemented in `reference/theme.ts`; summary for context)

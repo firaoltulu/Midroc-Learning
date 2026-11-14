@@ -32,6 +32,10 @@ declare module '@mui/material/styles' {
     brand: { deepGreen: string; green: string; gold: string; brown: string };
     inputBorder: string;
     surfaceMuted: string;
+    /** Full-width brand band (home and course hero, sign-in panel). */
+    hero: { bg: string; fg: string; fgMuted: string };
+    /** Dark band at the bottom of the page (footer), in both schemes. */
+    inverse: { bg: string; fg: string; fgMuted: string };
   }
   interface PaletteOptions {
     status?: Palette['status'];
@@ -39,6 +43,8 @@ declare module '@mui/material/styles' {
     brand?: Palette['brand'];
     inputBorder?: string;
     surfaceMuted?: string;
+    hero?: Palette['hero'];
+    inverse?: Palette['inverse'];
   }
 }
 
@@ -65,6 +71,10 @@ export const theme = createTheme({
         divider: '#E2E7E3',
         inputBorder: '#7A8780', // 3.75:1 on white
         surfaceMuted: '#EFF2EF',
+        // fg 9.0:1, fgMuted 7.2:1 on the band.
+        hero: { bg: '#135339', fg: '#FFFFFF', fgMuted: '#DCE9E0' },
+        // fg 15.8:1, fgMuted 9.4:1 on the band.
+        inverse: { bg: '#0E1311', fg: '#E7EDE9', fgMuted: '#AEBBB4' },
         brand,
         status: {
           draft: { fg: '#4A5560', bg: '#EEF0F1' },
@@ -93,6 +103,9 @@ export const theme = createTheme({
         divider: '#29322E',
         inputBorder: '#6B7872', // 3.79:1 on the paper color
         surfaceMuted: '#1C2320',
+        // A darker brand green so the band doesn't glare in the dark scheme (fg 10.3:1, muted 7.8:1).
+        hero: { bg: '#103D2B', fg: '#E7EDE9', fgMuted: '#C2D3C9' },
+        inverse: { bg: '#090C0B', fg: '#E7EDE9', fgMuted: '#9FADA6' },
         brand,
         status: {
           draft: { fg: '#B6C1BB', bg: '#222A27' },
