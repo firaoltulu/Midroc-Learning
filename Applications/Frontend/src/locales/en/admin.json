@@ -37,7 +37,9 @@
     "accountStatus": "Account",
     "joined": "Joined",
     "video": "Video",
-    "lastChecked": "Last checked"
+    "lastChecked": "Last checked",
+    "rating": "Rating",
+    "ownedCourses": "Courses"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -47,8 +49,6 @@
     "none": "None yet",
     "metrics": {
       "users": "Users",
-      "activeLearners": "Active learners",
-      "last30Days": "In the last 30 days",
       "enrollments": "Enrollments in the last 30 days",
       "enrollmentsTotal_one": "{{total}} enrollment in total",
       "enrollmentsTotal_other": "{{total}} enrollments in total",
@@ -57,7 +57,11 @@
       "attempts_other": "From {{total}} submitted attempts",
       "waiting": "Waiting for review",
       "waitingDetail": "{{courses}} courses, {{revisions}} changes",
-      "coursesByStatus": "Courses by status ({{total}} in all)"
+      "coursesByStatus": "Courses by status ({{total}} in all)",
+      "activeHint_one": "{{active}} active",
+      "activeHint_other": "{{active}} active",
+      "noPrevious": "No enrollments in the 30 days before",
+      "change": "{{change}} vs the previous 30 days"
     },
     "chart": {
       "title": "Enrollments over time",
@@ -248,8 +252,6 @@
   },
   "revision": {
     "notFound": "Changes not found",
-    "title": "Changes to “{{title}}”",
-    "submitted": "Submitted {{date}}",
     "status": {
       "pending": "Waiting for review",
       "approved": "Approved",
@@ -301,12 +303,16 @@
     "changedFields": "Changed: {{fields}}",
     "fieldSeparator": ", ",
     "reorderedModules": "The order of the modules changes.",
-    "reorderedItems": "The order of the items in this module changes."
+    "reorderedItems": "The order of the items in this module changes.",
+    "breadcrumb": "Breadcrumb",
+    "crumb": "Revision",
+    "submittedAgo": "Changes submitted {{when}}",
+    "reasonLabel": "Reason (required to reject)",
+    "reasonPlaceholder": "Tell the owner what to fix"
   },
   "users": {
     "title": "Users",
-    "description": "Everyone with an account. Open someone to change their role or suspend them.",
-    "search": "Search by email",
+    "search": "Search by name or email",
     "noMatches": "No users match",
     "noMatchesBody": "Try another email, role or status.",
     "empty": "No users yet",
@@ -374,7 +380,18 @@
       "suspended": "{{name}} is suspended."
     },
     "claimNotSynced": "The role is saved. Their app may show the old role until they next sign in.",
-    "sessionsNotRevoked": "The account is suspended. Sessions that are already open end within an hour; the platform refuses their requests now."
+    "sessionsNotRevoked": "The account is suspended. Sessions that are already open end within an hour; the platform refuses their requests now.",
+    "count_one": "{{total}} user",
+    "count_other": "{{total}} users",
+    "roleFilter": {
+      "admin": "Admins",
+      "user": "Users"
+    },
+    "roleShort": {
+      "admin": "Admin",
+      "user": "User"
+    },
+    "manage": "Manage"
   },
   "videos": {
     "title": "Unavailable videos",
@@ -397,5 +414,8 @@
       "recovered": "Available again",
       "unreachable": "Couldn't check"
     }
+  },
+  "layout": {
+    "badge": "Admin"
   }
 }

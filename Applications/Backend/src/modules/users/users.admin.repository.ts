@@ -6,6 +6,9 @@ export async function lockAdminRoster(db: Queryable): Promise<void> {
   await db.query(`SELECT pg_advisory_xact_lock(hashtextextended('admin-roster', 0))`);
 }
 
+/** A user in the administrators' list, with how many courses they own and take. */
+export type AdminUser = User & { courseCount: number; enrollmentCount: number };
+
 export async function listUsers(
   db: Queryable,
   input: {
@@ -15,15 +18,19 @@ export async function listUsers(
     limit: number;
     offset: number;
   }
-): Promise<{ items: User[]; total: number }> {
-  const { rows } = await db.query<User & { total: string }>(
-    `SELECT id, email, name, role, status, created_at AS "createdAt",
+): Promise<{ items: AdminUser[]; total: number }> {
+  const { rows } = await db.query<AdminUser & { total: string }>(
+    `SELECT u.id, u.email, u.name, u.role, u.status, u.created_at AS "createdAt",
+       (SELECT count(*)::int FROM courses c WHERE c.owner_id = u.id) AS "courseCount",
+       (SELECT count(*)::int FROM enrollments e WHERE e.user_id = u.id) AS "enrollmentCount",
        count(*) OVER() AS total
-     FROM users
-     WHERE ($1::text IS NULL OR email ILIKE '%' || $1 || '%' ESCAPE E'\\\\')
-       AND ($2::user_role IS NULL OR role = $2::user_role)
-       AND ($3::user_status IS NULL OR status = $3::user_status)
-     ORDER BY created_at DESC, id
+     FROM users u
+     WHERE ($1::text IS NULL
+         OR u.email ILIKE '%' || $1 || '%' ESCAPE E'\\\\'
+         OR u.name ILIKE '%' || $1 || '%' ESCAPE E'\\\\')
+       AND ($2::user_role IS NULL OR u.role = $2::user_role)
+       AND ($3::user_status IS NULL OR u.status = $3::user_status)
+     ORDER BY u.created_at DESC, u.id
      LIMIT $4 OFFSET $5`,
     [input.q ?? null, input.role ?? null, input.status ?? null, input.limit, input.offset]
   );

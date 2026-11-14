@@ -21,6 +21,14 @@ export const userSchema = z.object({
 
 export type User = z.infer<typeof userSchema>;
 
+/** reference/openapi.yaml: AdminUser (the list adds how many courses they own and take). */
+export const adminUserSchema = userSchema.extend({
+  courseCount: z.number().int(),
+  enrollmentCount: z.number().int(),
+});
+
+export type AdminUser = z.infer<typeof adminUserSchema>;
+
 export const USERS_PAGE_SIZE = 20;
 
 export interface UsersFilters {
@@ -34,10 +42,10 @@ const userPageSchema = z.object({
   page: z.number().int(),
   pageSize: z.number().int(),
   total: z.number().int(),
-  items: z.array(userSchema),
+  items: z.array(adminUserSchema),
 });
 
-/** GET /admin/users (email search, role and status filters). */
+/** GET /admin/users (search by email or name, role and status filters). */
 export const usersQueryOptions = (filters: UsersFilters) =>
   queryOptions({
     queryKey: adminKeys.users.list({ ...filters }),

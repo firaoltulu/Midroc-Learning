@@ -1,7 +1,7 @@
-import ArrowForwardOutlined from '@mui/icons-material/ArrowForwardOutlined';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { visuallyHidden } from '@mui/utils';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { RevisionReview } from '../api/moderation';
@@ -18,8 +18,8 @@ function changedCourseFields(before: CourseFields, after: CourseFields): DiffFie
 }
 
 /**
- * Course field changes as "from → to": the old value in the removed tone, the new one in the
- * added tone, each also labeled in text (color is never the only signal).
+ * Course field changes: the field, then "− old" in the removed tone and "+ new" in the added
+ * tone, each also labeled in text (color is never the only signal).
  */
 export function CourseFieldDiff({
   before,
@@ -46,32 +46,19 @@ export function CourseFieldDiff({
     return <Typography color="text.secondary">{t('revision.noCourseChanges')}</Typography>;
   }
   return (
-    <Stack component="dl" spacing={2} sx={{ m: 0 }}>
+    <Stack component="dl" spacing={2.5} sx={{ m: 0 }}>
       {fields.map((field) => {
         const userText = field !== 'language';
         return (
           <Box key={field}>
-            <Typography component="dt" sx={{ fontWeight: 600, mb: 0.5 }}>
+            <Typography component="dt" variant="body2" color="text.secondary" sx={{ mb: 0.75 }}>
               {t(`revision.fields.${field}`)}
             </Typography>
-            <Stack
-              component="dd"
-              direction={{ xs: 'column', md: 'row' }}
-              spacing={1}
-              sx={{ m: 0, alignItems: { md: 'stretch' } }}
-            >
-              <DiffValue tone="removed" label={t('revision.before')}>
+            <Stack component="dd" spacing={0.5} sx={{ m: 0 }}>
+              <DiffValue tone="removed" label={t('revision.before')} sign="−">
                 <span {...(userText ? contentLang : {})}>{display(field, before[field])}</span>
               </DiffValue>
-              <ArrowForwardOutlined
-                aria-hidden
-                sx={{
-                  alignSelf: 'center',
-                  color: 'text.secondary',
-                  transform: { xs: 'rotate(90deg)', md: 'none' },
-                }}
-              />
-              <DiffValue tone="added" label={t('revision.after')}>
+              <DiffValue tone="added" label={t('revision.after')} sign="+">
                 <span {...(userText ? contentLang : {})}>{display(field, after[field])}</span>
               </DiffValue>
             </Stack>
@@ -82,13 +69,19 @@ export function CourseFieldDiff({
   );
 }
 
+/**
+ * One side of a change as a tinted line: "− old" (removed tone) or "+ new" (added tone). The
+ * sign is drawn; the words "Now" / "Proposed" are there for screen readers (never color alone).
+ */
 function DiffValue({
   tone,
   label,
+  sign,
   children,
 }: {
   tone: 'added' | 'removed';
   label: string;
+  sign: string;
   children: ReactNode;
 }) {
   return (
@@ -97,22 +90,27 @@ function DiffValue({
       sx={(theme) => {
         const palette = (theme.vars ?? theme).palette;
         return {
-          flex: 1,
-          minWidth: 0,
-          p: 1.5,
-          borderRadius: 2.5,
+          display: 'flex',
+          gap: 1,
+          px: 1.25,
+          py: 0.75,
+          borderRadius: '6px',
           color: palette.diff[tone].fg,
           backgroundColor: palette.diff[tone].bg,
           whiteSpace: 'pre-wrap',
           overflowWrap: 'anywhere',
-          maxWidth: { md: 520 },
         };
       }}
     >
-      <Typography variant="caption" component="span" sx={{ display: 'block', fontWeight: 600 }}>
-        {label}
-      </Typography>
-      {children}
+      <Box component="span" aria-hidden sx={{ fontWeight: 700, flexShrink: 0 }}>
+        {sign}
+      </Box>
+      <Box component="span" sx={visuallyHidden}>
+        {`${label}: `}
+      </Box>
+      <Box component="span" sx={{ minWidth: 0 }}>
+        {children}
+      </Box>
     </Box>
   );
 }

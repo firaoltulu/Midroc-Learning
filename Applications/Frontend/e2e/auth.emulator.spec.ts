@@ -181,5 +181,5 @@ test('an admin reaches the admin area', async ({ page }) => {
     'aria-current',
     'page',
   );
-  await expect(page.getByText('Active learners')).toBeVisible();
+  await expect(page.getByText('1 active')).toBeVisible();
 });

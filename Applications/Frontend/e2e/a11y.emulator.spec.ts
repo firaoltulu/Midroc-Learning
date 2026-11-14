@@ -185,16 +185,16 @@ for (const scheme of SCHEMES) {
       await page.getByRole('table').getByRole('link').first().click();
       await settle(page, scheme, language);
       await expectAccessible(page, testInfo, `revision review ${scheme} ${language}`);
-      // The reject dialog with its required-reason error.
+      // Reject without a reason: the reason box on the page shows its error and takes focus.
       await page
         .getByRole('button', { name: language === 'en' ? 'Reject changes' : 'ለውጦቹን ውድቅ ያድርጉ' })
         .click();
-      const dialog = page.getByRole('dialog');
-      await dialog
-        .getByRole('button', { name: language === 'en' ? 'Reject changes' : 'ለውጦቹን ውድቅ ያድርጉ' })
-        .click();
-      await expect(dialog.getByRole('textbox')).toHaveAttribute('aria-invalid', 'true');
-      await expectAccessible(page, testInfo, `reject dialog ${scheme} ${language}`);
+      const reason = page.getByRole('textbox', {
+        name: language === 'en' ? 'Reason (required to reject)' : 'ምክንያት (ውድቅ ለማድረግ ያስፈልጋል)',
+      });
+      await expect(reason).toHaveAttribute('aria-invalid', 'true');
+      await expect(reason).toBeFocused();
+      await expectAccessible(page, testInfo, `reject reason ${scheme} ${language}`);
     });
   }
 }

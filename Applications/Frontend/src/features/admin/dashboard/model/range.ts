@@ -41,6 +41,24 @@ export function rangeProblem(from: string, to: string): 'order' | 'tooLong' | nu
   return null;
 }
 
+/** The last 60 days, by day: the "vs previous 30 days" comparison on the enrollments card. */
+export function comparisonRange(today = new Date()): SeriesRange {
+  const to = isoDay(today);
+  return { from: isoDay(new Date(parseDay(to).getTime() - 59 * DAY_MS)), to, interval: 'day' };
+}
+
+/**
+ * The last 30 days against the 30 before, in percent (rounded); null when the earlier period
+ * had no enrollments (no meaningful percentage).
+ */
+export function periodChange(points: { count: number }[]): number | null {
+  const counts = points.map((point) => point.count);
+  const recent = counts.slice(-30).reduce((sum, count) => sum + count, 0);
+  const previous = counts.slice(-60, -30).reduce((sum, count) => sum + count, 0);
+  if (previous === 0) return null;
+  return Math.round(((recent - previous) / previous) * 100);
+}
+
 /** The range to request: a preset ending today, or the custom days from the URL. */
 export function resolveRange(search: DashboardSearch, today = new Date()): SeriesRange {
   const preset = search.range ?? '30d';

@@ -11,6 +11,8 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
 import { useQuery } from '@tanstack/react-query';
 import { lazy, Suspense, useId, useState, type ReactNode } from 'react';
@@ -32,7 +34,9 @@ import {
   type SeriesInterval,
 } from '../api/analytics';
 import {
+  comparisonRange,
   INTERVALS,
+  periodChange,
   RANGE_PRESETS,
   rangeProblem,
   resolveRange,
@@ -49,7 +53,10 @@ export interface AdminDashboardScreenProps {
   onSearchChange: (next: DashboardSearch) => void;
 }
 
-/** /admin: metric cards, enrollments over time, and the courses with the most learners. */
+/**
+ * /admin: metric cards (users, enrollments in 30 days against the 30 before, exam pass rate,
+ * waiting for review), courses by status, enrollments over time and the top courses.
+ */
 export function AdminDashboardScreen({ search, onSearchChange }: AdminDashboardScreenProps) {
   const { t } = useTranslation('admin');
   return (
@@ -96,7 +103,10 @@ function MetricCard({ label, value, hint }: { label: string; value: ReactNode; h
         <Typography variant="body2" color="text.secondary">
           {label}
         </Typography>
-        <Typography variant="h4" component="p" sx={{ fontWeight: 600, my: 0.5 }}>
+        <Typography
+          component="p"
+          sx={{ fontWeight: 700, fontSize: '2rem', lineHeight: 1.2, my: 0.5 }}
+        >
           {value}
         </Typography>
         {hint ? (
@@ -114,7 +124,7 @@ const grid = {
   gridTemplateColumns: {
     xs: '1fr',
     sm: 'repeat(2, minmax(0, 1fr))',
-    lg: 'repeat(3, minmax(0, 1fr))',
+    lg: 'repeat(4, minmax(0, 1fr))',
   },
   gap: 2,
   listStyle: 'none',
@@ -138,7 +148,7 @@ function Metrics() {
   if (overview.isPending) {
     return (
       <Box component="ul" sx={grid} aria-busy="true" aria-label={t('dashboard.loading')}>
-        {Array.from({ length: 6 }, (_, index) => (
+        {Array.from({ length: 4 }, (_, index) => (
           <Box component="li" key={index}>
             <Skeleton variant="rounded" height={112} />
           </Box>
@@ -152,76 +162,93 @@ function Metrics() {
 function MetricCards({ overview }: { overview: Overview }) {
   const { t } = useTranslation('admin');
   const { formatNumber, formatPercent } = useNumberFormat();
+  const comparison = useQuery(enrollmentSeriesQueryOptions(comparisonRange()));
+  const change = comparison.data ? periodChange(comparison.data) : undefined;
   const waiting = overview.coursesByStatus.pending_review + overview.pendingRevisionCount;
   return (
-    <Box component="ul" sx={grid} aria-label={t('dashboard.metricsLabel')}>
-      <MetricCard label={t('dashboard.metrics.users')} value={formatNumber(overview.userCount)} />
-      <MetricCard
-        label={t('dashboard.metrics.activeLearners')}
-        value={formatNumber(overview.activeLearnerCount)}
-        hint={t('dashboard.metrics.last30Days')}
-      />
-      <MetricCard
-        label={t('dashboard.metrics.enrollments')}
-        value={formatNumber(overview.enrollmentsLast30Days)}
-        hint={t('dashboard.metrics.enrollmentsTotal', {
-          count: overview.enrollmentCount,
-          total: formatNumber(overview.enrollmentCount),
-        })}
-      />
-      <MetricCard
-        label={t('dashboard.metrics.passRate')}
-        value={
-          overview.examPassRate === null
-            ? t('dashboard.none')
-            : formatPercent(overview.examPassRate)
-        }
-        hint={t('dashboard.metrics.attempts', {
-          count: overview.submittedAttemptCount,
-          total: formatNumber(overview.submittedAttemptCount),
-        })}
-      />
-      <MetricCard
-        label={t('dashboard.metrics.waiting')}
-        value={formatNumber(waiting)}
-        hint={
-          <RouterLink to="/admin/moderation">
-            {t('dashboard.metrics.waitingDetail', {
-              courses: formatNumber(overview.coursesByStatus.pending_review),
-              revisions: formatNumber(overview.pendingRevisionCount),
-            })}
-          </RouterLink>
-        }
-      />
-      <Card component="li">
-        <CardContent>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            {t('dashboard.metrics.coursesByStatus', { total: formatNumber(overview.courseCount) })}
-          </Typography>
-          <Box
-            component="dl"
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: 'auto 1fr',
-              columnGap: 2,
-              rowGap: 0.75,
-              m: 0,
-            }}
+    <Stack spacing={2}>
+      <Box component="ul" sx={grid} aria-label={t('dashboard.metricsLabel')}>
+        <MetricCard
+          label={t('dashboard.metrics.users')}
+          value={formatNumber(overview.userCount)}
+          hint={t('dashboard.metrics.activeHint', {
+            count: overview.activeLearnerCount,
+            active: formatNumber(overview.activeLearnerCount),
+          })}
+        />
+        <MetricCard
+          label={t('dashboard.metrics.enrollments')}
+          value={formatNumber(overview.enrollmentsLast30Days)}
+          hint={
+            change === undefined
+              ? t('dashboard.metrics.enrollmentsTotal', {
+                  count: overview.enrollmentCount,
+                  total: formatNumber(overview.enrollmentCount),
+                })
+              : change === null
+                ? t('dashboard.metrics.noPrevious')
+                : t('dashboard.metrics.change', {
+                    change: `${change > 0 ? '+' : ''}${formatNumber(change)}%`,
+                  })
+          }
+        />
+        <MetricCard
+          label={t('dashboard.metrics.passRate')}
+          value={
+            overview.examPassRate === null
+              ? t('dashboard.none')
+              : formatPercent(overview.examPassRate)
+          }
+          hint={t('dashboard.metrics.attempts', {
+            count: overview.submittedAttemptCount,
+            total: formatNumber(overview.submittedAttemptCount),
+          })}
+        />
+        <MetricCard
+          label={t('dashboard.metrics.waiting')}
+          value={formatNumber(waiting)}
+          hint={
+            <RouterLink to="/admin/moderation">
+              {t('dashboard.metrics.waitingDetail', {
+                courses: formatNumber(overview.coursesByStatus.pending_review),
+                revisions: formatNumber(overview.pendingRevisionCount),
+              })}
+            </RouterLink>
+          }
+        />
+      </Box>
+      <Card>
+        <CardContent sx={{ '&:last-child': { pb: 2 } }}>
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={2}
+            useFlexGap
+            sx={{ alignItems: { md: 'center' }, flexWrap: 'wrap' }}
           >
-            {STATUSES.map((status) => (
-              <Box key={status} sx={{ display: 'contents' }}>
-                <Box component="dt">
-                  <StatusChip status={status} />
-                </Box>
-                <Box component="dd" sx={{ m: 0, alignSelf: 'center', fontWeight: 600 }}>
-                  {formatNumber(overview.coursesByStatus[status])}
-                </Box>
-              </Box>
-            ))}
-          </Box>
+            <Typography variant="body2" color="text.secondary">
+              {t('dashboard.metrics.coursesByStatus', {
+                total: formatNumber(overview.courseCount),
+              })}
+            </Typography>
+            <Box
+              component="dl"
+              sx={{ display: 'flex', flexWrap: 'wrap', columnGap: 2.5, rowGap: 1, m: 0 }}
+            >
+              {STATUSES.map((status) => (
+                <Stack key={status} direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
+                  <Box component="dt">
+                    <StatusChip status={status} />
+                  </Box>
+                  <Box component="dd" sx={{ m: 0, fontWeight: 700 }}>
+                    {formatNumber(overview.coursesByStatus[status])}
+                  </Box>
+                </Stack>
+              ))}
+            </Box>
+          </Stack>
         </CardContent>
       </Card>
-    </Box>
+    </Stack>
   );
 }
 
@@ -240,77 +267,80 @@ function EnrollmentSection({ search, onSearchChange }: AdminDashboardScreenProps
       : formatDate(date);
 
   return (
-    <Section
-      title={t('dashboard.chart.title')}
-      actions={
-        <RangeControls
-          search={search}
-          preset={preset}
-          interval={range.interval}
-          onSearchChange={onSearchChange}
-        />
-      }
-    >
-      <Card>
-        <CardContent>
-          {series.isError ? (
-            <ErrorState
-              description={errorMessage(series.error)}
-              onRetry={() => void series.refetch()}
-            />
-          ) : series.isPending ? (
-            <Skeleton variant="rounded" height={280} aria-label={t('dashboard.loading')} />
-          ) : (
-            <Stack spacing={2}>
-              <Typography aria-live="polite">
-                {t('dashboard.chart.summary', {
-                  count: total,
-                  total: formatNumber(total),
-                  from: formatDate(`${range.from}T00:00:00Z`),
-                  to: formatDate(`${range.to}T00:00:00Z`),
-                })}
-              </Typography>
-              <Suspense fallback={<Skeleton variant="rounded" height={280} />}>
-                <EnrollmentChart
-                  points={series.data}
-                  label={t('dashboard.chart.series')}
-                  formatLabel={formatLabel}
-                  formatCount={formatNumber}
-                />
-              </Suspense>
-              <Box component="details">
-                <Box
-                  component="summary"
-                  sx={{ cursor: 'pointer', minHeight: 44, display: 'flex', alignItems: 'center' }}
-                >
-                  {t('dashboard.chart.showTable')}
-                </Box>
-                <Box sx={{ maxHeight: 320, overflow: 'auto', mt: 1 }}>
-                  <Table size="small" stickyHeader aria-label={t('dashboard.chart.title')}>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>{t(`dashboard.chart.bucket.${range.interval}`)}</TableCell>
-                        <TableCell align="right">{t('dashboard.chart.series')}</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {series.data.map((point) => (
-                        <TableRow key={point.date}>
-                          <TableCell component="th" scope="row">
-                            {formatLabel(new Date(point.date))}
-                          </TableCell>
-                          <TableCell align="right">{formatNumber(point.count)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </Box>
+    <Card component="section" aria-labelledby="enrollments-title">
+      <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          spacing={2}
+          sx={{ justifyContent: 'space-between', alignItems: { md: 'center' }, mb: 2 }}
+        >
+          <Typography id="enrollments-title" component="h2" sx={{ fontWeight: 700 }}>
+            {t('dashboard.chart.title')}
+          </Typography>
+          <RangeControls
+            search={search}
+            preset={preset}
+            interval={range.interval}
+            onSearchChange={onSearchChange}
+          />
+        </Stack>
+        {series.isError ? (
+          <ErrorState
+            description={errorMessage(series.error)}
+            onRetry={() => void series.refetch()}
+          />
+        ) : series.isPending ? (
+          <Skeleton variant="rounded" height={280} aria-label={t('dashboard.loading')} />
+        ) : (
+          <Stack spacing={2}>
+            <Typography variant="body2" color="text.secondary" aria-live="polite">
+              {t('dashboard.chart.summary', {
+                count: total,
+                total: formatNumber(total),
+                from: formatDate(`${range.from}T00:00:00Z`),
+                to: formatDate(`${range.to}T00:00:00Z`),
+              })}
+            </Typography>
+            <Suspense fallback={<Skeleton variant="rounded" height={280} />}>
+              <EnrollmentChart
+                points={series.data}
+                label={t('dashboard.chart.series')}
+                formatLabel={formatLabel}
+                formatCount={formatNumber}
+              />
+            </Suspense>
+            <Box component="details">
+              <Box
+                component="summary"
+                sx={{ cursor: 'pointer', minHeight: 44, display: 'flex', alignItems: 'center' }}
+              >
+                {t('dashboard.chart.showTable')}
               </Box>
-            </Stack>
-          )}
-        </CardContent>
-      </Card>
-    </Section>
+              <Box sx={{ maxHeight: 320, overflow: 'auto', mt: 1 }}>
+                <Table size="small" stickyHeader aria-label={t('dashboard.chart.title')}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>{t(`dashboard.chart.bucket.${range.interval}`)}</TableCell>
+                      <TableCell align="right">{t('dashboard.chart.series')}</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {series.data.map((point) => (
+                      <TableRow key={point.date}>
+                        <TableCell component="th" scope="row">
+                          {formatLabel(new Date(point.date))}
+                        </TableCell>
+                        <TableCell align="right">{formatNumber(point.count)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Box>
+            </Box>
+          </Stack>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -394,22 +424,39 @@ function RangeControls({
           />
         </>
       ) : null}
-      <TextField
-        select
+      <ToggleButtonGroup
+        exclusive
         size="small"
-        label={t('dashboard.range.interval')}
         value={interval}
-        onChange={(event) => {
-          onSearchChange({ ...search, interval: event.target.value as SeriesInterval });
+        aria-label={t('dashboard.range.interval')}
+        onChange={(_event, next: SeriesInterval | null) => {
+          if (next) onSearchChange({ ...search, interval: next });
         }}
-        sx={{ minWidth: 140 }}
+        sx={{
+          gap: 0.75,
+          alignSelf: { sm: 'center' },
+          '& .MuiToggleButtonGroup-grouped': {
+            m: 0,
+            border: 0,
+            borderRadius: '8px !important',
+            px: 1.5,
+            minHeight: 36,
+            color: 'text.secondary',
+            bgcolor: 'surfaceMuted',
+            '&.Mui-selected, &.Mui-selected:hover': {
+              bgcolor: 'status.published.bg',
+              color: 'status.published.fg',
+              fontWeight: 700,
+            },
+          },
+        }}
       >
         {INTERVALS.map((option) => (
-          <MenuItem key={option} value={option}>
+          <ToggleButton key={option} value={option}>
             {t(`dashboard.range.intervals.${option}`)}
-          </MenuItem>
+          </ToggleButton>
         ))}
-      </TextField>
+      </ToggleButtonGroup>
     </Stack>
   );
 }
@@ -449,11 +496,6 @@ function TopCourses() {
             ),
           },
           {
-            key: 'status',
-            header: t('columns.status'),
-            cell: (course) => <StatusChip status={course.status} />,
-          },
-          {
             key: 'enrollments',
             header: t('columns.enrollments'),
             align: 'right',
@@ -467,6 +509,13 @@ function TopCourses() {
               course.completionRate === null
                 ? t('dashboard.none')
                 : formatPercent(course.completionRate),
+          },
+          {
+            key: 'rating',
+            header: t('columns.rating'),
+            align: 'right',
+            cell: (course) =>
+              course.ratingAverage === null ? t('dashboard.none') : course.ratingAverage.toFixed(1),
           },
         ]}
       />

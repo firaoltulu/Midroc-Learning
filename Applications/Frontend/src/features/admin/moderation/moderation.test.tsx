@@ -208,11 +208,11 @@ describe('revision review', () => {
 
   it('shows course fields from → to, the change list and the proposed tree', async () => {
     mockRevision();
-    const { user } = await renderRoute('/admin/moderation/revisions/revision-1', { as: 'admin' });
+    await renderRoute('/admin/moderation/revisions/revision-1', { as: 'admin' });
     expect(
       await screen.findByRole('heading', {
         level: 1,
-        name: 'Changes to “Workplace safety basics”',
+        name: 'Workplace safety basics',
       }),
     ).toBeVisible();
 
@@ -233,12 +233,11 @@ describe('revision review', () => {
       'data-tone',
       'added',
     );
-    await user.click(within(changes).getByRole('button', { name: /Moved Exam: Final quiz/ }));
+    // Each change says what it was on the right.
     expect(
-      await within(changes).findByText('From “Check your knowledge” to “Getting started”'),
+      within(changes).getByText('From “Check your knowledge” to “Getting started”'),
     ).toBeVisible();
-    await user.click(within(changes).getByRole('button', { name: /Edited Video: Welcome/ }));
-    expect(await within(changes).findByText('Changed: Title, Video')).toBeVisible();
+    expect(within(changes).getByText('Changed: Title, Video')).toBeVisible();
 
     // Proposed tree: new content is marked.
     const tree = screen.getByRole('region', { name: 'Content after the changes' });
@@ -287,6 +286,33 @@ describe('revision review', () => {
       normalizeWhitespace: false,
     });
     expect(within(details).queryByText('Title')).not.toBeInTheDocument();
+  });
+
+  it('rejects with the reason typed on the page (required)', async () => {
+    mockRevision();
+    const rejected: unknown[] = [];
+    server.use(
+      http.post(api('/admin/revisions/revision-1/reject'), async ({ request }) => {
+        rejected.push(await request.json());
+        return new HttpResponse(null, { status: 204 });
+      }),
+    );
+    const { user } = await renderRoute('/admin/moderation/revisions/revision-1', { as: 'admin' });
+    await screen.findByRole('heading', { level: 1, name: 'Workplace safety basics' });
+    const reason = screen.getByRole('textbox', { name: 'Reason (required to reject)' });
+
+    await user.click(screen.getByRole('button', { name: 'Reject changes' }));
+    expect(
+      await screen.findByText('Give a reason so the owner knows what to change.'),
+    ).toBeVisible();
+    expect(reason).toHaveFocus();
+    expect(rejected).toEqual([]);
+
+    await user.type(reason, 'Keep the old title.');
+    await user.click(screen.getByRole('button', { name: 'Reject changes' }));
+    await waitFor(() => {
+      expect(rejected).toEqual([{ reason: 'Keep the old title.' }]);
+    });
   });
 
   it('a stale revision can only be rejected', async () => {

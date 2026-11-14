@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { useState } from 'react';
 import { expectNoAxeViolations } from '../test/axe';
@@ -206,17 +206,19 @@ describe('screens', () => {
               role: 'user',
               status: 'suspended',
               createdAt: '2026-10-01T09:00:00.000Z',
+              courseCount: 1,
+              enrollmentCount: 3,
             },
           ]),
         ),
       ),
     );
     await renderRoute('/admin/users', { as: 'admin' });
-    await screen.findByRole('link', { name: 'sara@example.com' });
+    await screen.findByRole('link', { name: 'Sara Tesfaye' });
     await expectNoAxeViolations();
   });
 
-  it('revision review with the reject dialog open', async () => {
+  it('revision review, also with the reason missing', async () => {
     const live = authoringFixture({ status: 'published' }).modules;
     server.use(
       http.get(api('/admin/revisions/revision-1'), () =>
@@ -248,13 +250,12 @@ describe('screens', () => {
       ),
     );
     const { user } = await renderRoute('/admin/moderation/revisions/revision-1', { as: 'admin' });
-    await screen.findByRole('heading', { level: 1, name: /Changes to/ });
+    await screen.findByRole('heading', { level: 1, name: 'Workplace safety basics' });
     await expectNoAxeViolations();
 
+    // Reject without a reason: the reason box explains (and takes focus).
     await user.click(screen.getByRole('button', { name: 'Reject changes' }));
-    const dialog = await screen.findByRole('dialog', { name: 'Reject these changes?' });
-    await user.click(within(dialog).getByRole('button', { name: 'Reject changes' }));
-    await within(dialog).findByText('Give a reason so the owner knows what to change.');
+    await screen.findByText('Give a reason so the owner knows what to change.');
     await expectNoAxeViolations();
   });
 });

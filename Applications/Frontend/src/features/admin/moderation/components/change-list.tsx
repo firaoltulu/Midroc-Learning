@@ -1,7 +1,3 @@
-import ExpandMoreOutlined from '@mui/icons-material/ExpandMoreOutlined';
-import Accordion from '@mui/material/Accordion';
-import AccordionDetails from '@mui/material/AccordionDetails';
-import AccordionSummary from '@mui/material/AccordionSummary';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
@@ -31,7 +27,9 @@ function KindChip({ kind }: { kind: RevisionChange['kind'] }) {
         return {
           color: palette.diff[tone].fg,
           backgroundColor: palette.diff[tone].bg,
-          minWidth: 88,
+          minWidth: 80,
+          height: 24,
+          borderRadius: '6px',
         };
       }}
     />
@@ -77,18 +75,17 @@ function ChangeDetail({ change }: { change: RevisionChange }) {
   );
 }
 
-const hasDetail = (change: RevisionChange) =>
-  change.kind === 'reordered' ||
-  Boolean(change.fields?.length) ||
-  (change.kind === 'moved' && Boolean(change.fromModule && change.toModule));
-
-/** The revision's content changes; each one with more to say expands to show it. */
+/** The revision's content changes, one row each: kind, what changed, and the detail. */
 export function ChangeList({ changes }: { changes: RevisionChange[] }) {
   const { t } = useTranslation('admin');
   const targetText = useTargetText();
 
   if (changes.length === 0) {
-    return <Typography color="text.secondary">{t('revision.noChanges')}</Typography>;
+    return (
+      <Typography color="text.secondary" sx={{ px: 2.5, py: 2 }}>
+        {t('revision.noChanges')}
+      </Typography>
+    );
   }
   return (
     <Box
@@ -96,47 +93,36 @@ export function ChangeList({ changes }: { changes: RevisionChange[] }) {
       aria-label={t('revision.changesTitle')}
       sx={{ listStyle: 'none', p: 0, m: 0 }}
     >
-      {changes.map((change, index) => {
-        const summary = (
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', minWidth: 0 }}>
+      {changes.map((change, index) => (
+        <Stack
+          component="li"
+          key={`${change.kind}-${change.target}-${change.title}-${String(index)}`}
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={{ xs: 0.5, sm: 1.5 }}
+          sx={{
+            alignItems: { sm: 'center' },
+            px: 2.5,
+            py: 1.25,
+            borderTop: index === 0 ? 0 : 1,
+            borderColor: 'divider',
+          }}
+        >
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flex: 1, minWidth: 0 }}>
             <KindChip kind={change.kind} />
             <Typography sx={{ overflowWrap: 'anywhere' }}>{targetText(change)}</Typography>
           </Stack>
-        );
-        return (
           <Box
-            component="li"
-            key={`${change.kind}-${change.target}-${change.title}-${String(index)}`}
+            sx={{
+              color: 'text.secondary',
+              textAlign: { sm: 'right' },
+              flexShrink: 0,
+              maxWidth: { sm: '45%' },
+            }}
           >
-            {hasDetail(change) ? (
-              <Accordion
-                disableGutters
-                variant="outlined"
-                sx={{ '&:not(:first-of-type)': { borderTop: 0 } }}
-              >
-                <AccordionSummary expandIcon={<ExpandMoreOutlined />} sx={{ minHeight: 48 }}>
-                  {summary}
-                </AccordionSummary>
-                <AccordionDetails sx={{ pt: 0, pl: { sm: 14 } }}>
-                  <ChangeDetail change={change} />
-                </AccordionDetails>
-              </Accordion>
-            ) : (
-              <Box
-                sx={{
-                  px: 2,
-                  py: 1.25,
-                  border: 1,
-                  borderColor: 'divider',
-                  borderTop: index === 0 ? 1 : 0,
-                }}
-              >
-                {summary}
-              </Box>
-            )}
+            <ChangeDetail change={change} />
           </Box>
-        );
-      })}
+        </Stack>
+      ))}
     </Box>
   );
 }

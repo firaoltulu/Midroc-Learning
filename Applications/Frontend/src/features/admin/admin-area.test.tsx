@@ -44,6 +44,7 @@ function mockDashboard() {
           enrollmentCount: 12,
           completedCount: 3,
           completionRate: 25,
+          ratingAverage: 4.5,
         },
       ]),
     ),
@@ -81,7 +82,7 @@ describe('dashboard', () => {
     mockDashboard();
     await renderRoute('/admin', { as: 'admin' });
     const metrics = await screen.findByRole('list', { name: 'Key figures' });
-    expect(within(metrics).getByText('Active learners').closest('li')).toHaveTextContent('11');
+    expect(within(metrics).getByText('Users').closest('li')).toHaveTextContent('11 active');
     expect(within(metrics).getByText('Exam pass rate').closest('li')).toHaveTextContent('62.5%');
     expect(within(metrics).getByText('Waiting for review').closest('li')).toHaveTextContent(
       '1 courses, 2 changes',
@@ -110,8 +111,13 @@ describe('dashboard', () => {
       expect(queries.at(-1)?.interval).toBe('month');
     });
 
-    await user.click(screen.getByRole('combobox', { name: 'Group by' }));
-    await user.click(await screen.findByRole('option', { name: 'Week' }));
+    // Day / Week / Month as toggle chips.
+    const groupBy = screen.getByRole('group', { name: 'Group by' });
+    await user.click(within(groupBy).getByRole('button', { name: 'Week' }));
+    expect(within(groupBy).getByRole('button', { name: 'Week' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
     await waitFor(() => {
       expect(router.state.location.search).toEqual({ range: '12m', interval: 'week' });
     });

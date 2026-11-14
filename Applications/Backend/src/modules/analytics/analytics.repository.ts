@@ -94,7 +94,9 @@ export async function topCourses(db: Queryable) {
        )::int AS "completedCount",
        round(100.0 * count(e.user_id) FILTER (
          WHERE progress.item_count > 0 AND progress.completed_count = progress.item_count
-       ) / nullif(count(e.user_id), 0), 2) AS "completionRate"
+       ) / nullif(count(e.user_id), 0), 2) AS "completionRate",
+       (SELECT round(avg(r.rating)::numeric, 1)::float8 FROM course_reviews r
+         WHERE r.course_id = c.id) AS "ratingAverage"
      FROM courses c LEFT JOIN enrollments e ON e.course_id = c.id
      ${enrollmentProgress}
      GROUP BY c.id ORDER BY "enrollmentCount" DESC, c.created_at DESC LIMIT 20`

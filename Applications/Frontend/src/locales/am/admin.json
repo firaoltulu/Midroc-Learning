@@ -37,7 +37,9 @@
     "accountStatus": "መለያ",
     "joined": "የተቀላቀለበት",
     "video": "ቪዲዮ",
-    "lastChecked": "ለመጨረሻ ጊዜ የተረጋገጠ"
+    "lastChecked": "ለመጨረሻ ጊዜ የተረጋገጠ",
+    "rating": "ደረጃ",
+    "ownedCourses": "ኮርሶች"
   },
   "dashboard": {
     "title": "ዳሽቦርድ",
@@ -47,8 +49,6 @@
     "none": "ገና የለም",
     "metrics": {
       "users": "ተጠቃሚዎች",
-      "activeLearners": "ንቁ ተማሪዎች",
-      "last30Days": "ባለፉት 30 ቀናት",
       "enrollments": "ባለፉት 30 ቀናት የተደረጉ ምዝገባዎች",
       "enrollmentsTotal_one": "በአጠቃላይ {{total}} ምዝገባ",
       "enrollmentsTotal_other": "በአጠቃላይ {{total}} ምዝገባዎች",
@@ -57,7 +57,11 @@
       "attempts_other": "ከ{{total}} የገቡ ሙከራዎች",
       "waiting": "ግምገማ የሚጠብቁ",
       "waitingDetail": "{{courses}} ኮርሶች፣ {{revisions}} ለውጦች",
-      "coursesByStatus": "ኮርሶች በሁኔታ (በአጠቃላይ {{total}})"
+      "coursesByStatus": "ኮርሶች በሁኔታ (በአጠቃላይ {{total}})",
+      "activeHint_one": "{{active}} ንቁ",
+      "activeHint_other": "{{active}} ንቁ",
+      "noPrevious": "ካለፉት 30 ቀናት በፊት ምንም ምዝገባ አልነበረም",
+      "change": "ከቀደሙት 30 ቀናት ጋር ሲነጻጸር {{change}}"
     },
     "chart": {
       "title": "ምዝገባዎች በጊዜ ሂደት",
@@ -248,8 +252,6 @@
   },
   "revision": {
     "notFound": "ለውጦቹ አልተገኙም",
-    "title": "በ«{{title}}» ላይ የቀረቡ ለውጦች",
-    "submitted": "የቀረበው {{date}}",
     "status": {
       "pending": "ግምገማ እየጠበቀ",
       "approved": "ጸድቋል",
@@ -301,12 +303,16 @@
     "changedFields": "የተቀየሩ፦ {{fields}}",
     "fieldSeparator": "፣ ",
     "reorderedModules": "የሞጁሎቹ ቅደም ተከተል ይቀየራል።",
-    "reorderedItems": "በዚህ ሞጁል ውስጥ ያሉ ክፍሎች ቅደም ተከተል ይቀየራል።"
+    "reorderedItems": "በዚህ ሞጁል ውስጥ ያሉ ክፍሎች ቅደም ተከተል ይቀየራል።",
+    "breadcrumb": "የገጽ መንገድ",
+    "crumb": "ለውጦች",
+    "submittedAgo": "ለውጦቹ የቀረቡት {{when}}",
+    "reasonLabel": "ምክንያት (ውድቅ ለማድረግ ያስፈልጋል)",
+    "reasonPlaceholder": "ባለቤቱ ምን ማስተካከል እንዳለበት ይንገሩ"
   },
   "users": {
     "title": "ተጠቃሚዎች",
-    "description": "መለያ ያላቸው ሁሉም ሰዎች። ሚናቸውን ለመቀየር ወይም ለማገድ አንዱን ይክፈቱ።",
-    "search": "በኢሜይል ይፈልጉ",
+    "search": "በስም ወይም በኢሜይል ይፈልጉ",
     "noMatches": "የሚዛመድ ተጠቃሚ የለም",
     "noMatchesBody": "ሌላ ኢሜይል፣ ሚና ወይም ሁኔታ ይሞክሩ።",
     "empty": "ገና ምንም ተጠቃሚ የለም",
@@ -374,7 +380,18 @@
       "suspended": "{{name}} ታግደዋል።"
     },
     "claimNotSynced": "ሚናው ተቀምጧል። እንደገና እስኪገቡ ድረስ መተግበሪያቸው የቀድሞውን ሚና ሊያሳይ ይችላል።",
-    "sessionsNotRevoked": "መለያው ታግዷል። አስቀድመው የተከፈቱ ክፍለ ጊዜዎች በአንድ ሰዓት ውስጥ ያበቃሉ፤ መድረኩ ጥያቄዎቻቸውን አሁኑኑ አይቀበልም።"
+    "sessionsNotRevoked": "መለያው ታግዷል። አስቀድመው የተከፈቱ ክፍለ ጊዜዎች በአንድ ሰዓት ውስጥ ያበቃሉ፤ መድረኩ ጥያቄዎቻቸውን አሁኑኑ አይቀበልም።",
+    "count_one": "{{total}} ተጠቃሚ",
+    "count_other": "{{total}} ተጠቃሚዎች",
+    "roleFilter": {
+      "admin": "አስተዳዳሪዎች",
+      "user": "ተጠቃሚዎች"
+    },
+    "roleShort": {
+      "admin": "አስተዳዳሪ",
+      "user": "ተጠቃሚ"
+    },
+    "manage": "አስተዳድር"
   },
   "videos": {
     "title": "የማይገኙ ቪዲዮዎች",
@@ -397,5 +414,8 @@
       "recovered": "እንደገና የሚገኙ",
       "unreachable": "ሊረጋገጡ ያልቻሉ"
     }
+  },
+  "layout": {
+    "badge": "አስተዳዳሪ"
   }
 }

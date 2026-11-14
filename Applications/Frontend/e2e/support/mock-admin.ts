@@ -11,6 +11,8 @@ const user = (id: string, email: string, name: string | null, overrides = {}) =>
   role: 'user',
   status: 'active',
   createdAt: '2026-10-01T09:00:00.000Z',
+  courseCount: 0,
+  enrollmentCount: 2,
   ...overrides,
 });
 
@@ -81,6 +83,7 @@ export async function mockAdmin(page: Page) {
           enrollmentCount: 14,
           completedCount: 4,
           completionRate: 28.57,
+          ratingAverage: 4.5,
         },
       ]);
     }

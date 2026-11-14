@@ -67,6 +67,8 @@ export const topCourseSchema = z.object({
   enrollmentCount: z.number().int(),
   completedCount: z.number().int(),
   completionRate: z.number().nullable(),
+  /** Average learner rating, one decimal; null without ratings. */
+  ratingAverage: z.number().nullable(),
 });
 
 export type TopCourse = z.infer<typeof topCourseSchema>;

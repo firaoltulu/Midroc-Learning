@@ -1,6 +1,6 @@
-import ArrowBackOutlined from '@mui/icons-material/ArrowBackOutlined';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Chip from '@mui/material/Chip';
@@ -8,15 +8,17 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { useId, useMemo, useState, type ReactNode } from 'react';
+import { useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { isApiError } from '../../../../shared/api/errors';
 import { useContentLang } from '../../../../shared/i18n/content-lang';
 import { useErrorMessage } from '../../../../shared/i18n/error-messages';
 import { useDateFormat } from '../../../../shared/i18n/use-date-format';
+import { ConfirmDialog } from '../../../../shared/ui/confirm-dialog';
 import { ErrorState } from '../../../../shared/ui/error-state';
+import { FormTextField } from '../../../../shared/ui/form-text-field';
 import { PageHeader } from '../../../../shared/ui/page-header';
-import { ButtonLink, RouterLink } from '../../../../shared/ui/router-links';
+import { RouterLink } from '../../../../shared/ui/router-links';
 import { PageHeaderSkeleton, TextSkeleton } from '../../../../shared/ui/skeletons';
 import { useToast } from '../../../../shared/ui/toast/toast-context';
 import {
@@ -27,8 +29,8 @@ import {
 import { ChangeList } from '../components/change-list';
 import { CourseFieldDiff } from '../components/course-field-diff';
 import { CourseTreePreview } from '../components/course-tree-preview';
-import { DecisionActions } from '../components/decision-actions';
 import { useDecisionLabels } from '../components/use-decision-labels';
+import { REASON_MAX, rejectionSchema } from '../schemas/rejection';
 
 /**
  * /admin/moderation/revisions/$revisionId: a published course's proposed changes (course
@@ -41,14 +43,22 @@ export function RevisionReviewScreen({ revisionId }: { revisionId: string }) {
 
   return (
     <Stack spacing={1}>
-      <ButtonLink
-        to="/admin/moderation"
-        search={{ tab: 'revisions' }}
-        startIcon={<ArrowBackOutlined />}
-        sx={{ alignSelf: 'flex-start', ml: -1 }}
-      >
-        {t('moderation.back')}
-      </ButtonLink>
+      <Box component="nav" aria-label={t('revision.breadcrumb')}>
+        <Typography variant="body2" color="text.secondary">
+          <RouterLink
+            to="/admin/moderation"
+            search={{ tab: 'revisions' }}
+            underline="hover"
+            sx={{ color: 'inherit' }}
+          >
+            {t('nav.moderation')}
+          </RouterLink>
+          <Box component="span" aria-hidden sx={{ mx: 0.75 }}>
+            ›
+          </Box>
+          {t('revision.crumb')}
+        </Typography>
+      </Box>
       {review.isPending ? (
         <Stack spacing={3}>
           <PageHeaderSkeleton />
@@ -72,15 +82,31 @@ export function RevisionReviewScreen({ revisionId }: { revisionId: string }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+/** A card with a bold title (and an optional count) above its content. */
+function Section({
+  title,
+  count,
+  children,
+}: {
+  title: string;
+  count?: number;
+  children: ReactNode;
+}) {
   const headingId = useId();
   return (
-    <Box component="section" aria-labelledby={headingId}>
-      <Typography id={headingId} variant="h6" component="h2" sx={{ mb: 2 }}>
-        {title}
-      </Typography>
+    <Card component="section" aria-labelledby={headingId}>
+      <Box sx={{ px: 2.5, py: 1.75, borderBottom: 1, borderColor: 'divider' }}>
+        <Typography id={headingId} component="h2" sx={{ fontWeight: 700 }}>
+          {title}
+          {count !== undefined ? (
+            <Typography component="span" color="text.secondary" sx={{ ml: 1 }}>
+              {count}
+            </Typography>
+          ) : null}
+        </Typography>
+      </Box>
       {children}
-    </Box>
+    </Card>
   );
 }
 
@@ -92,10 +118,15 @@ function RevisionContent({ review }: { review: RevisionReview }) {
   const errorMessage = useErrorMessage();
   const toast = useToast();
   const navigate = useNavigate();
-  const { formatDateTime } = useDateFormat();
+  const { formatRelative, formatDateTime } = useDateFormat();
   const labels = useDecisionLabels('revision');
   const decide = useDecideRevision(review.id, review.courseId);
   const [blocker, setBlocker] = useState<Blocker>(null);
+  const [approving, setApproving] = useState(false);
+  const [reason, setReason] = useState('');
+  const [reasonError, setReasonError] = useState<string | null>(null);
+  const [rejecting, setRejecting] = useState(false);
+  const reasonRef = useRef<HTMLInputElement>(null);
   const { before, after } = review.diff.course;
   const language = typeof after.language === 'string' ? after.language : 'en';
   const contentLang = useContentLang(language);
@@ -123,40 +154,59 @@ function RevisionContent({ review }: { review: RevisionReview }) {
     else toast.show({ message: errorMessage(error), severity: 'error' });
   };
 
+  /** Reject with the reason typed below (required: the owner reads it and fixes what it says). */
+  const reject = async () => {
+    const parsed = rejectionSchema.safeParse({ reason });
+    if (!parsed.success) {
+      setReasonError(parsed.error.issues[0]?.message ?? 'admin:reject.errors.required');
+      reasonRef.current?.focus();
+      return;
+    }
+    setReasonError(null);
+    setRejecting(true);
+    try {
+      await decide.mutateAsync({ kind: 'reject', reason: parsed.data.reason });
+      finish(t('decision.revision.rejected'));
+    } catch (error) {
+      handle(error);
+    } finally {
+      setRejecting(false);
+    }
+  };
+
   return (
-    <Stack spacing={4}>
+    <Stack spacing={3}>
       <PageHeader
-        title={t('revision.title', { title: courseTitle })}
-        description={t('revision.submitted', { date: formatDateTime(review.submittedAt) })}
+        title={courseTitle}
+        description={t('revision.submittedAgo', { when: formatRelative(review.submittedAt) })}
         meta={
-          <Chip size="small" variant="outlined" label={t(`revision.status.${review.status}`)} />
+          review.status === 'pending' ? undefined : (
+            <Chip size="small" variant="outlined" label={t(`revision.status.${review.status}`)} />
+          )
         }
         actions={
           pending ? (
-            <DecisionActions
-              labels={labels}
-              canApprove={blocker !== 'stale'}
-              onApprove={async () => {
-                try {
-                  await decide.mutateAsync({ kind: 'approve' });
-                  finish(t('decision.revision.approved'));
-                } catch (error) {
-                  handle(error);
-                }
-              }}
-              onReject={async (reason) => {
-                try {
-                  await decide.mutateAsync({ kind: 'reject', reason });
-                  finish(t('decision.revision.rejected'));
-                } catch (error) {
-                  if (isApiError(error, 'ALREADY_DECIDED')) handle(error);
-                  else throw error;
-                }
-              }}
-            />
+            <Stack direction="row" spacing={1.5}>
+              <Button variant="outlined" onClick={() => void reject()} loading={rejecting}>
+                {labels.reject}
+              </Button>
+              {blocker === 'stale' ? null : (
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    setApproving(true);
+                  }}
+                >
+                  {labels.approve}
+                </Button>
+              )}
+            </Stack>
           ) : undefined
         }
       />
+      <Typography variant="body2" color="text.secondary" sx={{ mt: -2 }}>
+        {formatDateTime(review.submittedAt)}
+      </Typography>
       {blocker === 'stale' ? (
         <Alert severity="warning" variant="outlined" role="alert">
           {t('revision.stale')}
@@ -184,25 +234,65 @@ function RevisionContent({ review }: { review: RevisionReview }) {
         </Alert>
       ) : null}
       <Section title={t('revision.courseChangesTitle')}>
-        <Card>
-          <CardContent>
-            <CourseFieldDiff before={before} after={after} contentLang={contentLang} />
-          </CardContent>
-        </Card>
+        <CardContent>
+          <CourseFieldDiff before={before} after={after} contentLang={contentLang} />
+        </CardContent>
       </Section>
-      <Section title={t('revision.changesTitle')}>
+      <Section title={t('revision.changesTitle')} count={review.changes.length}>
         <ChangeList changes={review.changes} />
       </Section>
+      {pending ? (
+        <Card>
+          <CardContent sx={{ p: 2.5 }}>
+            <FormTextField
+              ref={reasonRef}
+              label={t('revision.reasonLabel')}
+              placeholder={t('revision.reasonPlaceholder')}
+              labelPlacement="above"
+              value={reason}
+              onChange={(event) => {
+                setReason(event.target.value);
+                setReasonError(null);
+              }}
+              multiline
+              minRows={3}
+              errorKey={reasonError ?? undefined}
+              hint={t('reject.reasonHint', { length: reason.length, max: REASON_MAX })}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
       <Section title={t('revision.treeTitle')}>
-        <Typography color="text.secondary" sx={{ mb: 2 }}>
-          {t('revision.treeHint')}
-        </Typography>
-        <CourseTreePreview
-          modules={review.diff.modules.after}
-          contentLang={contentLang}
-          liveIds={liveIds}
-        />
+        <CardContent>
+          <Typography color="text.secondary" sx={{ mb: 2 }}>
+            {t('revision.treeHint')}
+          </Typography>
+          <CourseTreePreview
+            modules={review.diff.modules.after}
+            contentLang={contentLang}
+            liveIds={liveIds}
+          />
+        </CardContent>
       </Section>
+      <ConfirmDialog
+        open={approving}
+        title={labels.approveTitle}
+        description={labels.approveBody}
+        confirmLabel={labels.approve}
+        onClose={() => {
+          setApproving(false);
+        }}
+        onConfirm={async () => {
+          try {
+            await decide.mutateAsync({ kind: 'approve' });
+            finish(t('decision.revision.approved'));
+          } catch (error) {
+            handle(error);
+          } finally {
+            setApproving(false);
+          }
+        }}
+      />
     </Stack>
   );
 }

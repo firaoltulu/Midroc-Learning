@@ -13,6 +13,8 @@ const userFixture = (overrides: Record<string, unknown> = {}) => ({
   role: 'user',
   status: 'active',
   createdAt: '2026-10-01T09:00:00.000Z',
+  courseCount: 2,
+  enrollmentCount: 5,
   ...overrides,
 });
 
@@ -27,18 +29,53 @@ describe('users list', () => {
     );
     const { user, router } = await renderRoute('/admin/users?role=%22admin%22', { as: 'admin' });
     const table = await screen.findByRole('table', { name: 'Users' });
-    expect(within(table).getByRole('link', { name: 'sara@example.com' })).toHaveAttribute(
+    expect(within(table).getByRole('link', { name: 'Sara Tesfaye' })).toHaveAttribute(
       'href',
       '/admin/users/user-2',
     );
+    expect(within(table).getByRole('link', { name: 'Manage Sara Tesfaye' })).toBeVisible();
+    // The counts, and the user's email under the name.
+    const row = within(
+      within(table)
+        .getByRole('rowheader', { name: /Sara Tesfaye/ })
+        .closest('tr') as HTMLElement,
+    );
+    expect(row.getByText('sara@example.com')).toBeVisible();
+    expect(row.getByText('2')).toBeInTheDocument();
+    expect(row.getByText('5')).toBeInTheDocument();
+    expect(screen.getByText('1 user')).toBeVisible();
     expect(queries.at(-1)).toEqual({ role: 'admin', page: '1', pageSize: '20' });
 
-    await user.type(screen.getByRole('searchbox', { name: 'Search by email' }), 'sara');
+    // Role and status are chips; "All roles" clears the role.
+    const roles = screen.getByRole('group', { name: 'Role' });
+    expect(within(roles).getByRole('button', { name: 'Admins' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await user.click(
+      within(screen.getByRole('group', { name: 'Account' })).getByRole('button', {
+        name: 'Suspended',
+      }),
+    );
     await waitFor(() => {
-      expect(router.state.location.search).toEqual({ role: 'admin', q: 'sara' });
+      expect(router.state.location.search).toEqual({ role: 'admin', status: 'suspended' });
+    });
+    await user.click(within(roles).getByRole('button', { name: 'All roles' }));
+    await waitFor(() => {
+      expect(router.state.location.search).toEqual({ status: 'suspended' });
+    });
+
+    await user.type(screen.getByRole('searchbox', { name: 'Search by name or email' }), 'sara');
+    await waitFor(() => {
+      expect(router.state.location.search).toEqual({ status: 'suspended', q: 'sara' });
     });
     await waitFor(() => {
-      expect(queries.at(-1)).toEqual({ role: 'admin', q: 'sara', page: '1', pageSize: '20' });
+      expect(queries.at(-1)).toEqual({
+        status: 'suspended',
+        q: 'sara',
+        page: '1',
+        pageSize: '20',
+      });
     });
   });
 

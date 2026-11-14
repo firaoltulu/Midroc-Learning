@@ -941,7 +941,7 @@ paths:
         - $ref: "#/components/parameters/PageSize"
         - in: query
           name: q
-          description: Email search.
+          description: Search by email or name.
           schema: { type: string, maxLength: 200 }
         - in: query
           name: role
@@ -951,10 +951,10 @@ paths:
           schema: { $ref: "#/components/schemas/AccountStatus" }
       responses:
         "200":
-          description: A page of users.
+          description: A page of users, each with the courses they own and take.
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/UserPage" }
+              schema: { $ref: "#/components/schemas/AdminUserPage" }
         default: { $ref: "#/components/responses/Error" }
 
   /admin/users/{id}:
@@ -1255,7 +1255,8 @@ paths:
                 type: array
                 items:
                   type: object
-                  required: [id, title, status, enrollmentCount, completedCount, completionRate]
+                  required:
+                    [id, title, status, enrollmentCount, completedCount, completionRate, ratingAverage]
                   properties:
                     id: { type: string, format: uuid }
                     title: { type: string }
@@ -1267,6 +1268,9 @@ paths:
                     completionRate:
                       type: [number, "null"]
                       description: completedCount as a percentage of enrollmentCount (null without enrollments).
+                    ratingAverage:
+                      type: [number, "null"]
+                      description: Average learner rating (one decimal); null without ratings.
         default: { $ref: "#/components/responses/Error" }
 
   /admin/analytics/courses/{courseId}:
@@ -1488,6 +1492,24 @@ components:
             items:
               type: array
               items: { $ref: "#/components/schemas/User" }
+
+    AdminUser:
+      allOf:
+        - $ref: "#/components/schemas/User"
+        - type: object
+          required: [courseCount, enrollmentCount]
+          properties:
+            courseCount: { type: integer, description: Courses the user owns. }
+            enrollmentCount: { type: integer, description: Courses the user is enrolled in. }
+    AdminUserPage:
+      allOf:
+        - $ref: "#/components/schemas/PageInfo"
+        - type: object
+          required: [items]
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/AdminUser" }
 
     PageInfo:
       type: object

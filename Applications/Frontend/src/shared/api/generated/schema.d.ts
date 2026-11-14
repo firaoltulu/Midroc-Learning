@@ -2062,7 +2062,7 @@ export interface paths {
                 query?: {
                     page?: components["parameters"]["Page"];
                     pageSize?: components["parameters"]["PageSize"];
-                    /** @description Email search. */
+                    /** @description Search by email or name. */
                     q?: string;
                     role?: components["schemas"]["Role"];
                     status?: components["schemas"]["AccountStatus"];
@@ -2073,13 +2073,13 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description A page of users. */
+                /** @description A page of users, each with the courses they own and take. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["UserPage"];
+                        "application/json": components["schemas"]["AdminUserPage"];
                     };
                 };
                 default: components["responses"]["Error"];
@@ -2809,6 +2809,8 @@ export interface paths {
                             completedCount: number;
                             /** @description completedCount as a percentage of enrollmentCount (null without enrollments). */
                             completionRate: number | null;
+                            /** @description Average learner rating (one decimal); null without ratings. */
+                            ratingAverage: number | null;
                         }[];
                     };
                 };
@@ -3012,6 +3014,15 @@ export interface components {
         };
         UserPage: components["schemas"]["PageInfo"] & {
             items: components["schemas"]["User"][];
+        };
+        AdminUser: components["schemas"]["User"] & {
+            /** @description Courses the user owns. */
+            courseCount: number;
+            /** @description Courses the user is enrolled in. */
+            enrollmentCount: number;
+        };
+        AdminUserPage: components["schemas"]["PageInfo"] & {
+            items: components["schemas"]["AdminUser"][];
         };
         PageInfo: {
             page: number;
