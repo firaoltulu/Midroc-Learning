@@ -39,6 +39,14 @@ function renderWithAuth(ui: ReactNode) {
 const search = (value: AuthSearch = {}) => value;
 
 describe('LoginScreen', () => {
+  it('links the brand logo to the home page', async () => {
+    renderWithAuth(<LoginScreen search={search()} />);
+    expect(await screen.findByRole('link', { name: 'Midroc Learning home' })).toHaveAttribute(
+      'href',
+      '/',
+    );
+  });
+
   it('validates the form before calling Firebase', async () => {
     const fake = renderWithAuth(<LoginScreen search={search()} />);
     const user = userEvent.setup();
