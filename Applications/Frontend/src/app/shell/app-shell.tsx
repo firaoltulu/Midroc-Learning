@@ -412,7 +412,7 @@ const FOOTER_LINKS = [
   { to: '/terms', labelKey: 'footer.terms' },
 ] as const;
 
-/** Dark band with the company name and the About · Help · Privacy · Terms links. */
+/** Brand, site links and copyright for the shared app shell. */
 function AppFooter() {
   const { t } = useTranslation('common');
   const { t: tSite } = useTranslation('site');
@@ -422,7 +422,6 @@ function AppFooter() {
       sx={(theme) => ({
         bgcolor: 'inverse.bg',
         color: 'inverse.fgMuted',
-        py: { xs: 3, sm: 4 },
         // The primary-colored focus ring would vanish on the dark band.
         '& a:focus-visible': { outlineColor: (theme.vars ?? theme).palette.inverse.fg },
       })}
@@ -430,37 +429,70 @@ function AppFooter() {
       <Container
         maxWidth="lg"
         sx={{
-          display: 'flex',
-          flexDirection: { xs: 'column', sm: 'row' },
-          alignItems: { xs: 'flex-start', sm: 'center' },
-          justifyContent: 'space-between',
-          gap: 2,
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: 'auto minmax(0, 1fr)' },
+          alignItems: 'center',
+          gap: { xs: 2.5, md: 4 },
+          py: { xs: 3, sm: 4 },
         }}
       >
-        <Typography variant="body2">{t('footer.copyright')}</Typography>
-        <Box component="nav" aria-label={tSite('footer.label')}>
+        <RouterLink
+          to="/"
+          aria-label={t('brand.homeLink')}
+          sx={{
+            display: 'inline-flex',
+            justifySelf: { xs: 'center', md: 'start' },
+            borderRadius: 0.5,
+          }}
+        >
+          <BrandLogo variant="full" height={36} colorScheme="dark" decorative />
+        </RouterLink>
+        <Box
+          component="nav"
+          aria-label={tSite('footer.label')}
+          sx={{ justifySelf: { xs: 'stretch', md: 'end' }, width: { xs: '100%', md: 'auto' } }}
+        >
           <Box
             component="ul"
-            sx={{ display: 'flex', flexWrap: 'wrap', listStyle: 'none', m: 0, p: 0, gap: 0.5 }}
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', sm: 'repeat(4, auto)' },
+              listStyle: 'none',
+              m: 0,
+              p: 0,
+              gap: 1,
+              justifyContent: { sm: 'center', md: 'end' },
+            }}
           >
-            {FOOTER_LINKS.map((link, index) => (
-              <Box component="li" key={link.to} sx={{ display: 'flex', alignItems: 'center' }}>
-                {index > 0 ? (
-                  <Box component="span" aria-hidden sx={{ mr: 0.5 }}>
-                    ·
-                  </Box>
-                ) : null}
+            {FOOTER_LINKS.map((link) => (
+              <Box component="li" key={link.to}>
                 <RouterLink
                   to={link.to}
                   variant="body2"
-                  underline="hover"
                   sx={{
                     color: 'inherit',
-                    borderRadius: 0.5,
-                    // 24px tall targets (WCAG 2.5.8) without changing the line's look.
-                    display: 'inline-block',
-                    py: 0.25,
-                    '&:hover, &[data-status="active"]': { color: 'inverse.fg' },
+                    border: 1,
+                    borderColor: 'rgba(255, 255, 255, 0.16)',
+                    borderRadius: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: 44,
+                    px: { xs: 1, sm: 1.5 },
+                    textAlign: 'center',
+                    textDecoration: 'none',
+                    whiteSpace: 'nowrap',
+                    transition: (theme) =>
+                      theme.transitions.create(['color', 'background-color', 'border-color']),
+                    '&:hover': {
+                      color: 'inverse.fg',
+                      bgcolor: 'rgba(255, 255, 255, 0.06)',
+                      borderColor: 'rgba(255, 255, 255, 0.4)',
+                    },
+                    '&[data-status="active"]': {
+                      color: 'inverse.fg',
+                      borderColor: 'inverse.fgMuted',
+                    },
                   }}
                 >
                   {tSite(link.labelKey)}
@@ -469,6 +501,18 @@ function AppFooter() {
             ))}
           </Box>
         </Box>
+        <Typography
+          variant="caption"
+          sx={{
+            gridColumn: '1 / -1',
+            pt: 2,
+            borderTop: 1,
+            borderColor: 'rgba(255, 255, 255, 0.14)',
+            textAlign: { xs: 'center', md: 'start' },
+          }}
+        >
+          {t('footer.copyright')}
+        </Typography>
       </Container>
     </Box>
   );

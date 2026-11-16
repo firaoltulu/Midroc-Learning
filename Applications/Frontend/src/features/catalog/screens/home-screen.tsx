@@ -1,4 +1,7 @@
+import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined';
 import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 import Container from '@mui/material/Container';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -13,12 +16,13 @@ import {
   ContinueLearningSkeleton,
 } from '../components/continue-learning-card';
 import { ExploreCategories, NewAndPopular } from '../components/home-sections';
+import { PlatformFaq } from '../components/platform-faq';
 import { ScrollReveal } from '../components/scroll-reveal';
 import { pickContinueCourse } from '../lib/continue-course';
 
 /**
- * `/`: the green hero (headline, Browse courses, and the course to continue), "New and
- * popular" (most popular / new / Amharic) and "Explore categories" with course counts.
+ * `/`: a learning hero with a course to continue or platform highlights, "New and popular"
+ * (most popular / new / Amharic) and "Explore categories" with course counts.
  */
 export function HomeScreen() {
   return (
@@ -29,6 +33,7 @@ export function HomeScreen() {
           <NewAndPopular />
           <ExploreCategories />
           <HowItWorks />
+          <PlatformFaq />
         </Stack>
       </Container>
     </>
@@ -39,35 +44,40 @@ function Hero() {
   const { t } = useTranslation('catalog');
   const enrollments = useQuery(enrollmentsQueryOptions());
   const current = enrollments.data ? pickContinueCourse(enrollments.data) : undefined;
-  // The card's place stays reserved while loading, so the headline doesn't jump.
-  const showCard = enrollments.isPending || Boolean(current);
 
   return (
-    <HeroBand>
+    <HeroBand tone="surface">
       <Box
         sx={{
           display: 'grid',
-          gap: { xs: 4, md: 6 },
+          gap: { xs: 3.5, md: 6 },
           alignItems: 'center',
-          gridTemplateColumns: { xs: '1fr', md: showCard ? '1.2fr 1fr' : '1fr' },
+          gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1.2fr) minmax(300px, 0.8fr)' },
         }}
       >
-        <Stack spacing={2.5} sx={{ alignItems: 'flex-start', maxWidth: 640 }}>
+        <Stack spacing={2.5} sx={{ alignItems: 'flex-start', maxWidth: 680, minWidth: 0 }}>
           <ScrollReveal>
             <Typography
               variant="h1"
               sx={{
-                fontSize: { xs: '2rem', md: '3.25rem' },
+                fontSize: {
+                  xs: 'clamp(2rem, 7vw, 2.75rem)',
+                  md: 'clamp(2.5rem, 4vw, 3.25rem)',
+                },
                 fontWeight: 700,
-                lineHeight: 1.12,
-                maxWidth: '14ch',
+                lineHeight: 1.16,
+                maxWidth: '17ch',
+                overflowWrap: 'anywhere',
               }}
             >
               {t('home.title')}
             </Typography>
           </ScrollReveal>
           <ScrollReveal delay={80}>
-            <Typography sx={{ color: 'hero.fgMuted', fontSize: '1.125rem', maxWidth: 520 }}>
+            <Typography
+              color="text.secondary"
+              sx={{ fontSize: '1.0625rem', lineHeight: 1.7, maxWidth: 560 }}
+            >
               {t('home.subtitle')}
             </Typography>
           </ScrollReveal>
@@ -77,9 +87,9 @@ function Hero() {
               variant="contained"
               size="large"
               sx={{
-                bgcolor: 'hero.fg',
-                color: 'hero.bg',
-                '&:hover': { bgcolor: 'hero.fgMuted' },
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+                '&:hover': { bgcolor: 'primary.dark' },
               }}
             >
               {t('home.browse')}
@@ -94,8 +104,64 @@ function Hero() {
           <ScrollReveal delay={120}>
             <ContinueLearningCard enrollment={current} />
           </ScrollReveal>
-        ) : null}
+        ) : (
+          <LearningHighlights />
+        )}
       </Box>
     </HeroBand>
+  );
+}
+
+const LEARNING_HIGHLIGHTS = ['languages', 'formats', 'progress'] as const;
+
+function LearningHighlights() {
+  const { t } = useTranslation('catalog');
+
+  return (
+    <ScrollReveal delay={120}>
+      <Card
+        component="section"
+        aria-labelledby="home-learning-highlights"
+        sx={{
+          height: '100%',
+          border: 1,
+          borderColor: 'divider',
+          boxShadow: 'none',
+          bgcolor: 'background.paper',
+        }}
+      >
+        <CardContent sx={{ p: { xs: 2.5, sm: 3 }, '&:last-child': { pb: { xs: 2.5, sm: 3 } } }}>
+          <Stack spacing={2.5}>
+            <Typography id="home-learning-highlights" variant="h5" component="h2">
+              {t('guest.highlights.title')}
+            </Typography>
+            <Stack component="ul" spacing={2} sx={{ listStyle: 'none', m: 0, p: 0 }}>
+              {LEARNING_HIGHLIGHTS.map((id, index) => (
+                <ScrollReveal key={id} component="li" delay={index * 70}>
+                  <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
+                    <CheckCircleOutlined
+                      aria-hidden
+                      sx={{ mt: 0.25, flexShrink: 0, color: 'primary.main' }}
+                    />
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography sx={{ fontWeight: 600, overflowWrap: 'anywhere' }}>
+                        {t(`guest.highlights.${id}.title`)}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ lineHeight: 1.65, overflowWrap: 'anywhere' }}
+                      >
+                        {t(`guest.highlights.${id}.body`)}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </ScrollReveal>
+              ))}
+            </Stack>
+          </Stack>
+        </CardContent>
+      </Card>
+    </ScrollReveal>
   );
 }

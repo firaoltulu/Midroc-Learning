@@ -108,6 +108,7 @@ describe('home page', () => {
     await renderRoute('/');
     await screen.findByRole('heading', { level: 1, name: TITLE });
     await screen.findByRole('heading', { level: 2, name: 'New and popular' });
+    expect(await screen.findByRole('region', { name: 'What you get' })).toBeVisible();
     expect(screen.queryByText('Continue learning')).not.toBeInTheDocument();
   });
 
@@ -163,6 +164,18 @@ describe('home page', () => {
     await waitFor(() => {
       expect(screen.queryByRole('heading', { name: 'Explore categories' })).not.toBeInTheDocument();
     });
+  });
+
+  it('shows the platform FAQ after how it works', async () => {
+    mockHome();
+    await renderRoute('/');
+    const howItWorks = await screen.findByRole('region', { name: 'How it works' });
+    const faq = screen.getByRole('region', { name: 'Frequently asked questions' });
+
+    expect(howItWorks.compareDocumentPosition(faq) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(
+      within(faq).getByRole('button', { name: 'What languages are courses in?' }),
+    ).toBeVisible();
   });
 });
 
