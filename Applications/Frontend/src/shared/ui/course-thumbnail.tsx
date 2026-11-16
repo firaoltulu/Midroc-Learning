@@ -24,6 +24,8 @@ export function CourseThumbnail({ src }: CourseThumbnailProps) {
         aspectRatio: '16 / 9',
         overflow: 'hidden',
         bgcolor: 'surfaceMuted',
+        backgroundImage:
+          'radial-gradient(circle at 50% 45%, rgba(var(--mui-palette-primary-mainChannel) / 0.08), transparent 55%), linear-gradient(135deg, var(--mui-palette-background-paper), var(--mui-palette-background-default))',
         display: 'grid',
         placeItems: 'center',
       }}
@@ -39,10 +41,17 @@ export function CourseThumbnail({ src }: CourseThumbnailProps) {
           onError={() => {
             setFailedSrc(src);
           }}
-          sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            transition: 'transform 450ms cubic-bezier(0.2, 0.7, 0.2, 1)',
+          }}
         />
       ) : (
-        <Box sx={{ opacity: 0.55 }} data-fallback="">
+        <Box sx={{ opacity: 0.72 }} data-fallback="">
           <BrandLogo variant="mark" height={40} decorative />
         </Box>
       )}

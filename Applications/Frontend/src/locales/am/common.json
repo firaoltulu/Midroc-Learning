@@ -30,6 +30,8 @@
   },
   "theme": {
     "menuLabel": "የቀለም ገጽታ፦ {{mode}}",
+    "menuTitle": "የገጽታ አቀራረብ",
+    "buttonLabel": "ገጽታ",
     "system": "እንደ መሣሪያው",
     "light": "ብሩህ",
     "dark": "ጨለማ"
@@ -38,7 +40,8 @@
     "ethiopicEra": "ዓ.ም."
   },
   "language": {
-    "menuLabel": "ቋንቋ፦ {{language}}"
+    "menuLabel": "ቋንቋ፦ {{language}}",
+    "menuTitle": "የበይነገጽ ቋንቋ"
   },
   "languages": {
     "en": "English",

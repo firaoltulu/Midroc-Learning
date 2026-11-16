@@ -57,7 +57,7 @@ describe('guest home page', () => {
     expect(await screen.findByRole('heading', { level: 1, name: TITLE })).toBeVisible();
     expect(router.state.location.pathname).toBe('/welcome');
 
-    const hero = screen.getByRole('heading', { level: 1 }).closest('section, div') as HTMLElement;
+    const hero = screen.getByRole('main');
     expect(within(hero).getByRole('link', { name: 'Join for free' })).toHaveAttribute(
       'href',
       '/signup',
@@ -71,6 +71,7 @@ describe('guest home page', () => {
     );
     expect(screen.getByRole('region', { name: 'What you get' })).toBeVisible();
     expect(screen.getByRole('region', { name: 'How it works' })).toBeVisible();
+    expect(screen.getByRole('region', { name: 'Frequently asked questions' })).toBeVisible();
     expect(screen.getByRole('region', { name: 'Share what you know' })).toBeVisible();
   });
 
@@ -112,6 +113,23 @@ describe('guest home page', () => {
       name: 'Build skills that move your career forward',
     });
     expect(router.state.location.pathname).toBe('/');
+  });
+
+  it('expands platform FAQ answers', async () => {
+    mockPublic();
+    const { user } = await renderRoute('/welcome', { as: 'signedOut' });
+    const faq = screen.getByRole('region', { name: 'Frequently asked questions' });
+    const question = within(faq).getByRole('button', { name: 'What languages are courses in?' });
+
+    expect(question).toHaveAttribute('aria-expanded', 'false');
+    await user.click(question);
+
+    expect(question).toHaveAttribute('aria-expanded', 'true');
+    expect(
+      within(faq).getByText(
+        'Courses are taught in English or Amharic. Each course page shows its language.',
+      ),
+    ).toBeVisible();
   });
 
   it('is accessible', async () => {

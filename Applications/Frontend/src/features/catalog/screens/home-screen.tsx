@@ -7,11 +7,13 @@ import { useTranslation } from 'react-i18next';
 import { HeroBand } from '../../../shared/ui/hero-band';
 import { ButtonLink } from '../../../shared/ui/router-links';
 import { enrollmentsQueryOptions } from '../../learning';
+import { HowItWorks } from '../components/how-it-works';
 import {
   ContinueLearningCard,
   ContinueLearningSkeleton,
 } from '../components/continue-learning-card';
 import { ExploreCategories, NewAndPopular } from '../components/home-sections';
+import { ScrollReveal } from '../components/scroll-reveal';
 import { pickContinueCourse } from '../lib/continue-course';
 
 /**
@@ -26,6 +28,7 @@ export function HomeScreen() {
         <Stack spacing={{ xs: 5, md: 7 }}>
           <NewAndPopular />
           <ExploreCategories />
+          <HowItWorks />
         </Stack>
       </Container>
     </>
@@ -50,33 +53,47 @@ function Hero() {
         }}
       >
         <Stack spacing={2.5} sx={{ alignItems: 'flex-start', maxWidth: 640 }}>
-          <Typography
-            variant="h1"
-            sx={{ fontSize: { xs: '2rem', md: '2.75rem' }, fontWeight: 700, lineHeight: 1.15 }}
-          >
-            {t('home.title')}
-          </Typography>
-          <Typography sx={{ color: 'hero.fgMuted', fontSize: '1.125rem' }}>
-            {t('home.subtitle')}
-          </Typography>
-          <ButtonLink
-            to="/courses"
-            variant="contained"
-            size="large"
-            // Inverted on the band (light button, band-green text) in both schemes.
-            sx={{
-              bgcolor: 'hero.fg',
-              color: 'hero.bg',
-              '&:hover': { bgcolor: 'hero.fgMuted' },
-            }}
-          >
-            {t('home.browse')}
-          </ButtonLink>
+          <ScrollReveal>
+            <Typography
+              variant="h1"
+              sx={{
+                fontSize: { xs: '2rem', md: '3.25rem' },
+                fontWeight: 700,
+                lineHeight: 1.12,
+                maxWidth: '14ch',
+              }}
+            >
+              {t('home.title')}
+            </Typography>
+          </ScrollReveal>
+          <ScrollReveal delay={80}>
+            <Typography sx={{ color: 'hero.fgMuted', fontSize: '1.125rem', maxWidth: 520 }}>
+              {t('home.subtitle')}
+            </Typography>
+          </ScrollReveal>
+          <ScrollReveal delay={140}>
+            <ButtonLink
+              to="/courses"
+              variant="contained"
+              size="large"
+              sx={{
+                bgcolor: 'hero.fg',
+                color: 'hero.bg',
+                '&:hover': { bgcolor: 'hero.fgMuted' },
+              }}
+            >
+              {t('home.browse')}
+            </ButtonLink>
+          </ScrollReveal>
         </Stack>
         {enrollments.isPending ? (
-          <ContinueLearningSkeleton />
+          <ScrollReveal delay={120}>
+            <ContinueLearningSkeleton />
+          </ScrollReveal>
         ) : current ? (
-          <ContinueLearningCard enrollment={current} />
+          <ScrollReveal delay={120}>
+            <ContinueLearningCard enrollment={current} />
+          </ScrollReveal>
         ) : null}
       </Box>
     </HeroBand>

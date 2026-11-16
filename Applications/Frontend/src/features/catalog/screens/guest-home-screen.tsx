@@ -8,12 +8,14 @@ import { useTranslation } from 'react-i18next';
 import { HeroBand } from '../../../shared/ui/hero-band';
 import { ButtonLink } from '../../../shared/ui/router-links';
 import { ExploreCategories, NewAndPopular } from '../components/home-sections';
+import { HowItWorks } from '../components/how-it-works';
+import { PlatformFaq } from '../components/platform-faq';
+import { ScrollReveal } from '../components/scroll-reveal';
 
 const HIGHLIGHTS = ['languages', 'formats', 'progress'] as const;
-const STEPS = ['join', 'enroll', 'learn'] as const;
 
 /**
- * `/welcome`: the home page before sign-in. The green hero (headline, Join for free, Sign in and
+ * `/welcome`: the home page before sign-in. The hero (headline, Join for free, Sign in and
  * what the platform offers), real popular and new courses and the categories (GET /public/...),
  * how it works, and an invitation to share what you know. Course and category links lead to
  * sign-in first, then back to where the visitor was going.
@@ -27,6 +29,7 @@ export function GuestHomeScreen() {
           <NewAndPopular guest />
           <ExploreCategories guest />
           <HowItWorks />
+          <PlatformFaq />
           <ShareInvitation />
         </Stack>
       </Container>
@@ -37,152 +40,204 @@ export function GuestHomeScreen() {
 function Hero() {
   const { t } = useTranslation('catalog');
   return (
-    <HeroBand>
+    <HeroBand tone="surface">
       <Box
         sx={{
           display: 'grid',
-          gap: { xs: 4, md: 6 },
+          gap: { xs: 3.5, md: 6 },
           alignItems: 'center',
-          gridTemplateColumns: { xs: '1fr', md: '1.2fr 1fr' },
+          gridTemplateColumns: { xs: '1fr', md: '1.1fr 0.9fr' },
         }}
       >
-        <Stack spacing={2.5} sx={{ alignItems: 'flex-start', maxWidth: 640 }}>
-          <Typography
-            variant="h1"
-            sx={{ fontSize: { xs: '2rem', md: '2.75rem' }, fontWeight: 700, lineHeight: 1.15 }}
-          >
-            {t('guest.title')}
-          </Typography>
-          <Typography sx={{ color: 'hero.fgMuted', fontSize: '1.125rem' }}>
-            {t('guest.subtitle')}
-          </Typography>
-          <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 1.5 }}>
-            <ButtonLink
-              to="/signup"
-              variant="contained"
-              size="large"
-              // Inverted on the band (light button, band-green text) in both schemes.
-              sx={{ bgcolor: 'hero.fg', color: 'hero.bg', '&:hover': { bgcolor: 'hero.fgMuted' } }}
-            >
-              {t('guest.join')}
-            </ButtonLink>
-            <ButtonLink
-              to="/login"
-              variant="outlined"
-              size="large"
+        <Stack spacing={2.5} sx={{ alignItems: 'flex-start', minWidth: 0 }}>
+          <ScrollReveal>
+            <Typography
+              variant="h1"
               sx={{
-                color: 'hero.fg',
-                borderColor: 'hero.fgMuted',
-                '&:hover': { borderColor: 'hero.fg' },
+                fontSize: {
+                  xs: 'clamp(2rem, 7vw, 2.75rem)',
+                  md: 'clamp(2.5rem, 4vw, 3.5rem)',
+                },
+                fontWeight: 700,
+                lineHeight: 1.18,
+                maxWidth: '18ch',
+                overflowWrap: 'anywhere',
               }}
             >
-              {t('guest.signIn')}
-            </ButtonLink>
+              {t('guest.title')}
+            </Typography>
+          </ScrollReveal>
+          <ScrollReveal delay={80}>
+            <Typography
+              sx={{
+                color: 'text.secondary',
+                fontSize: { xs: '1rem', md: '1.125rem' },
+                lineHeight: 1.7,
+                maxWidth: '42rem',
+              }}
+            >
+              {t('guest.subtitle')}
+            </Typography>
+          </ScrollReveal>
+          <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 1.5 }}>
+            <ScrollReveal delay={140}>
+              <ButtonLink
+                to="/signup"
+                variant="contained"
+                size="large"
+                sx={{
+                  bgcolor: 'primary.main',
+                  color: 'primary.contrastText',
+                  '&:hover': { bgcolor: 'primary.dark' },
+                }}
+              >
+                {t('guest.join')}
+              </ButtonLink>
+            </ScrollReveal>
+            <ScrollReveal delay={200}>
+              <ButtonLink
+                to="/login"
+                variant="outlined"
+                size="large"
+                sx={{
+                  color: 'primary.main',
+                  borderColor: 'primary.main',
+                  '&:hover': { borderColor: 'primary.dark', bgcolor: 'surfaceMuted' },
+                }}
+              >
+                {t('guest.signIn')}
+              </ButtonLink>
+            </ScrollReveal>
           </Stack>
         </Stack>
 
-        <Box
-          component="section"
-          aria-labelledby="guest-highlights"
-          sx={{ border: 1, borderColor: 'hero.fgMuted', borderRadius: 3.5, p: { xs: 2.5, md: 3 } }}
-        >
-          <Typography id="guest-highlights" variant="h5" component="h2" sx={{ mb: 2 }}>
-            {t('guest.highlights.title')}
-          </Typography>
-          <Stack component="ul" spacing={2} sx={{ listStyle: 'none', m: 0, p: 0 }}>
-            {HIGHLIGHTS.map((id) => (
-              <Stack component="li" key={id} direction="row" spacing={1.5}>
-                <CheckCircleOutlined aria-hidden sx={{ mt: 0.25, flexShrink: 0 }} />
-                <Box>
-                  <Typography sx={{ fontWeight: 600 }}>
-                    {t(`guest.highlights.${id}.title`)}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: 'hero.fgMuted' }}>
-                    {t(`guest.highlights.${id}.body`)}
-                  </Typography>
-                </Box>
-              </Stack>
-            ))}
-          </Stack>
-        </Box>
+        <ScrollReveal delay={120}>
+          <Box
+            component="section"
+            aria-labelledby="guest-highlights"
+            sx={{
+              border: 1,
+              borderColor: 'divider',
+              borderRadius: 2,
+              bgcolor: 'background.paper',
+              boxShadow: '0 12px 32px rgba(13, 36, 25, 0.06)',
+              p: { xs: 2.5, md: 3 },
+            }}
+          >
+            <ScrollReveal>
+              <Typography id="guest-highlights" variant="h5" component="h2" sx={{ mb: 2 }}>
+                {t('guest.highlights.title')}
+              </Typography>
+            </ScrollReveal>
+            <Stack component="ul" spacing={2} sx={{ listStyle: 'none', m: 0, p: 0 }}>
+              {HIGHLIGHTS.map((id, index) => (
+                <ScrollReveal key={id} component="li" delay={index * 70}>
+                  <Stack direction="row" spacing={1.5}>
+                    <CheckCircleOutlined
+                      aria-hidden
+                      sx={{ mt: 0.25, flexShrink: 0, color: 'primary.main' }}
+                    />
+                    <Box>
+                      <Typography sx={{ fontWeight: 600 }}>
+                        {t(`guest.highlights.${id}.title`)}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {t(`guest.highlights.${id}.body`)}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </ScrollReveal>
+              ))}
+            </Stack>
+          </Box>
+        </ScrollReveal>
       </Box>
     </HeroBand>
-  );
-}
-
-function HowItWorks() {
-  const { t } = useTranslation('catalog');
-  return (
-    <Stack component="section" aria-labelledby="how-it-works" spacing={2.5}>
-      <Typography id="how-it-works" variant="h3" component="h2">
-        {t('guest.steps.title')}
-      </Typography>
-      <Box
-        component="ol"
-        sx={{
-          listStyle: 'none',
-          m: 0,
-          p: 0,
-          display: 'grid',
-          gap: 2,
-          gridTemplateColumns: { xs: '1fr', md: 'repeat(3, minmax(0, 1fr))' },
-        }}
-      >
-        {STEPS.map((id, index) => (
-          <Card component="li" key={id} sx={{ p: 2.5 }}>
-            <Box
-              aria-hidden
-              sx={{
-                width: 36,
-                height: 36,
-                borderRadius: '50%',
-                display: 'grid',
-                placeItems: 'center',
-                bgcolor: 'primary.main',
-                color: 'primary.contrastText',
-                fontWeight: 700,
-                mb: 1.5,
-              }}
-            >
-              {index + 1}
-            </Box>
-            <Typography variant="h5" component="h3" sx={{ mb: 0.5 }}>
-              {t(`guest.steps.${id}.title`)}
-            </Typography>
-            <Typography color="text.secondary">{t(`guest.steps.${id}.body`)}</Typography>
-          </Card>
-        ))}
-      </Box>
-    </Stack>
   );
 }
 
 function ShareInvitation() {
   const { t } = useTranslation('catalog');
   return (
-    <Card
-      component="section"
-      aria-labelledby="share-knowledge"
-      sx={{
-        bgcolor: 'surfaceMuted',
-        p: { xs: 3, md: 4 },
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: 2.5,
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}
-    >
-      <Box sx={{ maxWidth: 720 }}>
-        <Typography id="share-knowledge" variant="h3" component="h2" sx={{ mb: 1 }}>
-          {t('guest.share.title')}
-        </Typography>
-        <Typography color="text.secondary">{t('guest.share.body')}</Typography>
-      </Box>
-      {/* Outlined: the hero's "Join for free" is the page's one primary button. */}
-      <ButtonLink to="/signup" variant="outlined" size="large">
-        {t('guest.share.action')}
-      </ButtonLink>
-    </Card>
+    <ScrollReveal>
+      <Card
+        component="section"
+        aria-labelledby="share-knowledge"
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1fr) minmax(220px, 0.34fr)' },
+          overflow: 'hidden',
+          border: 1,
+          borderTop: 4,
+          borderColor: 'divider',
+          borderTopColor: 'primary.main',
+          borderRadius: 2,
+          bgcolor: 'background.paper',
+          boxShadow: 'none',
+        }}
+      >
+        <Box sx={{ p: { xs: 2.5, sm: 3.5, md: 4 } }}>
+          <ScrollReveal>
+            <Typography
+              id="share-knowledge"
+              variant="h2"
+              component="h2"
+              sx={{
+                mb: 1.25,
+                fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2rem' },
+                fontWeight: 700,
+                lineHeight: 1.3,
+                overflowWrap: 'anywhere',
+              }}
+            >
+              {t('guest.share.title')}
+            </Typography>
+          </ScrollReveal>
+          <ScrollReveal delay={80}>
+            <Typography
+              color="text.secondary"
+              sx={{
+                maxWidth: '60ch',
+                fontSize: '1rem',
+                lineHeight: 1.75,
+                overflowWrap: 'anywhere',
+              }}
+            >
+              {t('guest.share.body')}
+            </Typography>
+          </ScrollReveal>
+        </Box>
+        <Box
+          sx={{
+            p: { xs: 2.5, sm: 3 },
+            bgcolor: 'surfaceMuted',
+            borderTop: { xs: 1, md: 0 },
+            borderInlineStart: { xs: 0, md: '1px solid' },
+            borderColor: 'divider',
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            alignItems: { xs: 'stretch', md: 'center' },
+            justifyContent: 'center',
+          }}
+        >
+          <ScrollReveal delay={140}>
+            <ButtonLink
+              to="/signup"
+              variant="contained"
+              size="large"
+              sx={{
+                width: { xs: '100%', md: 'auto' },
+                minWidth: { md: 190 },
+                justifyContent: 'center',
+                whiteSpace: 'normal',
+                textAlign: 'center',
+              }}
+            >
+              {t('guest.share.action')}
+            </ButtonLink>
+          </ScrollReveal>
+        </Box>
+      </Card>
+    </ScrollReveal>
   );
 }

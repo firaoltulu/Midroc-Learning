@@ -42,6 +42,25 @@ export function UserMenu() {
         onClick={(event) => {
           setAnchor(event.currentTarget);
         }}
+        sx={(theme) => ({
+          border: 1,
+          borderColor: 'divider',
+          borderRadius: 0,
+          bgcolor: 'rgba(var(--mui-palette-background-paperChannel) / 0.58)',
+          transition: theme.transitions.create(['transform', 'background-color', 'border-color']),
+          '& .MuiAvatar-root': {
+            transition: theme.transitions.create('transform', {
+              duration: theme.transitions.duration.short,
+            }),
+          },
+          '&:hover': {
+            bgcolor: 'surfaceMuted',
+            borderColor: 'primary.main',
+            transform: 'translateY(-1px)',
+          },
+          '&:hover .MuiAvatar-root': { transform: 'scale(1.06)' },
+          '&:active': { transform: 'scale(0.97)' },
+        })}
       >
         <Avatar
           aria-hidden

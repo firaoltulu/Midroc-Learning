@@ -99,6 +99,28 @@
         "body": "Work through each module and track your progress as you go."
       }
     },
+    "faq": {
+      "title": "Frequently asked questions",
+      "intro": "Quick answers about learning and creating courses on Midroc Learning.",
+      "items": {
+        "gettingStarted": {
+          "question": "How do I start learning?",
+          "answer": "Create a free account with your email or Google account, browse courses by category or language, and enroll in a course."
+        },
+        "languages": {
+          "question": "What languages are courses in?",
+          "answer": "Courses are taught in English or Amharic. Each course page shows its language."
+        },
+        "progress": {
+          "question": "How do I track my learning progress?",
+          "answer": "Your enrolled courses and progress appear under My learning, where you can return to a course and continue."
+        },
+        "courseCreation": {
+          "question": "Can I create and share a course?",
+          "answer": "Yes. Anyone with an account can create a course. An administrator reviews it before it is published."
+        }
+      }
+    },
     "share": {
       "title": "Share what you know",
       "body": "Anyone with an account can create a course. Administrators review it before it goes live.",

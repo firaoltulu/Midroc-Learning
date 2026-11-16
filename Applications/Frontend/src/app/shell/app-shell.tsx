@@ -79,9 +79,37 @@ function AppHeader() {
 
   return (
     <>
-      <AppBar position="sticky">
+      <AppBar
+        position="sticky"
+        sx={(theme) => ({
+          position: 'sticky',
+          overflow: 'visible',
+          backgroundColor: 'rgba(var(--mui-palette-background-paperChannel) / 0.84)',
+          backdropFilter: 'blur(18px) saturate(160%)',
+          borderBottom: 1,
+          borderColor: 'divider',
+          boxShadow: '0 12px 36px rgba(13, 36, 25, 0.1)',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            inset: '0 0 auto',
+            height: 2,
+            background: `linear-gradient(90deg, transparent, ${(theme.vars ?? theme).palette.primary.main} 24%, ${(theme.vars ?? theme).palette.secondary.main} 76%, transparent)`,
+            opacity: 0.7,
+          },
+          '@supports not (backdrop-filter: blur(1px))': {
+            backgroundColor: (theme.vars ?? theme).palette.background.paper,
+          },
+        })}
+      >
         <Container maxWidth="lg" disableGutters>
-          <Toolbar sx={{ gap: 1.5, minHeight: { xs: 56, sm: 64 }, px: { xs: 1, sm: 2 } }}>
+          <Toolbar
+            sx={{
+              gap: { xs: 0.75, md: 1.25 },
+              minHeight: { xs: 64, sm: 72 },
+              px: { xs: 1, sm: 2 },
+            }}
+          >
             {hasNav ? (
               <IconButton
                 aria-label={t('shell.openNavigation')}
@@ -90,7 +118,14 @@ function AppHeader() {
                 onClick={() => {
                   setDrawerOpen(true);
                 }}
-                sx={{ display: { md: 'none' } }}
+                sx={(theme) => ({
+                  display: { md: 'none' },
+                  border: 1,
+                  borderColor: 'divider',
+                  bgcolor: 'rgba(var(--mui-palette-background-paperChannel) / 0.6)',
+                  transition: theme.transitions.create(['transform', 'background-color']),
+                  '&:hover': { bgcolor: 'surfaceMuted', transform: 'rotate(-8deg)' },
+                })}
               >
                 <MenuOutlined />
               </IconButton>
@@ -99,7 +134,27 @@ function AppHeader() {
             <RouterLink
               to="/"
               aria-label={t('brand.homeLink')}
-              sx={{ display: 'inline-flex', alignItems: 'center', borderRadius: 1, flexShrink: 0 }}
+              sx={(theme) => ({
+                display: 'inline-flex',
+                alignItems: 'center',
+                border: 1,
+                borderColor: 'divider',
+                borderRadius: 0,
+                flexShrink: 0,
+                px: 0.75,
+                py: 0.375,
+                transition: theme.transitions.create([
+                  'transform',
+                  'background-color',
+                  'border-color',
+                ]),
+                '&:hover': {
+                  bgcolor: 'surfaceMuted',
+                  borderColor: 'primary.main',
+                  transform: 'translateY(-1px)',
+                },
+                '&:active': { transform: 'scale(0.98)' },
+              })}
             >
               <Box sx={{ display: { xs: 'block', md: 'none' } }}>
                 <BrandLogo variant="mark" height={28} decorative />
@@ -116,27 +171,52 @@ function AppHeader() {
                 sx={{
                   display: { xs: 'none', md: 'flex' },
                   alignItems: 'center',
-                  gap: 1.5,
+                  gap: { md: 1, lg: 1.5 },
                   flex: 1,
                   minWidth: 0,
-                  ml: 1,
+                  ml: { md: 0.5, lg: 1 },
                 }}
               >
                 <ButtonLink
                   to={explore.to}
                   variant="outlined"
-                  sx={{ flexShrink: 0, '&[data-status="active"]': { bgcolor: 'surfaceMuted' } }}
+                  sx={(theme) => ({
+                    flexShrink: 0,
+                    borderRadius: 0,
+                    borderWidth: 1,
+                    borderColor: 'primary.main',
+                    color: 'primary.main',
+                    bgcolor: 'background.paper',
+                    px: 2,
+                    transition: theme.transitions.create(
+                      ['transform', 'background-color', 'border-color', 'color'],
+                      { duration: theme.transitions.duration.short },
+                    ),
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      bgcolor: 'surfaceMuted',
+                      borderColor: 'primary.dark',
+                    },
+                    '&:active': { transform: 'translateY(0) scale(0.98)' },
+                  })}
                 >
                   {t(explore.labelKey)}
                 </ButtonLink>
-                <Box sx={{ flex: 1, minWidth: 0, maxWidth: 560 }}>
+                <Box sx={{ flex: '1 1 200px', minWidth: 120, maxWidth: 440 }}>
                   <HeaderSearch />
                 </Box>
                 <Stack
                   component="ul"
                   direction="row"
                   spacing={0.5}
-                  sx={{ listStyle: 'none', m: 0, p: 0, ml: 'auto', flexShrink: 0 }}
+                  sx={{
+                    listStyle: 'none',
+                    m: 0,
+                    p: 0,
+                    ml: 'auto',
+                    flexShrink: 0,
+                    gap: { md: 0, lg: 0.25 },
+                  }}
                 >
                   {links.map((item) => (
                     <li key={item.to}>
@@ -150,18 +230,67 @@ function AppHeader() {
             )}
             {hasNav ? <Box sx={{ flex: 1, display: { md: 'none' } }} /> : null}
 
-            <LanguageSwitcher />
-            <ThemeModeSwitch />
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.25,
+                p: 0,
+                flexShrink: 0,
+              }}
+            >
+              <LanguageSwitcher />
+              <ThemeModeSwitch />
+            </Box>
             {signedIn ? <UserMenu /> : null}
             {auth.status === 'signedOut' ? (
               <>
-                <ButtonLink to="/login" variant="text" sx={{ flexShrink: 0 }}>
+                <ButtonLink
+                  to="/login"
+                  variant="text"
+                  sx={(theme) => ({
+                    flexShrink: 0,
+                    borderRadius: 0,
+                    border: 1,
+                    borderColor: 'divider',
+                    px: { xs: 1, sm: 1.5 },
+                    transition: theme.transitions.create([
+                      'transform',
+                      'background-color',
+                      'border-color',
+                    ]),
+                    '&:hover': {
+                      bgcolor: 'surfaceMuted',
+                      borderColor: 'primary.main',
+                      transform: 'translateY(-1px)',
+                    },
+                  })}
+                >
                   {t('shell.signIn')}
                 </ButtonLink>
                 <ButtonLink
                   to="/signup"
                   variant="outlined"
-                  sx={{ flexShrink: 0, display: { xs: 'none', sm: 'inline-flex' } }}
+                  sx={(theme) => ({
+                    flexShrink: 0,
+                    borderRadius: 0,
+                    borderWidth: 1,
+                    borderColor: 'primary.main',
+                    color: 'primary.main',
+                    px: { xs: 1.5, sm: 2 },
+                    display: { xs: 'none', sm: 'inline-flex' },
+                    transition: theme.transitions.create([
+                      'transform',
+                      'background-color',
+                      'border-color',
+                    ]),
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      bgcolor: 'surfaceMuted',
+                      borderColor: 'primary.dark',
+                    },
+                    '&:active': { transform: 'scale(0.98)' },
+                  })}
                 >
                   {t('shell.join')}
                 </ButtonLink>
@@ -176,7 +305,15 @@ function AppHeader() {
           id="mobile-navigation"
           open={drawerOpen}
           onClose={closeDrawer}
-          sx={{ display: { md: 'none' }, '& .MuiDrawer-paper': { width: drawerWidth } }}
+          sx={{
+            display: { md: 'none' },
+            '& .MuiDrawer-paper': {
+              width: drawerWidth,
+              borderRight: 1,
+              borderColor: 'divider',
+              boxShadow: '12px 0 32px rgba(13, 36, 25, 0.12)',
+            },
+          }}
         >
           <Box sx={{ p: 2 }}>
             <BrandLogo variant="full" height={32} />
@@ -193,8 +330,26 @@ function AppHeader() {
                     onClick={closeDrawer}
                     sx={{
                       minHeight: 48,
-                      '&[data-status="active"]': { color: 'primary.main', bgcolor: 'surfaceMuted' },
+                      mx: 1,
+                      border: 1,
+                      borderColor: 'transparent',
+                      borderRadius: 0,
+                      '&[data-status="active"]': {
+                        color: 'primary.main',
+                        bgcolor: 'surfaceMuted',
+                        borderColor: 'primary.main',
+                      },
                       '&[data-status="active"] .MuiListItemIcon-root': { color: 'primary.main' },
+                      transition: (theme) =>
+                        theme.transitions.create(['transform', 'background-color', 'color'], {
+                          duration: theme.transitions.duration.short,
+                        }),
+                      '&:hover': {
+                        transform: 'translateX(2px)',
+                        bgcolor: 'surfaceMuted',
+                        borderColor: 'divider',
+                      },
+                      '&:active': { transform: 'translateX(1px)' },
                     }}
                   >
                     <ListItemIcon>
@@ -218,12 +373,32 @@ function HeaderLink({ item }: { item: NavItem }) {
     <ButtonLink
       to={item.to}
       color="inherit"
-      sx={{
+      variant="outlined"
+      sx={(theme) => ({
         color: 'text.primary',
         fontWeight: 500,
         whiteSpace: 'nowrap',
-        '&[data-status="active"]': { color: 'primary.main', bgcolor: 'surfaceMuted' },
-      }}
+        position: 'relative',
+        borderRadius: 0,
+        borderColor: 'divider',
+        minHeight: 40,
+        px: { md: 1, lg: 1.25 },
+        transition: theme.transitions.create(
+          ['transform', 'color', 'background-color', 'border-color'],
+          { duration: theme.transitions.duration.short },
+        ),
+        '&:hover': {
+          transform: 'translateY(-1px)',
+          bgcolor: 'surfaceMuted',
+          borderColor: 'primary.main',
+        },
+        '&:active': { transform: 'translateY(0) scale(0.98)' },
+        '&[data-status="active"]': {
+          color: 'primary.main',
+          bgcolor: 'surfaceMuted',
+          borderColor: 'primary.main',
+        },
+      })}
     >
       {t(item.labelKey)}
     </ButtonLink>

@@ -30,6 +30,8 @@
   },
   "theme": {
     "menuLabel": "Color theme: {{mode}}",
+    "menuTitle": "Appearance",
+    "buttonLabel": "Theme",
     "system": "Match device",
     "light": "Light",
     "dark": "Dark"
@@ -38,7 +40,8 @@
     "ethiopicEra": "E.C."
   },
   "language": {
-    "menuLabel": "Language: {{language}}"
+    "menuLabel": "Language: {{language}}",
+    "menuTitle": "Interface language"
   },
   "languages": {
     "en": "English",

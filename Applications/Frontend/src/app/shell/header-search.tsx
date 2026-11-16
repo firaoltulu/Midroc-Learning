@@ -54,12 +54,17 @@ export function HeaderSearch({ onSubmitted }: { onSubmitted?: () => void }) {
         minWidth: 0,
         border: 1,
         borderColor: 'inputBorder',
-        borderRadius: 1,
+        borderRadius: 0,
         bgcolor: 'background.paper',
         overflow: 'hidden',
+        transition: theme.transitions.create(['border-color', 'box-shadow', 'background-color']),
+        '&:hover': {
+          borderColor: 'text.secondary',
+          bgcolor: 'surfaceMuted',
+        },
         '&:focus-within': {
           borderColor: 'primary.main',
-          boxShadow: `inset 0 0 0 1px ${(theme.vars ?? theme).palette.primary.main}`,
+          boxShadow: `0 0 0 3px rgba(var(--mui-palette-primary-mainChannel) / 0.14), inset 0 0 0 1px ${(theme.vars ?? theme).palette.primary.main}`,
         },
       })}
     >
@@ -75,13 +80,32 @@ export function HeaderSearch({ onSubmitted }: { onSubmitted?: () => void }) {
         }}
         placeholder={t('shell.searchPlaceholder')}
         inputProps={{ maxLength: 200 }}
-        sx={{ flex: 1, minWidth: 0, px: 1.5, '& input': { py: 1 } }}
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          px: 1.75,
+          '& input': { py: 1.15, fontSize: '0.875rem' },
+        }}
       />
       <Button
         type="submit"
         variant="contained"
         aria-label={t('shell.searchSubmit')}
-        sx={{ borderRadius: 0, minWidth: 44, minHeight: 40, px: 1.5 }}
+        sx={(theme) => ({
+          borderRadius: 0,
+          border: 1,
+          borderColor: 'primary.dark',
+          minWidth: 40,
+          minHeight: 40,
+          px: 1.25,
+          m: 0.375,
+          transition: theme.transitions.create(['transform', 'box-shadow']),
+          '&:hover': {
+            transform: 'translateY(-1px)',
+            boxShadow: '0 4px 12px rgba(19, 83, 57, 0.24)',
+          },
+          '&:active': { transform: 'scale(0.96)' },
+        })}
       >
         <SearchOutlined fontSize="small" />
       </Button>
