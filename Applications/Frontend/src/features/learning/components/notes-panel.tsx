@@ -1,6 +1,15 @@
+import CloseOutlined from '@mui/icons-material/CloseOutlined';
+import DeleteOutlined from '@mui/icons-material/DeleteOutlined';
+import EditOutlined from '@mui/icons-material/EditOutlined';
+import LockOutlined from '@mui/icons-material/LockOutlined';
+import NoteAddOutlined from '@mui/icons-material/NoteAddOutlined';
+import SaveOutlined from '@mui/icons-material/SaveOutlined';
+import StickyNote2Outlined from '@mui/icons-material/StickyNote2Outlined';
+import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
+import Divider from '@mui/material/Divider';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
@@ -42,45 +51,60 @@ export function NotesPanel({ itemId }: { itemId: string }) {
         : undefined;
 
   return (
-    <Stack spacing={3}>
-      <Typography variant="body2" color="text.secondary">
-        {t('notes.private')}
-      </Typography>
-      <Stack
-        component="form"
-        noValidate
-        spacing={1.5}
-        sx={{ alignItems: 'flex-start' }}
-        onSubmit={(event) => {
-          event.preventDefault();
-          const found = bodyProblem(text);
-          setProblem(found);
-          if (found) return;
-          add.mutate(text.trim(), {
-            onSuccess: () => {
-              setText('');
-              toast.show({ message: t('notes.saved'), severity: 'success' });
-            },
-          });
-        }}
+    <Stack spacing={2.5}>
+      <Card
+        variant="outlined"
+        sx={{ borderRadius: '16px', borderColor: 'divider', bgcolor: 'surfaceMuted' }}
       >
-        <TextField
-          label={t('notes.newLabel')}
-          value={text}
-          onChange={(event) => {
-            setText(event.target.value);
-            setProblem(null);
-          }}
-          multiline
-          minRows={3}
-          fullWidth
-          error={Boolean(problem) || Boolean(add.error)}
-          helperText={problemText(problem) ?? (add.error ? errorMessage(add.error) : undefined)}
-        />
-        <Button type="submit" variant="outlined" loading={add.isPending}>
-          {t('notes.save')}
-        </Button>
-      </Stack>
+        <CardContent sx={{ p: { xs: 1.5, sm: 2 }, '&:last-child': { pb: { xs: 1.5, sm: 2 } } }}>
+          <Stack
+            component="form"
+            noValidate
+            spacing={1.75}
+            onSubmit={(event) => {
+              event.preventDefault();
+              const found = bodyProblem(text);
+              setProblem(found);
+              if (found) return;
+              add.mutate(text.trim(), {
+                onSuccess: () => {
+                  setText('');
+                  toast.show({ message: t('notes.saved'), severity: 'success' });
+                },
+              });
+            }}
+          >
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              <LockOutlined fontSize="small" sx={{ color: 'primary.main' }} />
+              <Typography variant="body2" color="text.secondary">
+                {t('notes.private')}
+              </Typography>
+            </Stack>
+            <TextField
+              label={t('notes.newLabel')}
+              value={text}
+              onChange={(event) => {
+                setText(event.target.value);
+                setProblem(null);
+              }}
+              multiline
+              minRows={3}
+              fullWidth
+              error={Boolean(problem) || Boolean(add.error)}
+              helperText={problemText(problem) ?? (add.error ? errorMessage(add.error) : undefined)}
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              startIcon={<NoteAddOutlined />}
+              loading={add.isPending}
+              sx={{ alignSelf: { xs: 'stretch', sm: 'flex-start' }, px: 2.5 }}
+            >
+              {t('notes.save')}
+            </Button>
+          </Stack>
+        </CardContent>
+      </Card>
 
       {notes.isPending ? (
         <LoadingRegion>
@@ -89,7 +113,28 @@ export function NotesPanel({ itemId }: { itemId: string }) {
       ) : notes.isError ? (
         <ErrorState description={errorMessage(notes.error)} onRetry={() => void notes.refetch()} />
       ) : notes.data.length === 0 ? (
-        <Typography color="text.secondary">{t('notes.empty')}</Typography>
+        <Card
+          variant="outlined"
+          sx={{ borderRadius: '16px', borderStyle: 'dashed', bgcolor: 'surfaceMuted' }}
+        >
+          <CardContent
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5,
+              py: 2.5,
+              '&:last-child': { pb: 2.5 },
+            }}
+          >
+            <Avatar
+              aria-hidden
+              sx={{ width: 40, height: 40, bgcolor: 'background.paper', color: 'primary.main' }}
+            >
+              <StickyNote2Outlined fontSize="small" />
+            </Avatar>
+            <Typography color="text.secondary">{t('notes.empty')}</Typography>
+          </CardContent>
+        </Card>
       ) : (
         <Stack component="ul" spacing={2} sx={{ listStyle: 'none', m: 0, p: 0 }}>
           {notes.data.map((note) => (
@@ -167,8 +212,26 @@ function NoteCard({
   const [problem, setProblem] = useState<'required' | 'tooLong' | null>(null);
 
   return (
-    <Card component="li">
-      <CardContent sx={{ '&:last-child': { pb: 2 } }}>
+    <Card
+      component="li"
+      variant="outlined"
+      sx={{
+        borderRadius: '16px',
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
+        transition: (theme) =>
+          theme.transitions.create(['border-color', 'box-shadow'], {
+            duration: theme.transitions.duration.short,
+          }),
+        '@media (hover: hover)': {
+          '&:hover': {
+            borderColor: 'primary.main',
+            boxShadow: '0 8px 24px rgba(var(--mui-palette-primary-mainChannel) / 0.08)',
+          },
+        },
+      }}
+    >
+      <CardContent sx={{ p: { xs: 1.75, sm: 2.5 }, '&:last-child': { pb: { xs: 1.75, sm: 2.5 } } }}>
         {editing ? (
           <Stack
             component="form"
@@ -202,12 +265,19 @@ function NoteCard({
                     : (saveError ?? undefined)
               }
             />
-            <Stack direction="row" spacing={1}>
-              <Button type="submit" variant="outlined" loading={saving}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+              <Button
+                type="submit"
+                variant="contained"
+                startIcon={<SaveOutlined />}
+                loading={saving}
+                sx={{ alignSelf: { xs: 'stretch', sm: 'auto' } }}
+              >
                 {t('notes.update')}
               </Button>
               <Button
                 color="inherit"
+                startIcon={<CloseOutlined />}
                 sx={{ color: 'text.secondary' }}
                 onClick={() => {
                   setText(note.body);
@@ -219,25 +289,61 @@ function NoteCard({
             </Stack>
           </Stack>
         ) : (
-          <Stack spacing={1}>
-            <Typography sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
-              {note.body}
-            </Typography>
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-              <Typography variant="body2" color="text.secondary" sx={{ flex: 1 }}>
+          <Stack spacing={2}>
+            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
+              <Avatar
+                aria-hidden
+                sx={{
+                  width: 36,
+                  height: 36,
+                  bgcolor: 'surfaceMuted',
+                  color: 'primary.main',
+                }}
+              >
+                <StickyNote2Outlined fontSize="small" />
+              </Avatar>
+              <Typography
+                sx={{
+                  flex: 1,
+                  minWidth: 0,
+                  pt: 0.5,
+                  whiteSpace: 'pre-wrap',
+                  overflowWrap: 'anywhere',
+                }}
+              >
+                {note.body}
+              </Typography>
+            </Stack>
+            <Divider />
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={1}
+              sx={{ alignItems: { sm: 'center' } }}
+            >
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                component="time"
+                dateTime={note.updatedAt}
+                title={formatDateTime(note.updatedAt)}
+                sx={{ flex: 1 }}
+              >
                 {formatDateTime(note.updatedAt)}
               </Typography>
-              <Button size="small" onClick={onEdit} sx={{ minHeight: 44 }}>
-                {t('notes.edit')}
-              </Button>
-              <Button
-                size="small"
-                color="inherit"
-                onClick={onDelete}
-                sx={{ color: 'text.secondary', minHeight: 44 }}
-              >
-                {t('notes.delete.short')}
-              </Button>
+              <Stack direction="row" spacing={1} sx={{ alignSelf: { xs: 'flex-end', sm: 'auto' } }}>
+                <Button size="small" startIcon={<EditOutlined />} onClick={onEdit}>
+                  {t('notes.edit')}
+                </Button>
+                <Button
+                  size="small"
+                  color="inherit"
+                  startIcon={<DeleteOutlined />}
+                  onClick={onDelete}
+                  sx={{ color: 'text.secondary' }}
+                >
+                  {t('notes.delete.short')}
+                </Button>
+              </Stack>
             </Stack>
           </Stack>
         )}

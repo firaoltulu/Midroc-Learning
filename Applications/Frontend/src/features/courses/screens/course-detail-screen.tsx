@@ -82,7 +82,7 @@ export function CourseDetailScreen({ courseId }: { courseId: string }) {
 function Padded({ children }: { children: ReactNode }) {
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 3, sm: 5 } }}>
-      {children}
+      <Box sx={{ width: '100%', maxWidth: 880, mx: 'auto' }}>{children}</Box>
     </Container>
   );
 }
@@ -107,18 +107,35 @@ function CourseDetailView({
   return (
     <>
       <CourseHero course={course} viewerId={viewerId} canManage={canManage} />
-      <Container maxWidth="lg" sx={{ py: { xs: 4, md: 5 } }}>
-        <Stack spacing={5} sx={{ maxWidth: 760 }}>
+      <Container
+        maxWidth="lg"
+        sx={(theme) => ({
+          py: { xs: 4, md: 5 },
+          '& .MuiCard-root': {
+            transition: theme.transitions.create(['border-color', 'box-shadow'], {
+              duration: theme.transitions.duration.short,
+            }),
+            '@media (hover: hover)': {
+              '&:hover': {
+                borderColor: 'primary.main',
+                boxShadow: '0 0 0 3px rgba(var(--mui-palette-primary-mainChannel) / 0.12)',
+              },
+            },
+          },
+        })}
+      >
+        <Stack spacing={{ xs: 4, md: 5 }} sx={{ width: '100%', maxWidth: 960, mx: 'auto' }}>
           {canManage ? <CourseStatusBanner course={course} /> : null}
           <CourseLearn course={course} />
+          <CourseOutline course={course} linkItems={course.enrolled || isOwner} />
 
           {about ? (
             <Stack component="section" spacing={1} aria-labelledby="course-about-heading">
-              <Typography id="course-about-heading" variant="h4" component="h2">
+              <Typography id="course-about-heading" variant="h3" component="h2">
                 {t('detail.about')}
               </Typography>
               <Typography
-                sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', maxWidth: 720 }}
+                sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', maxWidth: '78ch' }}
                 {...contentLang}
               >
                 {about}
@@ -126,7 +143,6 @@ function CourseDetailView({
             </Stack>
           ) : null}
 
-          <CourseOutline course={course} linkItems={course.enrolled || isOwner} />
           {course.status === 'published' ? (
             <CourseReviews course={course} canReview={canReview} canModerate={isAdmin} />
           ) : null}
@@ -145,7 +161,7 @@ function CourseDetailSkeleton() {
         </Container>
       </Box>
       <Container maxWidth="lg" sx={{ py: { xs: 4, md: 5 } }}>
-        <Stack spacing={3} sx={{ maxWidth: 760 }}>
+        <Stack spacing={3} sx={{ width: '100%', maxWidth: 960, mx: 'auto' }}>
           <PageHeaderSkeleton />
           <TextSkeleton lines={4} />
           <LoadingRegion>

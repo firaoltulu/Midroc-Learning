@@ -1,6 +1,7 @@
 import StarBorderOutlined from '@mui/icons-material/StarBorderOutlined';
 import StarOutlined from '@mui/icons-material/StarOutlined';
 import Alert from '@mui/material/Alert';
+import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
@@ -61,7 +62,11 @@ export function CourseReviews({
   const { t } = useTranslation('courses');
 
   return (
-    <Stack component="section" aria-labelledby="course-reviews-heading" spacing={3}>
+    <Stack
+      component="section"
+      aria-labelledby="course-reviews-heading"
+      spacing={{ xs: 2.5, md: 3 }}
+    >
       <Typography id="course-reviews-heading" variant="h3" component="h2">
         {t('reviews.title')}
       </Typography>
@@ -78,52 +83,86 @@ function RatingSummary({ course }: { course: CourseDetail }) {
   const average = course.ratingAverage ?? 0;
 
   return (
-    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 2, sm: 5 }}>
-      <Stack spacing={0.5} sx={{ flexShrink: 0 }}>
-        <Typography sx={{ fontSize: '3rem', fontWeight: 700, lineHeight: 1 }}>
-          {formatRating(average)}
-        </Typography>
-        <RatingStars value={average} />
-        <Typography variant="body2" color="text.secondary">
-          {t('reviews.count', {
-            count: course.ratingCount,
-            formatted: formatNumber(course.ratingCount),
-          })}
-        </Typography>
-      </Stack>
-      <Stack
-        component="ul"
-        aria-label={t('reviews.distribution')}
-        spacing={1}
-        sx={{ listStyle: 'none', m: 0, p: 0, flex: 1, justifyContent: 'center', maxWidth: 520 }}
-      >
-        {STARS.map((stars) => {
-          const count = course.ratingDistribution[stars];
-          const percent = course.ratingCount ? Math.round((count / course.ratingCount) * 100) : 0;
-          const label = t('reviews.starsCount', { stars, count });
-          return (
-            <Stack
-              key={stars}
-              component="li"
-              direction="row"
-              spacing={1.5}
-              sx={{ alignItems: 'center' }}
+    <Card sx={{ bgcolor: 'surfaceMuted', borderColor: 'divider' }}>
+      <CardContent sx={{ p: { xs: 2.5, sm: 3 }, '&:last-child': { pb: { xs: 2.5, sm: 3 } } }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'minmax(150px, 0.65fr) minmax(0, 1.35fr)' },
+            gap: { xs: 2.5, sm: 4 },
+            alignItems: 'center',
+          }}
+        >
+          <Stack spacing={0.75} sx={{ alignItems: { xs: 'flex-start', sm: 'flex-start' } }}>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                fontSize: 'clamp(2.75rem, 7vw, 3.75rem)',
+                fontWeight: 700,
+                lineHeight: 1,
+                fontVariantNumeric: 'tabular-nums',
+              }}
             >
-              <Typography variant="body2" color="text.secondary" aria-hidden sx={{ width: 12 }}>
-                {stars}
-              </Typography>
-              <LinearProgress
-                variant="determinate"
-                value={percent}
-                aria-label={label}
-                aria-valuetext={label}
-                sx={{ flex: 1, height: 8 }}
-              />
-            </Stack>
-          );
-        })}
-      </Stack>
-    </Stack>
+              {formatRating(average)}
+            </Typography>
+            <RatingStars value={average} size="medium" />
+            <Typography variant="body2" color="text.secondary">
+              {t('reviews.count', {
+                count: course.ratingCount,
+                formatted: formatNumber(course.ratingCount),
+              })}
+            </Typography>
+          </Stack>
+          <Stack
+            component="ul"
+            aria-label={t('reviews.distribution')}
+            spacing={1.25}
+            sx={{ listStyle: 'none', m: 0, p: 0, minWidth: 0 }}
+          >
+            {STARS.map((stars) => {
+              const count = course.ratingDistribution[stars];
+              const percent = course.ratingCount
+                ? Math.round((count / course.ratingCount) * 100)
+                : 0;
+              const label = t('reviews.starsCount', { stars, count });
+              return (
+                <Stack
+                  key={stars}
+                  component="li"
+                  direction="row"
+                  spacing={1.25}
+                  sx={{ alignItems: 'center' }}
+                >
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    aria-hidden
+                    sx={{ width: 12, textAlign: 'end', fontWeight: 600 }}
+                  >
+                    {stars}
+                  </Typography>
+                  <LinearProgress
+                    variant="determinate"
+                    value={percent}
+                    aria-label={label}
+                    aria-valuetext={label}
+                    sx={{ flex: 1, height: 8, borderRadius: 4 }}
+                  />
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    aria-hidden
+                    sx={{ width: 30, textAlign: 'end', fontVariantNumeric: 'tabular-nums' }}
+                  >
+                    {formatNumber(count)}
+                  </Typography>
+                </Stack>
+              );
+            })}
+          </Stack>
+        </Box>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -145,7 +184,11 @@ function MyReview({ course }: { course: CourseDetail }) {
   const failure = save.error ?? remove.error;
 
   return (
-    <Card component="section" aria-labelledby={`${labelId}-title`}>
+    <Card
+      component="section"
+      aria-labelledby={`${labelId}-title`}
+      sx={{ borderTop: 3, borderTopColor: 'primary.main' }}
+    >
       <CardContent sx={{ p: 3, '&:last-child': { pb: 3 } }}>
         <Stack
           component="form"
@@ -298,7 +341,20 @@ function ReviewList({ course, canModerate }: { course: CourseDetail; canModerate
   }
   const items = reviews.data.pages.flatMap((page) => page.items);
   if (items.length === 0) {
-    return <Typography color="text.secondary">{t('reviews.empty')}</Typography>;
+    return (
+      <Box
+        sx={{
+          p: { xs: 2.5, sm: 3 },
+          border: 1,
+          borderStyle: 'dashed',
+          borderColor: 'divider',
+          borderRadius: 2,
+          bgcolor: 'surfaceMuted',
+        }}
+      >
+        <Typography color="text.secondary">{t('reviews.empty')}</Typography>
+      </Box>
+    );
   }
   return (
     <Stack spacing={2} sx={{ alignItems: 'flex-start' }}>
@@ -363,38 +419,72 @@ function ReviewCard({ review, onRemove }: { review: Review; onRemove?: () => voi
 
   return (
     <Card component="li">
-      <CardContent sx={{ '&:last-child': { pb: 2 } }}>
-        <Stack
-          direction="row"
-          spacing={1}
-          useFlexGap
-          sx={{ alignItems: 'center', flexWrap: 'wrap' }}
-        >
-          <Typography sx={{ fontWeight: 600 }}>{author}</Typography>
-          <RatingStars value={review.rating} />
-          <Box component="span" sx={visuallyHidden}>
-            {t('reviews.form.stars', { count: review.rating })}
-          </Box>
-          <Typography variant="body2" color="text.secondary">
-            {formatDate(review.updatedAt)}
-          </Typography>
-          {onRemove ? (
-            <Button
-              size="small"
-              color="error"
-              onClick={onRemove}
-              aria-label={t('reviews.remove.action', { author })}
-              sx={{ ml: 'auto', minHeight: 44 }}
+      <CardContent sx={{ p: { xs: 2, sm: 2.5 }, '&:last-child': { pb: { xs: 2, sm: 2.5 } } }}>
+        <Stack spacing={1.75}>
+          <Stack
+            direction="row"
+            spacing={1.5}
+            useFlexGap
+            sx={{ alignItems: 'center', flexWrap: 'wrap' }}
+          >
+            <Avatar
+              aria-hidden
+              sx={{
+                width: 40,
+                height: 40,
+                bgcolor: 'primary.main',
+                color: 'primary.contrastText',
+                fontSize: '0.875rem',
+                fontWeight: 700,
+              }}
             >
-              {t('reviews.remove.short')}
-            </Button>
+              {author.trim().slice(0, 1).toUpperCase()}
+            </Avatar>
+            <Stack spacing={0.25} sx={{ minWidth: 0, flex: 1 }}>
+              <Typography sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>{author}</Typography>
+              <Typography variant="body2" color="text.secondary">
+                {formatDate(review.updatedAt)}
+              </Typography>
+            </Stack>
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ alignItems: 'center', ml: { xs: 0, sm: 'auto' } }}
+            >
+              <RatingStars value={review.rating} />
+              <Box component="span" sx={visuallyHidden}>
+                {t('reviews.form.stars', { count: review.rating })}
+              </Box>
+              {onRemove ? (
+                <Button
+                  size="small"
+                  color="error"
+                  onClick={onRemove}
+                  aria-label={t('reviews.remove.action', { author })}
+                  sx={{ minHeight: 44 }}
+                >
+                  {t('reviews.remove.short')}
+                </Button>
+              ) : null}
+            </Stack>
+          </Stack>
+          {review.comment ? (
+            <Typography
+              sx={{
+                py: 1,
+                px: 1.5,
+                borderInlineStart: 2,
+                borderColor: 'primary.main',
+                borderRadius: '0 8px 8px 0',
+                bgcolor: 'surfaceMuted',
+                whiteSpace: 'pre-wrap',
+                overflowWrap: 'anywhere',
+              }}
+            >
+              {review.comment}
+            </Typography>
           ) : null}
         </Stack>
-        {review.comment ? (
-          <Typography sx={{ mt: 1, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
-            {review.comment}
-          </Typography>
-        ) : null}
       </CardContent>
     </Card>
   );

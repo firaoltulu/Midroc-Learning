@@ -94,7 +94,12 @@ export default function PdfItem({ courseId, itemId, title, completed }: PdfItemP
 
   const fileName = pdfFileName(title);
   const actions = (
-    <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+    <Stack
+      direction="row"
+      spacing={1}
+      useFlexGap
+      sx={{ flexWrap: 'wrap', justifyContent: 'flex-end' }}
+    >
       {objectUrl ? (
         <Button
           variant="outlined"
@@ -134,54 +139,134 @@ export default function PdfItem({ courseId, itemId, title, completed }: PdfItemP
       <Stack
         role="toolbar"
         aria-label={t('pdf.toolbar')}
-        direction="row"
-        spacing={1}
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={1.25}
         useFlexGap
-        sx={{ alignItems: 'center', flexWrap: 'wrap' }}
+        sx={{
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          p: 1,
+          border: 1,
+          borderColor: 'divider',
+          borderRadius: '16px',
+          bgcolor: 'surfaceMuted',
+        }}
       >
-        <IconButton
-          aria-label={t('pdf.previousPage')}
-          disabled={page <= 1}
-          onClick={() => {
-            setPage((value) => Math.max(1, value - 1));
+        <Stack
+          direction="row"
+          spacing={0.75}
+          sx={{
+            alignItems: 'center',
+            p: 0.5,
+            border: 1,
+            borderColor: 'divider',
+            borderRadius: '12px',
+            bgcolor: 'background.paper',
           }}
         >
-          <ChevronLeftOutlined />
-        </IconButton>
-        <Typography aria-live="polite" sx={{ minWidth: 96, textAlign: 'center' }}>
-          {pageCount > 0 ? t('pdf.pageOf', { page, total: pageCount }) : ''}
-        </Typography>
-        <IconButton
-          aria-label={t('pdf.nextPage')}
-          disabled={pageCount === 0 || page >= pageCount}
-          onClick={() => {
-            setPage((value) => Math.min(pageCount, value + 1));
+          <IconButton
+            aria-label={t('pdf.previousPage')}
+            disabled={page <= 1}
+            onClick={() => {
+              setPage((value) => Math.max(1, value - 1));
+            }}
+            sx={{
+              border: 1,
+              borderColor: 'divider',
+              borderRadius: '9px',
+              bgcolor: 'background.paper',
+              '&:not(:disabled):hover': { borderColor: 'primary.main', color: 'primary.main' },
+            }}
+          >
+            <ChevronLeftOutlined />
+          </IconButton>
+          <Typography
+            aria-live="polite"
+            variant="body2"
+            sx={{
+              minWidth: 112,
+              px: 1,
+              textAlign: 'center',
+              fontWeight: 600,
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {pageCount > 0 ? t('pdf.pageOf', { page, total: pageCount }) : ''}
+          </Typography>
+          <IconButton
+            aria-label={t('pdf.nextPage')}
+            disabled={pageCount === 0 || page >= pageCount}
+            onClick={() => {
+              setPage((value) => Math.min(pageCount, value + 1));
+            }}
+            sx={{
+              border: 1,
+              borderColor: 'divider',
+              borderRadius: '9px',
+              bgcolor: 'background.paper',
+              '&:not(:disabled):hover': { borderColor: 'primary.main', color: 'primary.main' },
+            }}
+          >
+            <ChevronRightOutlined />
+          </IconButton>
+        </Stack>
+        <Stack
+          direction="row"
+          spacing={0.75}
+          sx={{
+            alignItems: 'center',
+            p: 0.5,
+            border: 1,
+            borderColor: 'divider',
+            borderRadius: '12px',
+            bgcolor: 'background.paper',
           }}
         >
-          <ChevronRightOutlined />
-        </IconButton>
-        <Box sx={{ flex: 1 }} />
-        <IconButton
-          aria-label={t('pdf.zoomOut')}
-          disabled={zoomIndex === 0}
-          onClick={() => {
-            setZoomIndex((value) => Math.max(0, value - 1));
-          }}
-        >
-          <ZoomOutOutlined />
-        </IconButton>
-        <Typography sx={{ minWidth: 48, textAlign: 'center' }}>
-          {t('pdf.zoomLevel', { percent: Math.round(zoom * 100) })}
-        </Typography>
-        <IconButton
-          aria-label={t('pdf.zoomIn')}
-          disabled={zoomIndex === ZOOM_LEVELS.length - 1}
-          onClick={() => {
-            setZoomIndex((value) => Math.min(ZOOM_LEVELS.length - 1, value + 1));
-          }}
-        >
-          <ZoomInOutlined />
-        </IconButton>
+          <IconButton
+            aria-label={t('pdf.zoomOut')}
+            disabled={zoomIndex === 0}
+            onClick={() => {
+              setZoomIndex((value) => Math.max(0, value - 1));
+            }}
+            sx={{
+              border: 1,
+              borderColor: 'divider',
+              borderRadius: '9px',
+              bgcolor: 'background.paper',
+              '&:not(:disabled):hover': { borderColor: 'primary.main', color: 'primary.main' },
+            }}
+          >
+            <ZoomOutOutlined />
+          </IconButton>
+          <Typography
+            variant="body2"
+            sx={{
+              minWidth: 56,
+              textAlign: 'center',
+              fontWeight: 600,
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {t('pdf.zoomLevel', { percent: Math.round(zoom * 100) })}
+          </Typography>
+          <IconButton
+            aria-label={t('pdf.zoomIn')}
+            disabled={zoomIndex === ZOOM_LEVELS.length - 1}
+            onClick={() => {
+              setZoomIndex((value) => Math.min(ZOOM_LEVELS.length - 1, value + 1));
+            }}
+            sx={{
+              border: 1,
+              borderColor: 'divider',
+              borderRadius: '9px',
+              bgcolor: 'background.paper',
+              '&:not(:disabled):hover': { borderColor: 'primary.main', color: 'primary.main' },
+            }}
+          >
+            <ZoomInOutlined />
+          </IconButton>
+        </Stack>
       </Stack>
 
       <Box
@@ -200,10 +285,18 @@ export default function PdfItem({ courseId, itemId, title, completed }: PdfItemP
           maxHeight: { xs: '70vh', md: '75vh' },
           border: 1,
           borderColor: 'divider',
-          borderRadius: '14px',
+          borderRadius: '18px',
           bgcolor: 'surfaceMuted',
+          backgroundImage:
+            'radial-gradient(circle at 50% 0%, rgba(var(--mui-palette-primary-mainChannel) / 0.06), transparent 46%)',
           // pdf.js draws pages on white whatever the theme; keep a frame around them.
-          '& .react-pdf__Page': { mx: 'auto', my: 2, boxShadow: 'none' },
+          '& .react-pdf__Page': {
+            mx: 'auto',
+            my: 2,
+            overflow: 'hidden',
+            borderRadius: '4px',
+            boxShadow: '0 10px 28px rgba(0, 0, 0, 0.16)',
+          },
           '& .react-pdf__Page__canvas': { mx: 'auto' },
         }}
       >

@@ -277,6 +277,14 @@ describe('player shell', () => {
     await user.click(await screen.findByRole('button', { name: 'Course content' }));
     const drawer = await screen.findByRole('navigation', { name: 'Course content' });
     expect(within(drawer).getAllByRole('link')).toHaveLength(3);
+
+    const firstModule = within(drawer).getByRole('button', { name: /Getting started/ });
+    await user.click(firstModule);
+    expect(within(drawer).queryByRole('link', { name: /Welcome/ })).not.toBeInTheDocument();
+    expect(within(drawer).getByRole('link', { name: /Final quiz/ })).toBeVisible();
+
+    await user.click(firstModule);
+    expect(await within(drawer).findByRole('link', { name: /Welcome/ })).toBeVisible();
   });
 
   it('shows the calm "course completed" state once everything is done', async () => {

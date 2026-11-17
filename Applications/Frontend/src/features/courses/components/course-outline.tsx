@@ -4,6 +4,7 @@ import Accordion from '@mui/material/Accordion';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -24,8 +25,7 @@ export interface CourseOutlineProps {
 }
 
 /**
- * The syllabus: one outlined box of modules ("Module 1 · Foundations", item count), the first
- * open; items show their type ("Video · Welcome"), an icon and completion.
+ * The syllabus: distinct module cards, the first open; items show their type, icon and completion.
  */
 export function CourseOutline({ course, linkItems }: CourseOutlineProps) {
   const { t } = useTranslation('courses');
@@ -47,66 +47,151 @@ export function CourseOutline({ course, linkItems }: CourseOutlineProps) {
         </Typography>
       </Stack>
 
-      {/* One outlined box; modules are separated by thin lines (no shadows). */}
-      <Box
-        sx={{
-          border: 1,
-          borderColor: 'divider',
-          borderRadius: '14px',
-          overflow: 'hidden',
-          bgcolor: 'background.paper',
-          '& .MuiAccordion-root': { boxShadow: 'none', borderRadius: 0, bgcolor: 'transparent' },
-          '& .MuiAccordion-root::before': { display: 'none' },
-          '& .MuiAccordion-root + .MuiAccordion-root': { borderTop: 1, borderColor: 'divider' },
-        }}
-      >
+      <Stack spacing={1.25}>
         {course.modules.map((module, index) => (
-          <Accordion key={module.id} defaultExpanded={index === 0} disableGutters>
-            <AccordionSummary expandIcon={<ExpandMoreOutlined />} sx={{ px: 2 }}>
+          <Accordion
+            key={module.id}
+            defaultExpanded={index === 0}
+            disableGutters
+            sx={(theme) => ({
+              overflow: 'hidden',
+              border: 1,
+              borderColor: 'divider',
+              borderRadius: '14px !important',
+              bgcolor: 'background.paper',
+              boxShadow: 'none',
+              transition: theme.transitions.create(['border-color', 'box-shadow'], {
+                duration: theme.transitions.duration.short,
+              }),
+              '&::before': { display: 'none' },
+              '&.Mui-expanded': { m: 0, borderColor: 'primary.main' },
+              '@media (hover: hover)': {
+                '&:hover': {
+                  borderColor: 'primary.main',
+                  boxShadow: '0 0 0 3px rgba(var(--mui-palette-primary-mainChannel) / 0.1)',
+                },
+              },
+            })}
+          >
+            <AccordionSummary
+              expandIcon={<ExpandMoreOutlined />}
+              sx={{
+                minHeight: 84,
+                px: { xs: 1.5, sm: 2 },
+                '&.Mui-expanded': { minHeight: 84 },
+                '& .MuiAccordionSummary-content': { my: 1.5, alignItems: 'center', minWidth: 0 },
+                '& .MuiAccordionSummary-content.Mui-expanded': { my: 1.5 },
+                '&.Mui-focusVisible': { bgcolor: 'surfaceMuted' },
+              }}
+            >
               <Stack
                 direction="row"
-                spacing={2}
+                spacing={{ xs: 1.5, sm: 2 }}
                 sx={{
                   flex: 1,
                   minWidth: 0,
-                  alignItems: 'baseline',
+                  alignItems: 'center',
                   justifyContent: 'space-between',
                 }}
               >
-                <Typography component="span" sx={{ fontWeight: 600, overflowWrap: 'anywhere' }}>
-                  {t('outline.moduleNumber', { number: index + 1 })}
-                  <Box component="span" aria-hidden sx={{ mx: 0.75 }}>
-                    ·
-                  </Box>
-                  <span {...contentLang}>{module.title}</span>
-                </Typography>
-                <Typography
-                  component="span"
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ flexShrink: 0 }}
+                <Stack
+                  direction="row"
+                  spacing={{ xs: 1.5, sm: 2 }}
+                  sx={{ alignItems: 'center', minWidth: 0 }}
                 >
-                  {t('outline.items', { count: module.items.length })}
-                </Typography>
+                  <Box
+                    aria-hidden
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      flexShrink: 0,
+                      display: 'grid',
+                      placeItems: 'center',
+                      border: 1,
+                      borderColor: 'divider',
+                      borderRadius: 1.25,
+                      bgcolor: 'surfaceMuted',
+                      color: 'primary.main',
+                      fontSize: '0.875rem',
+                      fontWeight: 700,
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    {String(index + 1).padStart(2, '0')}
+                  </Box>
+                  <Stack spacing={0.25} sx={{ minWidth: 0 }}>
+                    <Typography
+                      component="span"
+                      variant="caption"
+                      sx={{ color: 'primary.main', fontWeight: 700 }}
+                    >
+                      {t('outline.moduleNumber', { number: index + 1 })}
+                    </Typography>
+                    <Typography component="span" sx={{ fontWeight: 600, overflowWrap: 'anywhere' }}>
+                      <span {...contentLang}>{module.title}</span>
+                    </Typography>
+                  </Stack>
+                </Stack>
+                <Chip
+                  label={t('outline.items', { count: module.items.length })}
+                  size="small"
+                  variant="outlined"
+                  sx={{
+                    flexShrink: 0,
+                    borderColor: 'divider',
+                    color: 'text.secondary',
+                    '& .MuiChip-label': { px: 1 },
+                  }}
+                />
               </Stack>
             </AccordionSummary>
-            <AccordionDetails sx={{ pt: 0 }}>
+            <AccordionDetails
+              sx={{
+                pt: 1.5,
+                px: { xs: 1.5, sm: 2 },
+                pb: 2,
+                borderTop: 1,
+                borderColor: 'divider',
+                bgcolor: 'surfaceMuted',
+              }}
+            >
               {module.description ? (
                 <Typography
                   color="text.secondary"
-                  sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', mb: 1, maxWidth: 720 }}
+                  sx={{
+                    whiteSpace: 'pre-wrap',
+                    overflowWrap: 'anywhere',
+                    mb: 1.5,
+                    maxWidth: 720,
+                  }}
                   {...contentLang}
                 >
                   {module.description}
                 </Typography>
               ) : null}
-              <List disablePadding>
+              <List disablePadding sx={{ display: 'grid', gap: 0.75 }}>
                 {module.items.map((item) => {
                   const Icon = ITEM_ICONS[item.type];
                   const completed = done.has(item.id);
                   const content = (
                     <>
-                      <ListItemIcon sx={{ minWidth: 40, color: 'text.secondary' }}>
+                      <ListItemIcon
+                        sx={{
+                          minWidth: 34,
+                          width: 34,
+                          height: 34,
+                          mr: 1.5,
+                          display: 'grid',
+                          placeItems: 'center',
+                          border: 1,
+                          borderColor: 'divider',
+                          borderRadius: 1,
+                          bgcolor: 'background.paper',
+                          color: 'primary.main',
+                          fontSize: '1.125rem',
+                          '& .MuiSvgIcon-root': { fontSize: 'inherit' },
+                        }}
+                      >
                         <Icon />
                       </ListItemIcon>
                       <ListItemText
@@ -124,7 +209,9 @@ export function CourseOutline({ course, linkItems }: CourseOutlineProps) {
                             <span {...contentLang}>{item.title}</span>
                           </>
                         }
-                        slotProps={{ primary: { sx: { overflowWrap: 'anywhere' } } }}
+                        slotProps={{
+                          primary: { sx: { overflowWrap: 'anywhere', fontWeight: 500 } },
+                        }}
                       />
                       {completed ? (
                         <CheckCircleOutlined
@@ -140,13 +227,39 @@ export function CourseOutline({ course, linkItems }: CourseOutlineProps) {
                       <ListItemLink
                         to="/learn/$courseId/$itemId"
                         params={{ courseId: course.id, itemId: item.id }}
-                        sx={{ borderRadius: '10px', minHeight: 44 }}
+                        sx={(theme) => ({
+                          minHeight: 56,
+                          px: 1.25,
+                          border: 1,
+                          borderColor: 'transparent',
+                          borderRadius: 1.5,
+                          bgcolor: 'background.paper',
+                          transition: theme.transitions.create(
+                            ['border-color', 'box-shadow', 'background-color'],
+                            { duration: theme.transitions.duration.short },
+                          ),
+                          '&:hover': {
+                            borderColor: 'primary.main',
+                            boxShadow:
+                              '0 0 0 2px rgba(var(--mui-palette-primary-mainChannel) / 0.1)',
+                          },
+                        })}
                       >
                         {content}
                       </ListItemLink>
                     </li>
                   ) : (
-                    <ListItem key={item.id} sx={{ minHeight: 44 }}>
+                    <ListItem
+                      key={item.id}
+                      sx={{
+                        minHeight: 56,
+                        px: 1.25,
+                        border: 1,
+                        borderColor: 'divider',
+                        borderRadius: 1.5,
+                        bgcolor: 'background.paper',
+                      }}
+                    >
                       {content}
                     </ListItem>
                   );
@@ -155,7 +268,7 @@ export function CourseOutline({ course, linkItems }: CourseOutlineProps) {
             </AccordionDetails>
           </Accordion>
         ))}
-      </Box>
+      </Stack>
     </Stack>
   );
 }

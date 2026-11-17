@@ -126,6 +126,23 @@ describe('course detail', () => {
     expect(screen.queryByRole('link', { name: /Welcome/ })).not.toBeInTheDocument();
   });
 
+  it('places learning outcomes and the syllabus before the course description', async () => {
+    mockCourse({
+      description: 'Course summary.\n\nAdditional course details.',
+      outcomes: ['Spot hazards'],
+    });
+    await renderRoute('/courses/course-1');
+
+    const outcomes = await screen.findByRole('region', { name: "What you'll learn" });
+    const syllabus = screen.getByRole('region', { name: 'Syllabus' });
+    const about = screen.getByRole('heading', { name: 'About this course' });
+
+    expect(
+      outcomes.compareDocumentPosition(syllabus) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(syllabus.compareDocumentPosition(about) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('shows the rating summary and reviews, a page at a time', async () => {
     mockCourse({}, { reviewCount: 7 });
     const { user } = await renderRoute('/courses/course-1');

@@ -130,18 +130,32 @@ function Player({
         <Box
           component="aside"
           aria-label={t('learning:player.outline')}
-          sx={{
+          sx={(theme) => ({
             display: { xs: 'none', md: 'block' },
             position: 'sticky',
             top: PLAYER_BAR_HEIGHT,
+            zIndex: 1,
             alignSelf: 'start',
             height: `calc(100dvh - ${String(PLAYER_BAR_HEIGHT)}px)`,
             overflow: 'auto',
             borderRight: 1,
             borderColor: 'divider',
-            bgcolor: 'background.paper',
+            bgcolor: 'rgba(var(--mui-palette-background-paperChannel) / 0.82)',
+            backgroundImage:
+              'linear-gradient(155deg, rgba(var(--mui-palette-primary-mainChannel) / 0.055), transparent 42%)',
+            backdropFilter: 'blur(18px) saturate(145%)',
+            WebkitBackdropFilter: 'blur(18px) saturate(145%)',
+            boxShadow: '4px 0 20px rgba(var(--mui-palette-primary-mainChannel) / 0.08)',
+            transition: theme.transitions.create('box-shadow', {
+              duration: theme.transitions.duration.short,
+            }),
+            '@media (hover: hover)': {
+              '&:hover': {
+                boxShadow: '8px 0 28px rgba(var(--mui-palette-primary-mainChannel) / 0.16)',
+              },
+            },
             p: 1.5,
-          }}
+          })}
         >
           <PlayerOutline course={course} currentItemId={item.id} />
         </Box>

@@ -1,4 +1,5 @@
 import VideocamOffOutlined from '@mui/icons-material/VideocamOffOutlined';
+import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
@@ -53,24 +54,43 @@ function VideoUnavailable() {
   return (
     <Stack
       role="status"
-      spacing={1.5}
+      spacing={2}
       sx={{
-        aspectRatio: { sm: '16 / 9' },
+        aspectRatio: { xs: '4 / 3', sm: '16 / 9' },
+        minHeight: 220,
         alignItems: 'center',
         justifyContent: 'center',
         textAlign: 'center',
-        p: 4,
+        p: { xs: 2.5, sm: 4 },
+        border: 1,
+        borderColor: 'divider',
         bgcolor: 'surfaceMuted',
-        borderRadius: '14px',
+        borderRadius: '18px',
+        backgroundImage:
+          'radial-gradient(circle at 50% 0%, rgba(var(--mui-palette-primary-mainChannel) / 0.1), transparent 58%)',
       }}
     >
-      <VideocamOffOutlined aria-hidden sx={{ fontSize: 40, color: 'text.secondary' }} />
-      <Typography variant="h4" component="h2">
-        {t('video.unavailable.title')}
-      </Typography>
-      <Typography color="text.secondary" sx={{ maxWidth: 480 }}>
-        {t('video.unavailable.body')}
-      </Typography>
+      <Avatar
+        aria-hidden
+        sx={{
+          width: 56,
+          height: 56,
+          bgcolor: 'background.paper',
+          color: 'text.secondary',
+          border: 1,
+          borderColor: 'divider',
+        }}
+      >
+        <VideocamOffOutlined />
+      </Avatar>
+      <Stack spacing={0.75} sx={{ alignItems: 'center', maxWidth: 480 }}>
+        <Typography variant="h4" component="h2">
+          {t('video.unavailable.title')}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {t('video.unavailable.body')}
+        </Typography>
+      </Stack>
     </Stack>
   );
 }
@@ -203,10 +223,19 @@ function YouTubeFrame({
       sx={{
         position: 'relative',
         aspectRatio: '16 / 9',
-        borderRadius: '14px',
+        border: 1,
+        borderColor: 'divider',
+        borderRadius: '18px',
         overflow: 'hidden',
         bgcolor: 'common.black',
-        '& iframe': { position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 },
+        boxShadow: '0 16px 36px rgba(0, 0, 0, 0.16)',
+        '& iframe': {
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          border: 0,
+        },
       }}
     >
       {state === 'loading' ? (

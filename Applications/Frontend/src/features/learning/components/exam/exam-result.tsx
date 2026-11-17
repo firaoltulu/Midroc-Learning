@@ -1,7 +1,11 @@
 import CancelOutlined from '@mui/icons-material/CancelOutlined';
 import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined';
+import ReplayOutlined from '@mui/icons-material/ReplayOutlined';
 import Box from '@mui/material/Box';
+import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useEffect, useRef } from 'react';
@@ -39,42 +43,83 @@ export function ExamResultView({
 
   return (
     <Stack spacing={3}>
-      <Stack
-        spacing={1}
-        sx={{ p: 3, border: 1, borderRadius: '14px', borderColor: `${tone}.main` }}
+      <Card
+        variant="outlined"
+        sx={{
+          borderRadius: '18px',
+          borderColor: `${tone}.main`,
+          borderTopWidth: 4,
+          bgcolor: 'surfaceMuted',
+        }}
       >
-        <Typography
-          ref={headingRef}
-          tabIndex={-1}
-          variant="h3"
-          component="h2"
-          sx={{ outline: 'none', color: `${tone}.main` }}
-        >
-          {result.passed ? t('result.passed') : t('result.notPassed')}
-        </Typography>
-        <Typography variant="h2" component="p" sx={{ fontVariantNumeric: 'tabular-nums' }}>
-          {t('result.percent', { percent: Math.round(result.scorePercent) })}
-        </Typography>
-        {/* A passed exam is done: no attempts count, no "Try again". */}
-        {result.passed ? null : (
-          <>
-            <Typography color="text.secondary">
-              {result.attemptsRemaining === null
-                ? t('result.attemptsUnlimited')
-                : t('result.attemptsLeft', { count: result.attemptsRemaining })}
-            </Typography>
-            {canRetry ? (
-              <Button
-                variant="contained"
-                onClick={onTryAgain}
-                sx={{ alignSelf: 'flex-start', mt: 1 }}
+        <CardContent sx={{ p: { xs: 2, sm: 3 }, '&:last-child': { pb: { xs: 2, sm: 3 } } }}>
+          <Stack spacing={2.5}>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={2}
+              sx={{ alignItems: { sm: 'center' }, justifyContent: 'space-between' }}
+            >
+              <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', minWidth: 0 }}>
+                <Avatar
+                  aria-hidden
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    bgcolor: `${tone}.main`,
+                    color: 'common.white',
+                  }}
+                >
+                  {result.passed ? <CheckCircleOutlined /> : <CancelOutlined />}
+                </Avatar>
+                <Typography
+                  ref={headingRef}
+                  tabIndex={-1}
+                  variant="h3"
+                  component="h2"
+                  sx={{ outline: 'none', color: `${tone}.main`, overflowWrap: 'anywhere' }}
+                >
+                  {result.passed ? t('result.passed') : t('result.notPassed')}
+                </Typography>
+              </Stack>
+              <Typography
+                variant="h1"
+                component="p"
+                sx={{
+                  color: `${tone}.main`,
+                  fontSize: { xs: '2.5rem', sm: '3rem' },
+                  fontVariantNumeric: 'tabular-nums',
+                }}
               >
-                {t('result.tryAgain')}
-              </Button>
-            ) : null}
-          </>
-        )}
-      </Stack>
+                {t('result.percent', { percent: Math.round(result.scorePercent) })}
+              </Typography>
+            </Stack>
+            {/* A passed exam is done: no attempts count, no "Try again". */}
+            {result.passed ? null : (
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={1.5}
+                sx={{ alignItems: { sm: 'center' }, justifyContent: 'space-between' }}
+              >
+                <Typography color="text.secondary">
+                  {result.attemptsRemaining === null
+                    ? t('result.attemptsUnlimited')
+                    : t('result.attemptsLeft', { count: result.attemptsRemaining })}
+                </Typography>
+                {canRetry ? (
+                  <Button
+                    variant="contained"
+                    startIcon={<ReplayOutlined />}
+                    onClick={onTryAgain}
+                    sx={{ alignSelf: { xs: 'stretch', sm: 'auto' }, borderRadius: '10px' }}
+                  >
+                    {t('result.tryAgain')}
+                  </Button>
+                ) : null}
+              </Stack>
+            )}
+          </Stack>
+        </CardContent>
+      </Card>
 
       <Stack component="section" spacing={1.5} aria-labelledby="exam-answers-heading">
         <Typography id="exam-answers-heading" variant="h4" component="h3">
@@ -98,7 +143,15 @@ export function ExamResultView({
               <Box
                 component="li"
                 key={question.id}
-                sx={{ p: 2, border: 1, borderColor: 'divider', borderRadius: '14px' }}
+                sx={{
+                  p: { xs: 1.75, sm: 2.25 },
+                  border: 1,
+                  borderLeftWidth: 3,
+                  borderColor: 'divider',
+                  borderLeftColor: correct ? 'success.main' : 'warning.main',
+                  borderRadius: '14px',
+                  bgcolor: 'background.paper',
+                }}
               >
                 <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
                   {correct ? (

@@ -1,8 +1,10 @@
 import Stack from '@mui/material/Stack';
+import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
+import TableContainer from '@mui/material/TableContainer';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import { useQuery } from '@tanstack/react-query';
@@ -23,30 +25,51 @@ export function AttemptHistory({ examId }: { examId: string }) {
       <Typography id="attempt-history-heading" variant="h4" component="h3">
         {t('history.title')}
       </Typography>
-      <Table size="small">
-        <TableHead>
-          <TableRow>
-            <TableCell>{t('history.date')}</TableCell>
-            <TableCell align="right">{t('history.score')}</TableCell>
-            <TableCell>{t('history.outcome')}</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {submitted.map((attempt) => (
-            <TableRow key={attempt.id}>
-              <TableCell>{formatDateTime(attempt.submittedAt ?? attempt.startedAt)}</TableCell>
-              <TableCell align="right">
-                {t('result.percent', { percent: Math.round(attempt.scorePercent ?? 0) })}
-              </TableCell>
-              <TableCell
-                sx={{ color: attempt.passed ? 'success.main' : 'text.secondary', fontWeight: 500 }}
-              >
-                {attempt.passed ? t('history.passed') : t('history.notPassed')}
-              </TableCell>
+      <TableContainer
+        component={Paper}
+        variant="outlined"
+        sx={{ borderRadius: '14px', bgcolor: 'background.paper' }}
+      >
+        <Table
+          size="small"
+          sx={{
+            '& .MuiTableCell-root': { borderColor: 'divider', py: 1.5 },
+            '& .MuiTableHead-root': { bgcolor: 'surfaceMuted' },
+          }}
+        >
+          <TableHead>
+            <TableRow>
+              <TableCell>{t('history.date')}</TableCell>
+              <TableCell align="right">{t('history.score')}</TableCell>
+              <TableCell>{t('history.outcome')}</TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHead>
+          <TableBody>
+            {submitted.map((attempt) => (
+              <TableRow
+                key={attempt.id}
+                sx={{
+                  '&:last-child td, &:last-child th': { borderBottom: 0 },
+                  '&:hover': { bgcolor: 'action.hover' },
+                }}
+              >
+                <TableCell>{formatDateTime(attempt.submittedAt ?? attempt.startedAt)}</TableCell>
+                <TableCell align="right">
+                  {t('result.percent', { percent: Math.round(attempt.scorePercent ?? 0) })}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: attempt.passed ? 'success.main' : 'text.secondary',
+                    fontWeight: 600,
+                  }}
+                >
+                  {attempt.passed ? t('history.passed') : t('history.notPassed')}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Stack>
   );
 }

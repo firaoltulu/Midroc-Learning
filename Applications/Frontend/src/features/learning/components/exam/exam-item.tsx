@@ -1,4 +1,5 @@
 import Alert from '@mui/material/Alert';
+import Box from '@mui/material/Box';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -27,6 +28,20 @@ type Step =
   | { kind: 'overview'; notice?: 'timeExceeded' | 'alreadySubmitted' | 'saved' }
   | { kind: 'taking'; session: ExamSession }
   | { kind: 'result'; result: ExamResult; questions: ExamQuestion[] };
+
+const stageSx = {
+  maxWidth: 880,
+  mx: 'auto',
+  p: { xs: 1.5, sm: 2.5 },
+  border: 1,
+  borderTopWidth: 3,
+  borderColor: 'divider',
+  borderTopColor: 'primary.main',
+  borderRadius: '20px',
+  bgcolor: 'background.paper',
+  backgroundImage:
+    'radial-gradient(circle at 100% 0%, rgba(var(--mui-palette-primary-mainChannel) / 0.07), transparent 34%)',
+};
 
 /**
  * An exam item: overview → one question at a time → review → result. Answers are kept per
@@ -131,40 +146,44 @@ export default function ExamItem({
 
   if (step.kind === 'result') {
     return (
-      <ExamResultView
-        examId={examId}
-        result={step.result}
-        questions={step.questions}
-        contentLang={contentLang}
-        onTryAgain={() => {
-          submit.reset();
-          start.reset();
-          setStep({ kind: 'overview' });
-        }}
-      />
+      <Box sx={stageSx}>
+        <ExamResultView
+          examId={examId}
+          result={step.result}
+          questions={step.questions}
+          contentLang={contentLang}
+          onTryAgain={() => {
+            submit.reset();
+            start.reset();
+            setStep({ kind: 'overview' });
+          }}
+        />
+      </Box>
     );
   }
 
   return (
-    <ExamOverview
-      examId={examId}
-      contentLang={contentLang}
-      starting={start.isPending}
-      startError={start.error}
-      onStart={handleStart}
-      notice={
-        step.notice === 'saved' ? (
-          <Alert severity="info" variant="outlined" role="status">
-            {t('notice.saved')}
-          </Alert>
-        ) : step.notice ? (
-          <Alert severity="warning" variant="outlined" role="alert">
-            {step.notice === 'timeExceeded'
-              ? t('notice.timeExceeded')
-              : t('notice.alreadySubmitted')}
-          </Alert>
-        ) : undefined
-      }
-    />
+    <Box sx={stageSx}>
+      <ExamOverview
+        examId={examId}
+        contentLang={contentLang}
+        starting={start.isPending}
+        startError={start.error}
+        onStart={handleStart}
+        notice={
+          step.notice === 'saved' ? (
+            <Alert severity="info" variant="outlined" role="status">
+              {t('notice.saved')}
+            </Alert>
+          ) : step.notice ? (
+            <Alert severity="warning" variant="outlined" role="alert">
+              {step.notice === 'timeExceeded'
+                ? t('notice.timeExceeded')
+                : t('notice.alreadySubmitted')}
+            </Alert>
+          ) : undefined
+        }
+      />
+    </Box>
   );
 }

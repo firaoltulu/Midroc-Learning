@@ -1,12 +1,14 @@
 import ArrowBackOutlined from '@mui/icons-material/ArrowBackOutlined';
 import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined';
 import RadioButtonUncheckedOutlined from '@mui/icons-material/RadioButtonUncheckedOutlined';
+import SaveOutlined from '@mui/icons-material/SaveOutlined';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import Dialog from '@mui/material/Dialog';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import LinearProgress from '@mui/material/LinearProgress';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import Radio from '@mui/material/Radio';
@@ -103,9 +105,11 @@ export function ExamTaking({
           flexShrink: 0,
           alignItems: 'center',
           px: { xs: 1.5, sm: 3 },
-          bgcolor: 'background.paper',
+          bgcolor: 'rgba(var(--mui-palette-background-paperChannel) / 0.9)',
+          backdropFilter: 'blur(16px)',
           borderBottom: 1,
           borderColor: 'divider',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
         }}
       >
         <BrandLogo variant="mark" height={28} decorative />
@@ -133,54 +137,96 @@ export function ExamTaking({
             onExpire={onSubmit}
           />
         ) : null}
-        <Button variant="outlined" onClick={onExit} sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}>
+        <Button
+          variant="outlined"
+          startIcon={<SaveOutlined />}
+          onClick={onExit}
+          sx={{ flexShrink: 0, whiteSpace: 'nowrap', borderRadius: '10px' }}
+        >
           {t('taking.saveAndExit')}
         </Button>
       </Stack>
 
       <Box sx={{ flex: 1, overflow: 'auto', px: 2, py: { xs: 3, sm: 5 } }}>
-        <Stack spacing={4} sx={{ maxWidth: 720, mx: 'auto' }}>
-          <Stack spacing={1}>
-            <Navigator
-              count={questions.length}
-              current={reviewing ? -1 : index}
-              isAnswered={(position) => {
-                const entry = questions[position];
-                return entry ? isAnswered(answers, entry.id) : false;
-              }}
-              onSelect={goTo}
-            />
-            <Typography variant="body2" color="text.secondary">
-              {t('taking.answeredCount', {
-                answered: questions.length - unanswered,
-                total: questions.length,
-              })}
-            </Typography>
-          </Stack>
+        <Stack spacing={3} sx={{ maxWidth: 800, mx: 'auto' }}>
+          <Box
+            sx={{
+              p: { xs: 1.25, sm: 1.75 },
+              border: 1,
+              borderColor: 'divider',
+              borderRadius: '16px',
+              bgcolor: 'surfaceMuted',
+            }}
+          >
+            <Stack spacing={1.5}>
+              <Typography variant="body2" color="text.secondary" sx={{ px: 0.5 }}>
+                {t('taking.answeredCount', {
+                  answered: questions.length - unanswered,
+                  total: questions.length,
+                })}
+              </Typography>
+              <LinearProgress
+                variant="determinate"
+                value={
+                  questions.length ? ((questions.length - unanswered) / questions.length) * 100 : 0
+                }
+                aria-label={t('taking.answeredCount', {
+                  answered: questions.length - unanswered,
+                  total: questions.length,
+                })}
+                sx={{
+                  height: 6,
+                  borderRadius: 999,
+                  bgcolor: 'background.paper',
+                  '& .MuiLinearProgress-bar': { borderRadius: 999 },
+                }}
+              />
+              <Navigator
+                count={questions.length}
+                current={reviewing ? -1 : index}
+                isAnswered={(position) => {
+                  const entry = questions[position];
+                  return entry ? isAnswered(answers, entry.id) : false;
+                }}
+                onSelect={goTo}
+              />
+            </Stack>
+          </Box>
 
           {reviewing || !question ? (
             <Stack spacing={2}>
-              <Typography
-                ref={headingRef}
-                tabIndex={-1}
-                variant="h3"
-                component="h2"
-                sx={{ outline: 'none' }}
+              <Box
+                sx={{
+                  p: { xs: 2, sm: 2.5 },
+                  border: 1,
+                  borderColor: 'divider',
+                  borderRadius: '16px',
+                  bgcolor: 'surfaceMuted',
+                }}
               >
-                {t('review.title')}
-              </Typography>
-              <Typography color="text.secondary">
-                {unanswered > 0
-                  ? t('review.unanswered', { count: unanswered })
-                  : t('review.allAnswered')}
-              </Typography>
+                <Typography
+                  ref={headingRef}
+                  tabIndex={-1}
+                  variant="h3"
+                  component="h2"
+                  sx={{ outline: 'none' }}
+                >
+                  {t('review.title')}
+                </Typography>
+                <Typography color="text.secondary" sx={{ mt: 0.75 }}>
+                  {unanswered > 0
+                    ? t('review.unanswered', { count: unanswered })
+                    : t('review.allAnswered')}
+                </Typography>
+              </Box>
               <List
                 disablePadding
                 sx={{
+                  overflow: 'hidden',
                   bgcolor: 'background.paper',
                   border: 1,
                   borderColor: 'divider',
-                  borderRadius: '14px',
+                  borderRadius: '16px',
                 }}
               >
                 {questions.map((entry, position) => {
@@ -200,7 +246,7 @@ export function ExamTaking({
                           {answered ? t('review.change') : t('review.answer')}
                         </Button>
                       }
-                      sx={{ pr: 12 }}
+                      sx={{ py: 1.5, pr: 12 }}
                     >
                       <Stack
                         direction="row"
@@ -260,14 +306,29 @@ export function ExamTaking({
                 >
                   {t('taking.previous')}
                 </Button>
-                <Button variant="contained" size="large" disabled={submitting} onClick={submit}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  disabled={submitting}
+                  onClick={submit}
+                  sx={{ borderRadius: '10px' }}
+                >
                   {submitting ? t('review.submitting') : t('review.submit')}
                 </Button>
               </Stack>
             </Stack>
           ) : (
-            <Stack spacing={4}>
-              <Box>
+            <Stack spacing={3}>
+              <Box
+                sx={{
+                  p: { xs: 2, sm: 3 },
+                  border: 1,
+                  borderColor: 'divider',
+                  borderRadius: '18px',
+                  bgcolor: 'background.paper',
+                  boxShadow: '0 8px 26px rgba(0, 0, 0, 0.05)',
+                }}
+              >
                 {/* The caption is the heading that takes focus; the prompt is the group's legend (a
                 legend always renders first in its fieldset, so the caption sits outside). */}
                 <Typography
@@ -275,8 +336,8 @@ export function ExamTaking({
                   tabIndex={-1}
                   component="h2"
                   variant="body2"
-                  color="text.secondary"
-                  sx={{ outline: 'none', mb: 1 }}
+                  color="primary.main"
+                  sx={{ outline: 'none', mb: 1.5, fontWeight: 600 }}
                 >
                   {t('taking.questionMeta', {
                     question: t('taking.questionOf', {
@@ -339,16 +400,27 @@ export function ExamTaking({
                           }
                           sx={{
                             m: 0,
-                            minHeight: 56,
-                            px: 1.5,
-                            py: 0.5,
-                            // Selected: a thicker border and a tint (not color alone: the control
-                            // shows the state too).
+                            minHeight: 60,
+                            px: { xs: 1.25, sm: 1.75 },
+                            py: 0.75,
                             border: selected ? 2 : 1,
-                            borderRadius: '10px',
+                            borderRadius: '12px',
                             borderColor: selected ? 'primary.main' : 'inputBorder',
                             bgcolor: selected ? 'status.published.bg' : 'background.paper',
                             alignItems: 'center',
+                            transition: (theme) =>
+                              theme.transitions.create(
+                                ['transform', 'border-color', 'background-color', 'box-shadow'],
+                                { duration: theme.transitions.duration.short },
+                              ),
+                            '@media (hover: hover)': {
+                              '&:hover': {
+                                transform: 'translateY(-1px)',
+                                borderColor: 'primary.main',
+                                boxShadow:
+                                  '0 4px 12px rgba(var(--mui-palette-primary-mainChannel) / 0.1)',
+                              },
+                            },
                           }}
                         />
                       );
@@ -356,7 +428,11 @@ export function ExamTaking({
                   </Stack>
                 </Box>
               </Box>
-
+              {submitError ? (
+                <Alert severity="error" variant="outlined">
+                  {submitError}
+                </Alert>
+              ) : null}
               <Stack
                 direction="row"
                 spacing={1.5}
@@ -381,6 +457,7 @@ export function ExamTaking({
                     onClick={() => {
                       setReviewing(true);
                     }}
+                    sx={{ borderRadius: '10px' }}
                   >
                     {t('taking.review')}
                   </Button>
@@ -390,6 +467,7 @@ export function ExamTaking({
                       onClick={() => {
                         goTo(index + 1);
                       }}
+                      sx={{ borderRadius: '10px' }}
                     >
                       {t('taking.next')}
                     </Button>
