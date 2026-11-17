@@ -28,7 +28,9 @@ export const authoringQueryOptions = (courseId: string) =>
   queryOptions({
     queryKey: authoringKeys.course(courseId),
     queryFn: async ({ signal }) =>
-      authoringViewSchema.parse(await apiRequest(`/courses/${courseId}/authoring`, { signal })),
+      authoringViewSchema.parse(
+        await apiRequest(`/courses/${courseId}/authoring`, { signal, cache: 'no-store' }),
+      ),
     ...authoringQuery,
   });
 

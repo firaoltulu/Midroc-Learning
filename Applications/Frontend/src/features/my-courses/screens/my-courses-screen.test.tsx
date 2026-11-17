@@ -52,7 +52,8 @@ describe('/my-courses', () => {
       within(rows.find((item) => within(item).queryByText(title)) as HTMLElement);
 
     expect(row('Ladder safety').getByText('Draft')).toBeVisible();
-    expect(row('Ladder safety').getByText(/^0 modules · Updated/)).toBeVisible();
+    expect(row('Ladder safety').getByText('0 modules')).toBeVisible();
+    expect(row('Ladder safety').getByText(/^Updated/)).toBeVisible();
     expect(row('Fire safety').getByText('Published')).toBeVisible();
     expect(row('Fire safety').getByText('Changes in review')).toBeVisible();
     expect(row('Fire safety').getByText(/14 learners enrolled/)).toBeVisible();

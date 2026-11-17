@@ -20,6 +20,7 @@ function uuidParam(req: Request, key: string): string {
 }
 
 export async function authoring(req: Request, res: Response): Promise<void> {
+  res.setHeader('Cache-Control', 'private, no-store');
   res.json(await service.authoringTree(uuidParam(req, 'courseId'), req.user));
 }
 

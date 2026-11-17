@@ -1,3 +1,4 @@
+import { keyframes } from '@emotion/react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -6,11 +7,32 @@ import Stack from '@mui/material/Stack';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
+const loadingShimmer = keyframes`
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+`;
+
 /** Wraps skeleton shapes and announces "Loading" once to assistive technology. */
 export function LoadingRegion({ children, label }: { children: ReactNode; label?: string }) {
   const { t } = useTranslation('common');
   return (
-    <Box role="status" aria-busy="true" aria-label={label ?? t('loading')}>
+    <Box
+      role="status"
+      aria-busy="true"
+      aria-label={label ?? t('loading')}
+      sx={(theme) => ({
+        '& .MuiSkeleton-root': {
+          backgroundColor: 'action.hover',
+          backgroundImage: `linear-gradient(100deg, transparent 20%, color-mix(in srgb, ${(theme.vars ?? theme).palette.primary.main} 14%, transparent) 50%, transparent 80%)`,
+          backgroundSize: '220% 100%',
+          animation: `${loadingShimmer} 1.8s ease-in-out infinite`,
+          '@media (prefers-reduced-motion: reduce)': {
+            animation: 'none',
+            backgroundImage: 'none',
+          },
+        },
+      })}
+    >
       <Box aria-hidden>{children}</Box>
     </Box>
   );

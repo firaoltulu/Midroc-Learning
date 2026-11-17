@@ -80,6 +80,22 @@ describe('apiRequest', () => {
     expect(seen).toEqual([null]);
   });
 
+  it('uses the requested browser cache mode', async () => {
+    fakeAuth();
+    server.use(http.get(api('/courses/c1'), () => HttpResponse.json({ id: 'c1' })));
+    const fetchImpl = globalThis.fetch;
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation((input, init) => fetchImpl(input, init));
+
+    try {
+      await apiRequest('/courses/c1', { cache: 'no-store' });
+      expect(fetchSpy.mock.calls[0]?.[1]?.cache).toBe('no-store');
+    } finally {
+      fetchSpy.mockRestore();
+    }
+  });
+
   it('returns undefined for 204 No Content', async () => {
     fakeAuth();
     server.use(http.delete(api('/courses/c1'), () => new HttpResponse(null, { status: 204 })));

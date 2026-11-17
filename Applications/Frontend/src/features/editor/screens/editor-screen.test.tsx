@@ -22,6 +22,26 @@ async function openContent(path = `${EDIT}?tab=content`) {
 }
 
 describe('details: autosave', () => {
+  it('loads the private authoring view without browser cache revalidation', async () => {
+    mockAuthoringApi();
+    const fetchImpl = globalThis.fetch;
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation((input, init) => fetchImpl(input, init));
+
+    try {
+      await renderRoute(EDIT);
+      await screen.findByRole('textbox', { name: 'Course title' });
+
+      const authoringRequest = fetchSpy.mock.calls.find(
+        ([input]) => typeof input === 'string' && input.includes('/courses/course-1/authoring'),
+      );
+      expect(authoringRequest?.[1]?.cache).toBe('no-store');
+    } finally {
+      fetchSpy.mockRestore();
+    }
+  });
+
   it('shows Saving… then All changes saved, sending only the changed field once', async () => {
     const mock = mockAuthoringApi();
     const { user } = await renderRoute(EDIT);

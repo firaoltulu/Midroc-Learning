@@ -24,6 +24,19 @@ export type ContentItem = {
   timeLimitMinutes: number | null;
 };
 
+type ContentItemRow = Omit<ContentItem, 'sizeBytes'> & {
+  sizeBytes: number | string | null;
+};
+
+function parseSizeBytes(value: number | string | null): number | null {
+  if (value === null) return null;
+  const sizeBytes = typeof value === 'string' ? Number(value) : value;
+  if (!Number.isSafeInteger(sizeBytes) || sizeBytes < 0) {
+    throw new RangeError('PDF size_bytes must be a non-negative safe integer');
+  }
+  return sizeBytes;
+}
+
 export async function listModules(db: Queryable, courseId: string): Promise<ContentModule[]> {
   const { rows } = await db.query<ContentModule>(
     `SELECT id, title, description, position FROM modules
@@ -34,7 +47,7 @@ export async function listModules(db: Queryable, courseId: string): Promise<Cont
 }
 
 export async function listItems(db: Queryable, moduleId: string): Promise<ContentItem[]> {
-  const { rows } = await db.query<ContentItem>(
+  const { rows } = await db.query<ContentItemRow>(
     `SELECT i.id, i.type, i.title, i.position,
        v.youtube_video_id AS "youtubeVideoId", v.youtube_title AS "youtubeTitle",
        v.is_available AS "isAvailable",
@@ -48,7 +61,7 @@ export async function listItems(db: Queryable, moduleId: string): Promise<Conten
      WHERE i.module_id = $1 ORDER BY i.position`,
     [moduleId]
   );
-  return rows;
+  return rows.map((row) => ({ ...row, sizeBytes: parseSizeBytes(row.sizeBytes) }));
 }
 
 export async function nextModulePosition(db: Queryable, courseId: string): Promise<number> {

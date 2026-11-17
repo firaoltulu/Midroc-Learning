@@ -1,6 +1,10 @@
+import ArrowOutwardOutlined from '@mui/icons-material/ArrowOutwardOutlined';
+import CalendarTodayOutlined from '@mui/icons-material/CalendarTodayOutlined';
+import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined';
 import SchoolOutlined from '@mui/icons-material/SchoolOutlined';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
 import LinearProgress from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -24,7 +28,7 @@ export function LearningScreen() {
   const enrollments = useQuery(enrollmentsQueryOptions());
 
   return (
-    <Stack spacing={3}>
+    <Stack spacing={3} sx={{ pb: 2 }}>
       <PageHeader title={t('title')} description={t('description')} />
       {enrollments.isPending ? (
         <ListSkeleton rows={3} />
@@ -67,8 +71,23 @@ function EnrollmentRow({ enrollment }: { enrollment: Enrollment }) {
       sx={{
         position: 'relative',
         display: 'grid',
-        gridTemplateColumns: { xs: '1fr', sm: '200px minmax(0, 1fr)' },
-        '&:hover': { borderColor: 'text.secondary' },
+        gridTemplateColumns: { xs: '1fr', sm: '220px minmax(0, 1fr)' },
+        overflow: 'hidden',
+        borderColor: 'divider',
+        borderRadius: '18px',
+        bgcolor: 'background.paper',
+        boxShadow: '0 4px 16px rgba(13, 36, 25, 0.045)',
+        transition: (theme) =>
+          theme.transitions.create(['border-color', 'box-shadow', 'transform'], {
+            duration: theme.transitions.duration.short,
+          }),
+        '&:hover': {
+          borderColor: 'primary.main',
+          boxShadow: '0 12px 30px rgba(13, 36, 25, 0.12)',
+          transform: 'translateY(-3px)',
+        },
+        '&:hover [data-testid="course-thumbnail"] img': { transform: 'scale(1.04)' },
+        '&:hover h2 a': { color: 'primary.main' },
         '&:has(a:focus-visible)': {
           outline: '2px solid',
           outlineColor: 'primary.main',
@@ -76,41 +95,101 @@ function EnrollmentRow({ enrollment }: { enrollment: Enrollment }) {
         },
       }}
     >
-      <CourseThumbnail src={enrollment.thumbnailUrl} />
-      <Stack spacing={1.5} sx={{ p: 2, minWidth: 0, justifyContent: 'center' }}>
-        <Typography variant="h4" component="h2" sx={{ overflowWrap: 'anywhere' }} {...contentLang}>
-          <RouterLink
-            to="/courses/$courseId"
-            params={{ courseId: enrollment.id }}
-            underline="none"
-            color="inherit"
-            sx={{
-              '&::after': { content: '""', position: 'absolute', inset: 0 },
-              '&:focus-visible': { outline: 'none' },
-            }}
+      <Box
+        sx={{
+          minHeight: { sm: 168 },
+          '& [data-testid="course-thumbnail"]': {
+            height: '100%',
+            minHeight: { sm: 168 },
+            aspectRatio: { xs: '16 / 9', sm: 'auto' },
+          },
+        }}
+      >
+        <CourseThumbnail src={enrollment.thumbnailUrl} />
+      </Box>
+      <Stack spacing={1.5} sx={{ p: { xs: 1.75, sm: 2.5 }, minWidth: 0, justifyContent: 'center' }}>
+        {enrollment.category ? (
+          <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 700 }}>
+            {enrollment.category}
+          </Typography>
+        ) : null}
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', minWidth: 0 }}>
+          <Typography
+            variant="h4"
+            component="h2"
+            sx={{ overflowWrap: 'anywhere', minWidth: 0, flex: 1 }}
+            {...contentLang}
           >
-            {enrollment.title}
-          </RouterLink>
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {t('enrolledOn', { date: formatDate(enrollment.enrolledAt) })}
-        </Typography>
-        <Box>
-          <Stack direction="row" sx={{ justifyContent: 'space-between', mb: 0.5 }}>
-            <Typography variant="body2" color={done ? 'success.main' : 'text.secondary'}>
-              {done ? t('progress.completed') : t('progress.inProgress')}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {t('progress.percent', { percent: enrollment.progressPercent })}
-            </Typography>
-          </Stack>
-          <LinearProgress
-            variant="determinate"
-            value={enrollment.progressPercent}
-            color={done ? 'success' : 'primary'}
-            aria-label={t('progress.label', { title: enrollment.title })}
-            sx={{ height: 8, borderRadius: 4 }}
+            <RouterLink
+              to="/courses/$courseId"
+              params={{ courseId: enrollment.id }}
+              underline="none"
+              color="inherit"
+              sx={{
+                '&::after': { content: '""', position: 'absolute', inset: 0 },
+                '&:focus-visible': { outline: 'none' },
+              }}
+            >
+              {enrollment.title}
+            </RouterLink>
+          </Typography>
+          <ArrowOutwardOutlined
+            aria-hidden
+            sx={{ color: 'text.disabled', fontSize: 20, flexShrink: 0 }}
           />
+        </Stack>
+        <Chip
+          size="small"
+          icon={<CalendarTodayOutlined />}
+          label={t('enrolledOn', { date: formatDate(enrollment.enrolledAt) })}
+          sx={{
+            alignSelf: 'flex-start',
+            bgcolor: 'surfaceMuted',
+            color: 'text.secondary',
+            '& .MuiChip-icon': { color: 'text.secondary', fontSize: 16 },
+          }}
+        />
+        <Box
+          sx={{
+            p: { xs: 1.5, sm: 1.75 },
+            border: 1,
+            borderColor: 'divider',
+            borderRadius: '14px',
+            bgcolor: 'surfaceMuted',
+          }}
+        >
+          <Stack spacing={1}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              {done ? (
+                <CheckCircleOutlined fontSize="small" sx={{ color: 'success.main' }} />
+              ) : null}
+              <Typography
+                variant="body2"
+                color={done ? 'success.main' : 'text.secondary'}
+                sx={{ flex: 1, fontWeight: 600 }}
+              >
+                {done ? t('progress.completed') : t('progress.inProgress')}
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}
+              >
+                {t('progress.percent', { percent: enrollment.progressPercent })}
+              </Typography>
+            </Stack>
+            <LinearProgress
+              variant="determinate"
+              value={enrollment.progressPercent}
+              color={done ? 'success' : 'primary'}
+              aria-label={t('progress.label', { title: enrollment.title })}
+              sx={{
+                height: 8,
+                borderRadius: 999,
+                bgcolor: 'background.paper',
+                '& .MuiLinearProgress-bar': { borderRadius: 999 },
+              }}
+            />
+          </Stack>
         </Box>
       </Stack>
     </Card>

@@ -45,6 +45,8 @@ export interface RequestOptions {
   signal?: AbortSignal;
   /** Lets a request outlive the page (progress saved on page hide). */
   keepalive?: boolean;
+  /** HTTP cache mode; React Query owns API caching for requests that opt out of browser caching. */
+  cache?: RequestCache;
 }
 
 /** Builds the absolute request URL (absolute so it also works outside a browser, in tests). */
@@ -97,6 +99,7 @@ async function send(url: string, options: RequestOptions, token: string | null) 
             : JSON.stringify(options.body),
       signal: options.signal,
       keepalive: options.keepalive,
+      cache: options.cache,
     });
   } catch (error) {
     // Cancellation is not a failure; let TanStack Query see the AbortError.
